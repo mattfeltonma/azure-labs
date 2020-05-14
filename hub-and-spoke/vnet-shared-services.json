@@ -1,0 +1,1011 @@
+{
+    "$schema":"https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion":"1.0.0.0",
+    "parameters": {
+        "environment": {
+            "type": "string",
+            "metadata": {
+                "description": "Value used for Environment applied to all taggable resources"
+            }
+        },
+        "vnetName": {
+            "type":"string",
+            "defaultValue": "vnet-shared",
+            "metadata": {
+                "description":"Name of Vnet"
+            }
+        },
+        "vnetCIDR": {
+            "type":"string",
+            "defaultValue": "10.50.0.0/16",
+            "metadata": {
+                "description":"CIDR of Shared Services VNet"
+            }
+        },
+        "gwSubnetCIDR": {
+            "type":"string",
+            "defaultValue": "10.50.0.0/24",
+            "metadata": {
+                "description":"CIDR of Gateway Subnet"
+            }
+        },
+        "fwSubnetCIDR": {
+            "type":"string",
+            "defaultValue": "10.50.1.0/24",
+            "metadata": {
+                "description":"CIDR of Azure Firewall"
+            }
+        },
+        "bastionSubnetCIDR": {
+            "type":"string",
+            "defaultValue": "10.50.2.0/24",
+            "metadata": {
+                "description":"CIDR of Bastion subnet"
+            }
+        },
+        "intADSubnetCIDR": {
+            "type":"string",
+            "defaultValue": "10.50.3.0/24",
+            "metadata": {
+                "description":"CIDR of Internal Active Directory subnet"
+            }
+        },
+        "dmzAdSubnetCIDR": {
+            "type":"string",
+            "defaultValue": "10.50.4.0/24",
+            "metadata": {
+                "description":"CIDR of DMZ Active Directory subnet"
+            }
+        },
+        "ssSubnetCIDR": {
+            "type":"string",
+            "defaultValue": "10.50.5.0/24",
+            "metadata": {
+                "description":"CIDR of extra shared services subnet"
+            }
+        },
+        "mgmtSubnetCIDR": {
+            "type":"string",
+            "defaultValue": "10.50.6.0/24",
+            "metadata": {
+                "description":"CIDR of Management subnet"
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "apiVersionNum": "2019-09-01",
+        "bastionSubnetName": "AzureBastionSubnet",
+        "internalADSubnetName": "snet-intad",
+        "dmzADSubnetName": "snet-dmzad",
+        "ssSubnetName": "snet-shared",
+        "mgmtSubnetName": "snet-mgmt",
+        "adintAppSecGroupName": "asg-addsint",
+        "addmzAppSecGroupName": "asg-addsdmz",
+        "adcsAppSecGroupName": "asg-adcs",
+        "adfsAppSecGroupName": "asg-adfs",
+        "aadcAppSecGroupName": "asg-aadc",         
+        "mgmtAppSecGroupName": "asg-mgmt",
+        "sharedNsgName": "nsg-shared",
+        "intAdNsgName": "nsg-intad",
+        "dmzAdNsgName": "nsg-dmzad",
+        "mgmtNsgName": "nsg-mgmt",
+        "bastionPublicIpName": "pip-bastion",
+        "bastionName": "bstss",
+        "vngPublicIpName": "pip-vngvpn",
+        "vngName":"vng-vpn"
+    },
+    "resources" : [
+        {
+            "name": "[variables('adintAppSecGroupName')]",
+            "type": "Microsoft.Network/applicationSecurityGroups",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "environment":"[parameters('environment')]"
+            },
+            "properties": {}
+        },
+        {
+            "name": "[variables('addmzAppSecGroupName')]",
+            "type": "Microsoft.Network/applicationSecurityGroups",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "environment":"[parameters('environment')]"
+            },
+            "properties": {}
+        },
+        {
+            "name": "[variables('adcsAppSecGroupName')]",
+            "type": "Microsoft.Network/applicationSecurityGroups",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "environment":"[parameters('environment')]"
+            },
+            "properties": {}
+        },
+        {
+            "name": "[variables('adfsAppSecGroupName')]",
+            "type": "Microsoft.Network/applicationSecurityGroups",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "environment":"[parameters('environment')]"
+            },
+            "properties": {}
+        },
+        {
+            "name": "[variables('aadcAppSecGroupName')]",
+            "type": "Microsoft.Network/applicationSecurityGroups",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "environment":"[parameters('environment')]"
+            },
+            "properties": {}
+        },
+        {
+            "name": "[variables('mgmtAppSecGroupName')]",
+            "type": "Microsoft.Network/applicationSecurityGroups",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "environment":"[parameters('environment')]"
+            },
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('intAdNsgName')]",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/applicationSecurityGroups/', variables('adintAppSecGroupName'))]"
+            ],
+            "tags": {
+                "Environment":"[parameters('environment')]"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name":"AllowADWS",
+                        "properties": {
+                            "description": "Client - Allow AD Web Services",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "9389",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowADGlbCat",
+                        "properties": {
+                            "description": "Client - Allow AD Global Catalog",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3268-3269",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowLdap",
+                        "properties": {
+                            "description": "Client - Allow AD LDAP",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "389",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowLdapSsl",
+                        "properties": {
+                            "description": "Client - Allow AD SSL",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "636",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 103,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowRpcMapper",
+                        "properties": {
+                            "description": "Client - Allow RPC Mapper",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "135",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 104,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowRpcDynamic",
+                        "properties": {
+                            "description": "Client - Allow RPC dynamic ports",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "49152-65535",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 105,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowSmb",
+                        "properties": {
+                            "description": "Client - Allow Smb",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "445",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 106,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowDns",
+                        "properties": {
+                            "description": "Client - Allow Dns",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "53",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 107,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowKerberos",
+                        "properties": {
+                            "description": "Client - Allow Kerberos",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "88",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 108,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowDfsr",
+                        "properties": {
+                            "description": "DC - Allow DFSR (SYSVOL)",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "5722",
+                            "sourceApplicationSecurityGroups": [
+                                {
+                                    "id":"[resourceId('Microsoft.Network/applicationSecurityGroups', variables('adintAppSecGroupName'))]"
+                                }
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 109,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowNtp",
+                        "properties": {
+                            "description": "Client - Allow NTP",
+                            "protocol": "Udp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "123",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AlllowKerbChgSet",
+                        "properties": {
+                            "description": "Client - Allow Kerberos Password Set/Change",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "464",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 111,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowNetbiosUdp",
+                        "properties": {
+                            "description": "Client - Allow NETBIOS UDP",
+                            "protocol": "Udp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "137-138",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 112,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowNetbiosTcp",
+                        "properties": {
+                            "description": "Client - Allow NETBIOS TCP",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "139",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 113,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowRdp",
+                        "properties": {
+                            "description": "Allow Rdp",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceApplicationSecurityGroups": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/applicationSecurityGroups', variables('mgmtAppSecGroupName'))]"
+                                }
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 114,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access":"Deny",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('dmzAdNsgName')]",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/applicationSecurityGroups/', variables('addmzAppSecGroupName'))]"
+            ],
+            "tags": {
+                "Environment":"[parameters('environment')]"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name":"AllowADWS",
+                        "properties": {
+                            "description": "Client - Allow AD Web Services",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "9389",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowADGlbCat",
+                        "properties": {
+                            "description": "Client - Allow AD Global Catalog",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3268-3269",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowLdap",
+                        "properties": {
+                            "description": "Client - Allow AD LDAP",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "389",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowLdapSsl",
+                        "properties": {
+                            "description": "Client - Allow AD SSL",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "636",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 103,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowRpcMapper",
+                        "properties": {
+                            "description": "Client - Allow RPC Mapper",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "135",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 104,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowRpcDynamic",
+                        "properties": {
+                            "description": "Client - Allow RPC dynamic ports",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "49152-65535",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 105,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowSmb",
+                        "properties": {
+                            "description": "Client - Allow Smb",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "445",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 106,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowDns",
+                        "properties": {
+                            "description": "Client - Allow Dns",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "53",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 107,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowKerberos",
+                        "properties": {
+                            "description": "Client - Allow Kerberos",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "88",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 108,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowDfsr",
+                        "properties": {
+                            "description": "DC - Allow DFSR (SYSVOL)",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "5722",
+                            "sourceApplicationSecurityGroups": [
+                                {
+                                    "id":"[resourceId('Microsoft.Network/applicationSecurityGroups', variables('addmzAppSecGroupName'))]"
+                                }
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 109,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowNtp",
+                        "properties": {
+                            "description": "Client - Allow NTP",
+                            "protocol": "Udp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "123",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AlllowKerbChgSet",
+                        "properties": {
+                            "description": "Client - Allow Kerberos Password Set/Change",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "464",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 111,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowNetbiosUdp",
+                        "properties": {
+                            "description": "Client - Allow NETBIOS UDP",
+                            "protocol": "Udp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "137-138",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 112,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowNetbiosTcp",
+                        "properties": {
+                            "description": "Client - Allow NETBIOS TCP",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "139",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 113,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowRdp",
+                        "properties": {
+                            "description": "Allow Rdp",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceApplicationSecurityGroups": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/applicationSecurityGroups', variables('mgmtAppSecGroupName'))]"
+                                }
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 114,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access":"Deny",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('sharedNsgName')]",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/applicationSecurityGroups/', variables('mgmtAppSecGroupName'))]",
+                "[concat('Microsoft.Network/applicationSecurityGroups/', variables('adcsAppSecGroupName'))]"
+            ],
+            "tags": {
+                "Environment":"[parameters('environment')]"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name":"AllowRdp",
+                        "properties": {
+                            "description": "Allow Rdp",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceApplicationSecurityGroups": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/applicationSecurityGroups', variables('mgmtAppSecGroupName'))]"
+                                }
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowRpcMapper",
+                        "properties": {
+                            "description": "Allow RPC Mapper for AD CS",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "135",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationApplicationSecurityGroups": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/applicationSecurityGroups', variables('adcsAppSecGroupName'))]"
+                                }
+                            ],
+                            "access":"Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowDynamicRpcPorts",
+                        "properties": {
+                            "description": "Allow Dynamic RPC ports for AD CS",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "49152-65535",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationApplicationSecurityGroups": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/applicationSecurityGroups', variables('adcsAppSecGroupName'))]"
+                                }
+                            ],
+                            "access":"Allow",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowHttpsSts",
+                        "properties": {
+                            "description": "Allow HTTPS traffic to AD FS",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationApplicationSecurityGroups": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/applicationSecurityGroups', variables('adfsAppSecGroupName'))]"
+                                }
+                            ],
+                            "access":"Allow",
+                            "priority": 103,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AllowCrlLookup",
+                        "properties": {
+                            "description": "Allow CRL lookup",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationApplicationSecurityGroups": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/applicationSecurityGroups', variables('adcsAppSecGroupName'))]"
+                                }
+                            ],
+                            "access":"Allow",
+                            "priority": 104,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"AlloWinRmMgmt",
+                        "properties": {
+                            "description": "Allow WinRM management from AADC to AD FS for trust management of Azure AD",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "5985-5986",
+                            "sourceApplicationSecurityGroups": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/applicationSecurityGroups', variables('aadcAppSecGroupName'))]"
+                                }
+                            ],
+                            "destinationApplicationSecurityGroups": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/applicationSecurityGroups', variables('adfsAppSecGroupName'))]"
+                                }
+                            ],
+                            "access":"Allow",
+                            "priority": 105,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access":"Deny",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('mgmtNsgName')]",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "Environment":"[parameters('environment')]"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name":"AllowRdp",
+                        "properties": {
+                            "description": "Allow Rdp",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "[parameters('bastionSubnetCIDR')]",
+                            "destinationAddressPrefix": "*",
+                            "access":"Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name":"DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access":"Deny",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type":"Microsoft.Network/virtualNetworks",
+            "name": "[parameters('vnetName')]",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('sharedNsgName'))]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('intAdNsgName'))]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('dmzAdNsgName'))]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('mgmtNsgName'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetCIDR')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "GatewaySubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('gwSubnetCIDR')]"
+                        }   
+                    },
+                    {
+                        "name": "AzureFirewallSubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('fwSubnetCIDR')]"
+                        }   
+                    },
+                    {
+                        "name": "AzureBastionSubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('bastionSubnetCIDR')]"
+                        }   
+                    },
+                    {
+                        "name": "[variables('internalADSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('intADSubnetCIDR')]",
+                            "networkSecurityGroup": {
+                                "id":"[resourceId('Microsoft.Network/networkSecurityGroups', variables('intAdNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('dmzADSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('dmzAdSubnetCIDR')]",
+                            "networkSecurityGroup": {
+                                "id":"[resourceId('Microsoft.Network/networkSecurityGroups', variables('dmzAdNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('ssSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('ssSubnetCIDR')]",
+                            "networkSecurityGroup": {
+                                "id":"[resourceId('Microsoft.Network/networkSecurityGroups', variables('sharedNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('mgmtSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('mgmtSubnetCIDR')]",
+                            "networkSecurityGroup": {
+                                "id":"[resourceId('Microsoft.Network/networkSecurityGroups', variables('mgmtNsgName'))]"
+                            }
+                        }
+                    }
+                ],
+                "enableDdosProtection": false
+            },
+            "resources": []
+        },
+        {
+            "name": "[variables('bastionPublicIpName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            },
+            "tags": {
+                "Environment":"[parameters('environment')]"
+            }
+        },
+        {
+            "name": "[variables('bastionName')]",
+            "type": "Microsoft.Network/bastionHosts",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIpAddresses/', variables('bastionPublicIpName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]"
+            ],
+            "tags": {
+                "Environment":"[parameters('environment')]"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "bastionConfig",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), variables('bastionSubnetName'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }   
+                ]
+            }
+        },
+        {
+            "name": "[variables('vngPublicIpName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('apiVersionNum')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "publicIpAllocationMethod": "Dynamic"
+            },
+            "sku": {
+                "name": "Basic"
+            },
+            "tags": {
+                "Environment":"[parameters('environment')]"
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersionNum')]",
+            "name": "[variables('vngName')]",
+            "type": "Microsoft.Network/virtualNetworkGateways",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('vngPublicIpName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('vnetName'))]"
+            ],
+            "properties": {
+                "gatewayType": "vpn",
+                "ipConfigurations": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), 'GatewaySubnet')]"
+                            },
+                            "publicIpAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('vngPublicIpName'))]"
+                            }
+                        }
+                    }
+                ],
+                "vpnType": "RouteBased",
+                "vpnGatewayGeneration": "Generation2",
+                "sku": {
+                    "name": "VpnGw2",
+                    "tier": "VpnGw2"
+                }
+            }
+        }
+    ]   
+}
+  

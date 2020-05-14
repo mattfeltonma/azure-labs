@@ -1,0 +1,340 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "environment": {
+            "type": "string",
+            "metadata": {
+                "description": "Value used for Environment applied to all taggable resources"
+            }
+        },
+        "vnetCIDR": {
+            "type": "string",
+            "defaultValue": "10.51.0.0/16",
+            "metadata": {
+                "description": "CIDR of Spoke VNet"
+            }
+        },
+        "webSubnetCidr": {
+            "type": "string",
+            "defaultValue": "10.50.0.0/24",
+            "metadata": {
+                "description": "CIDR of Web subnet"
+            }
+        },
+        "dataSubnetCidr": {
+            "type": "string",
+            "defaultValue": "10.50.1.0/24",
+            "metadata": {
+                "description": "CIDR of Data subnet"
+            }
+        },
+        "mgmntSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "CIDR of the management subnet in the shared services VNet"
+            }
+        },
+        "dnsServers": {
+            "type":"array",
+            "metadata": {
+                "description": "The DNS servers configured on the VNet"
+            }
+        },
+        "sharedServicesVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Shared Services VNet"
+            }
+        },
+        "sharedServicesVnetRg": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the resource group the Shared Services VNet is in"
+            }
+        },
+        "ssSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "Subscription ID of the Shared Services resources"
+            }
+        }
+    },
+    "variables": {
+        "networkApiVersion": "2019-09-01",
+        "rgApiVersion": "2019-10-01",
+        "location": "[resourceGroup().location]",
+        "uniqueVnetName": "[concat('spoke',uniqueString(resourceGroup().id))]",
+        "webSubnetName": "[concat('snet-web',uniqueString(resourceGroup().id))]",
+        "dataSubnetName": "[concat('snet-data',uniqueString(resourceGroup().id))]",
+        "webNsgName": "[concat('nsg-web',uniqueString(resourceGroup().id))]",
+        "dataNsgName": "[concat('nsg-data',uniqueString(resourceGroup().id))]",
+        "webAsgName": "[concat('asg-web',uniqueString(resourceGroup().id))]",
+        "dataAsgName": "[concat('asg-data',uniqueString(resourceGroup().id))]",
+        "spokeToSsPeering": "[concat(variables('uniqueVnetName'),'toSs')]",
+        "sSToSpokePeering": "[concat('Ssto',variables('uniqueVnetName'))]",
+        "spokeSubscriptionId": "[subscription().subscriptionId]",
+        "spokeRgName":"[resourceGroup().name]"
+    },
+    "resources": [
+        {
+            "name": "[variables('webAsgName')]",
+            "type": "Microsoft.Network/applicationSecurityGroups",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "environment": "[parameters('environment')]"
+            },
+            "properties": {
+            }
+        },
+        {
+            "name": "[variables('dataAsgName')]",
+            "type": "Microsoft.Network/applicationSecurityGroups",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "environment": "[parameters('environment')]"
+            },
+            "properties": {
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('webNsgName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": {
+                "Environment": "[parameters('environment')]"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowRdp",
+                        "properties": {
+                            "description": "Allow Rdp from Management servers",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "[parameters('mgmntSubnetCidr')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHttp",
+                        "properties": {
+                            "description": "Allow Http traffic from Azure Load Balancer to web servers",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHttps",
+                        "properties": {
+                            "description": "Allow Https traffic from Azure Load Balancer to web servers",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('dataNsgName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/applicationSecurityGroups/', variables('webAsgName'))]"
+            ],
+            "tags": {
+                "Environment": "[parameters('environment')]"
+            },
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowRdp",
+                        "properties": {
+                            "description": "Allow Rdp from Management servers in Shared Services Vnet",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "[parameters('mgmntSubnetCidr')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowSqlMgmtAccess",
+                        "properties": {
+                            "description": "Allow SQL access from management subnet",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "1433",
+                            "sourceAddressPrefix": "[parameters('mgmntSubnetCidr')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowSqlLbAccess",
+                        "properties": {
+                            "description": "Allow SQL access from Azure Load Balancer",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "1433",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('uniqueVnetName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('webNsgName'))]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('dataNsgName'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetCIDR')]"
+                    ]
+                },
+                "dhcpOptions": {
+                    "dnsServers": "[parameters('dnsServers')]"
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('webSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('webSubnetCidr')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('webNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('dataSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('dataSubnetCidr')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('dataNsgName'))]"
+                            }
+                        }
+                    }
+                ],
+                "enableDdosProtection": false
+            },
+            "resources": [
+                {
+                    "name": "[variables('spokeToSsPeering')]",
+                    "type": "virtualNetworkPeerings",
+                    "apiVersion": "[variables('networkApiVersion')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Network/virtualNetworks/', variables('uniqueVnetName'))]"
+                    ],
+                    "properties": {
+                        "allowVirtualNetworkAccess": "true",
+                        "allowForwardedTraffic": "false",
+                        "allowGatewayTransit": "false",
+                        "useRemoteGateways": "true",
+                        "remoteVirtualNetwork": {
+                            "id": "[resourceId(parameters('ssSubscriptionId'),parameters('sharedServicesVnetRg'),'Microsoft.Network/virtualNetworks',parameters('sharedServicesVnetName'))]"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "nestedTemplate",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('rgApiVersion')]",
+            "subscriptionId": "[parameters('ssSubscriptionId')]",
+            "resourceGroup": "[parameters('sharedServicesVnetRg')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('uniqueVnetName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('sharedServicesVnetName'),'/',variables('sSToSpokePeering'))]",
+                            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                            "apiVersion": "[variables('networkApiVersion')]",
+                            "location":"[resourceGroup().location]",
+                            "properties": {
+                                "allowVirtualNetworkAccess": "true",
+                                "allowForwardedTraffic": "true",
+                                "allowGatewayTransit": "true",
+                                "remoteVirtualNetwork": {
+                                    "id": "[resourceId(variables('spokeSubscriptionId'),variables('spokeRgName'),'Microsoft.Network/virtualNetworks',variables('uniqueVnetName'))]"
+                                    }
+                                }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

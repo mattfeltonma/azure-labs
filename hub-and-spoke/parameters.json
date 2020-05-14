@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "environment": {
+            "value":"<VALUE OF ENVIRONMENT TAG>"
+        },
+        "vnetName": {
+            "value":"<NAME OF SHARED SERVICES VNET>"
+        },
+        "vnetCIDR": {
+            "value":"<CIDR BLOCK RESERVED FOR SHARED SERVICE VNET>"
+        },
+        "gwSubnetCIDR": {
+            "value":"<CIDR BLOCK RESERVED FOR GATEWAY SUBNET>"
+        },
+        "fwSubnetCIDR": {
+            "value":"<CIDR BLOCK RESERVED FOR AZURE FIREWALL SUBNET>"
+        },
+        "bastionSubnetCIDR": {
+            "value":"<CIDR BLOCK RESERVED FOR AZURE BASTION SUBNET>"
+        },
+        "intADSubnetCIDR": {
+            "value":"<CIDR BLOCK RESERVED FOR INTRANET WINDOWS AD SUBNET>"
+        },
+        "dmzAdSubnetCIDR": {
+            "value":"<CIDR BLOCK RESERVED FOR DMZ WINDOWS AD SUBNET>"
+        },
+        "ssSubnetCIDR": {
+            "value":"<CIDR BLOCK RESERVED FOR SHARED SERVICES SUBNET>"
+        },
+        "mgmtSubnetCIDR": {
+            "value":"<CIDR BLOCK RESERVED FOR MANAGEMENT SUBNET>"
+        }
+    }
+}

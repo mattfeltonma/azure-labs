@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "environment": {
+            "value": "<VALUE OF ENVIRONMENT TAG>"
+        },
+        "vnetCIDR": {
+            "value": "<CIDR OF SPOKE VNET TO BE CREATED>"
+        },
+        "webSubnetCidr": {
+            "value": "<CIDR OF WEB SUBNET>"
+        },
+        "dataSubnetCidr": {
+            "value": "<CIDR OF DATA SUBNET>"
+        },
+        "mgmntSubnetCidr": {
+            "value": "<CIDR OF MANAGEMENT SUBNET>"
+        },
+        "dnsServers": {
+            "value" : [
+                "<DNS_IP_ONE>",
+                "<DNS_IP_TWO>"
+            ]
+        },
+        "sharedServicesVnetName": {
+            "value": "<NAME OF SHARED SERVICES VNET>"
+        },
+        "sharedServicesVnetRg": {
+            "value": "<NAME OF SHARED SERVICES VNET RESOURCE GROUP>"
+        },
+        "ssSubscriptionId": {
+            "value": "<SUBSCRIPTION IF OF SHARED SERVICES VNET>"
+        }
+    }
+}
