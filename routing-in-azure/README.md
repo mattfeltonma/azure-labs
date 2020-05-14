@@ -3,7 +3,7 @@
 ## Overview
 Microsoft Azure offers significant flexibility when routing traffic to Azure, within a virtual network in Azure, and across virtual networks within Azure.  Experimentation with these concepts is a necessity to understand the intricacies of Azure's software defined networking implementation.  This is especially important for those people new to the cloud or coming to Azure from other public clouds such as AWS.
 
-This ARM template creates a small lab in Azure that demonstrates the differents options to route traffic in Azure.  It uses a [hub and spoke architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke) with multiple spokes and another Virtual Network connected to the hub through Vnet-To-Vnet VPN.  A high level image of the lab is pictured below and detailed in the included [PDF](https://github.com/mattfeltonma/azure-labs/routing-in-azure/master/blob/lab_visual.PNG).
+This ARM template creates a small lab in Azure that demonstrates the differents options to route traffic in Azure.  It uses a [hub and spoke architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke) with multiple spokes and another Virtual Network connected to the hub through Vnet-To-Vnet VPN.  A high level image of the lab is pictured below and detailed in the included [PDF](https://github.com/mattfeltonma/azure-labs/blob/master/routing-in-azure/lab_visual.PNG).
 
 ![lab image](https://github.com/mattfeltonma/azure-labs/routing-in-azure/blob/master/lab_visual.PNG)
 
