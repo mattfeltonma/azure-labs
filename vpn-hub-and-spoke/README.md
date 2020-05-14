@@ -14,5 +14,5 @@ This ARM template creates a small lab in Azure that includes a hub and spoke arc
 
 Note that you must provide two secure strings within the parameters file.  The sample parameters file in the repository demonstrates how to pull these secrets from an instance of Azure Key Vault.  Alternative, these two parameters could be provided at the command line using the commmand below:
 
-New-AzResourceGroupDeployment -Name mydeployment -ResourceGroupName "myresourcegroup" -TemplateUri https://raw.githubusercontent.com/mattfeltonma/arm-templates/master/labs/vpn-hub-and-spoke/main.json -TemplateParameterFile "<FILE_PATH>" -vmAdminPassword (ConvertTo-SecureString -Force -AsPlainText 'somepassword') -vpnSharedSecret (ConvertTo-SecureString -force -AsPlainText 'somepassword')
+**New-AzResourceGroupDeployment -Name mydeployment -ResourceGroupName "myresourcegroup" -TemplateUri https://raw.githubusercontent.com/mattfeltonma/arm-templates/master/labs/vpn-hub-and-spoke/main.json -TemplateParameterFile "<FILE_PATH>" -vmAdminPassword (ConvertTo-SecureString -Force -AsPlainText 'somepassword') -vpnSharedSecret (ConvertTo-SecureString -force -AsPlainText 'somepassword')**
 
