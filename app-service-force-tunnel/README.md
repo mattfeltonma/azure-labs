@@ -9,7 +9,7 @@ In early 2020 Microsoft introduced (Regional VNet [Virtual Network) Integration]
 
 This ARM template deploys a small lab in Azure that demonstrates Regional VNet Integration feature.  It uses a [hub and spoke architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke) where Internet-bound traffic generated from an Azure Web App is routed to an instance of Azure Firewall where it is mediated.  The Azure Firewall instance has been configured to write its logs to a Log Analytics Workspace.  [These Kusto queries](https://docs.microsoft.com/en-us/azure/firewall/log-analytics-samples) to analyze the data written to Log Analytics.
 
-![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/azure-service-force-tunnel/lab_visual.png)
+![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/app-service-force-tunnel/lab_visual.png)
 
 ## Installation
 1.  Create a resource group.
