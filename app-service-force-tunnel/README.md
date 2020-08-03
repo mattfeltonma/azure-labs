@@ -13,7 +13,7 @@ This ARM template deploys a small lab in Azure that demonstrates Regional VNet I
 
 ## Installation
 1.  Create a resource group.
-2.  Deploy the template to the resource group using the New-AzResourceGroupDeployment cmdlet.  Example: **New-AzResourceGroupDeployment -Name "myDeployment" -ResourceGroupName "myResourceGroup" -TemplateUri "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/routing-in-azure/deploy.json"**  
+2.  Deploy the template to the resource group using the New-AzResourceGroupDeployment cmdlet.  Example: **New-AzResourceGroupDeployment -Name "myDeployment" -ResourceGroupName "myResourceGroup" -TemplateUri "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/app-service-force-tunnel/deploy.json"**  
 3.  You will be prompted to provide an administrator user name and password for the local administrator accounts on the virtual machines.
 
 
