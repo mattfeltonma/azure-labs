@@ -21,7 +21,7 @@ The lab will cost around $50 - $100 a day if you shut the virtual machines down 
 
 ## Installation
 1.  Create a resource group.
-2.  Deploy the template to the resource group using the New-AzResourceGroupDeployment cmdlet.  Example: **New-AzResourceGroupDeployment -Name "myDeployment" -ResourceGroupName "myResourceGroup" -TemplateUri "https://raw.githubusercontent.com/mattfeltonma/arm-templates/master/labs/routing-in-azure/maintemplate.json"**  
+2.  Deploy the template to the resource group using the New-AzResourceGroupDeployment cmdlet.  Example: **New-AzResourceGroupDeployment -Name "myDeployment" -ResourceGroupName "myResourceGroup" -TemplateUri "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/routing-in-azure/maintemplate.json"**  
 3.  You will be prompted to provide an administrator user name and password for the local administrator accounts on the virtual machines.
 
 
