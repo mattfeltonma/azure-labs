@@ -2,29 +2,10 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "vmAdminUsername": {
-            "type": "string",
-            "metadata": {
-                "description": "Administrator name for VMs that are created"
-            }
-        },
-        "vmAdminPassword": {
-            "type": "securestring",
-            "metadata": {
-                "description": "Password for the VMs that are created"
-            }
-        },
-        "vmSku": {
-            "type": "string",
-            "metadata": {
-                "description": "The SKU of VM to deploy"
-            },
-            "defaultValue": "Standard_DS2_v2"
-        },
         "tags": {
             "type": "object",
             "metadata": {
-                "description": "The tags that will be associated to the VM"
+                "description": "The tags that will be associated to the resources"
             },
             "defaultValue": {
                 "environment": "lab"
@@ -121,26 +102,12 @@
             },
             "defaultValue": "snet-data"
         },
-        "bastionPublicIpName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name assigned to the Public IP used by Azure Bastion"
-            },
-            "defaultValue": "pip-bastion"
-        },
         "azFirewallPublicIpName": {
             "type": "string",
             "metadata": {
                 "description": "The name assigned to the Public IP used by Azure Firewall"
             },
             "defaultValue": "pip-azfw"
-        },
-        "bastionName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name assigned to the instance of Azure Bastion"
-            },
-            "defaultValue": "bstss"
         },
         "azureFirewallName": {
             "type": "string",
@@ -163,28 +130,13 @@
             },
             "defaultValue": "rt-spoke"
         },
-        "hubVmName": {
+        "functionAppPlanName": {
             "type": "string",
             "metadata": {
-                "description": "The name assigned to the VM in the hub"
-            },
-            "defaultValue": "vmw01"
-        },
-        "appServicePlanName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name assigned to the App Service Plan"
+                "description": "The name assigned to the Function App Plan"
             },
             "defaultValue": "sp-app"
 
-        },
-        "webAppName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the Web App"
-            },
-            "defaultValue": "app",
-            "maxLength": 3
         }
     },
     "variables": {
@@ -194,14 +146,21 @@
         "laApiVersion": "2015-11-01-preview",
         "diagApiVersion": "2017-05-01-preview",
         "webApiVersion": "2019-08-01",
+        "appInsightsAPiVersion": "2015-05-01",
+        "storageApiVersion": "2019-06-01",
         "hubToSpokePeeringName": "peerhubtospoke",
         "spokeToHubPeeringName": "peerspoketohub",
-        "laWorkspaceName": "[concat('la-',uniqueString(subscription().id, resourceGroup().id))]",
-        "appServicePlanSku": "S1",
+        "functionAppPlanTier": "ElasticPremium",
+        "functionAppPlanSkuName": "EP1",
+        "functionAppKind": "functionapp,linux",
         "appServiceKind": "Linux",
-        "linuxFxVersion": "PYTHON|3.8",
-        "uniqueWebAppName": "[concat(parameters('webAppName'),uniqueString(subscription().id, resourceGroup().id))]",
-        "repoUrl": "https://github.com/mattfeltonma/python-sample-web-app.git",
+        "linuxFxVersion": "Python|3.8",
+        "uniqueData": "[uniqueString(resourceGroup().id, subscription().id)]",
+        "laWorkspaceName": "[concat('la-',variables('uniqueData'))]",
+        "functionName": "[concat('func', variables('uniqueData'))]",
+        "storageAccountName": "[concat('st', variables('uniqueData'))]",
+        "appInsightsName": "[concat('ai', variables('uniqueData'))]",
+        "repoUrl": "https://github.com/mattfeltonma/azure-function-example.git",
         "branch": "master"
     },
     "resources": [
@@ -298,20 +257,6 @@
             "resources": [
             ]
         },
-        /* Create a Public IP for the Azure Bastion service hosted in the hub Virtual Network */
-        {
-            "name": "[parameters('bastionPublicIpName')]",
-            "type": "Microsoft.Network/publicIpAddresses",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "properties": {
-                "publicIpAllocationMethod": "Static"
-            },
-            "sku": {
-                "name": "Standard"
-            }
-        },
         /* Create a Public IP for the Azure Firewall instance */
         {
             "name": "[parameters('azFirewallPublicIpName')]",
@@ -336,7 +281,8 @@
             "dependsOn": [
                 "[concat('Microsoft.Network/publicIpAddresses/', parameters('azFirewallPublicIpName'))]",
                 "[concat('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
-                "[concat('Microsoft.Network/virtualNetworks/', parameters('spokeVnetName'))]"
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('spokeVnetName'))]",
+                "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
             ],
             "zones": [
                 "1"
@@ -372,7 +318,7 @@
                 ],
                 "applicationRuleCollections": [
                     {
-                        "name": "AllowWebAccess",
+                        "name": "Web",
                         "properties": {
                             "priority": 100,
                             "action": {
@@ -394,10 +340,21 @@
                                     "targetFqdns": [
                                         "worldclockapi.com"
                                     ]
-                                },
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "AppInsights",
+                        "properties": {
+                            "priority": 101,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
                                 {
-                                    "name": "AllowBreakingBadQuotes",
-                                    "description": "Allow API Call for Breaking Bad Quotes",
+                                    "name": "AllowAppInsights",
+                                    "description": "Allow App Insights",
                                     "sourceAddresses": [
                                         "[parameters('spokeAppSubnetCidr')]"
                                     ],
@@ -408,7 +365,115 @@
                                         }
                                     ],
                                     "targetFqdns": [
-                                        "breaking-bad-quotes.herokuapp.com"
+                                        "dc.services.visualstudio.com",
+                                        "rt.services.visualstudio.com"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "AllowCodeDeploy",
+                        "properties": {
+                            "priority": 102,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "AllowGitHub",
+                                    "description": "Allow access to Github to download function code",
+                                    "sourceAddresses": [
+                                        "[parameters('spokeAppSubnetCidr')]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": "443"
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "github.com"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowPypi",
+                                    "description": "Allow access to PyPi to download packages",
+                                    "sourceAddresses": [
+                                        "[parameters('spokeAppSubnetCidr')]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": "443"
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "pypi.org"
+                                    ]
+                                },
+                                {
+                                    "name": "Allow",
+                                    "description": "Allow access to check PM2 version",
+                                    "sourceAddresses": [
+                                        "[parameters('spokeAppSubnetCidr')]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": "443"
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "version.pm2.io"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowStorageAccount",
+                                    "description": "Allow access to Azure Storage account",
+                                    "sourceAddresses": [
+                                        "[parameters('spokeAppSubnetCidr')]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": "443"
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "[concat(variables('storageAccountName'), '.blob.core.windows.net')]"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowDownloadPythonDependencies",
+                                    "description": "Allow to download Python dependencies",
+                                    "sourceAddresses": [
+                                        "[parameters('spokeAppSubnetCidr')]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": "443"
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "files.pythonhosted.org"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowTrafficToSelf",
+                                    "description": "Allow traffic to function app",
+                                    "sourceAddresses": [
+                                        "[parameters('spokeAppSubnetCidr')]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": "443"
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "[concat(variables('functionName'), '.azurewebsites.net')]"
                                     ]
                                 }
                             ]
@@ -509,7 +574,7 @@
             "resources": [
             ]
         },
-        /* Create a Route Table for the app subnet in the spoke Virtual Network */
+        /* Create a Route Table for the subnets in the spoke Virtual Network */
         {
             "name": "[parameters('spokeRouteTable')]",
             "type": "Microsoft.Network/routeTables",
@@ -543,7 +608,7 @@
             "resources": [
             ]
         },
-        /* Assign Route Tables to the appropriate subnets */
+        /* Assign Route Tables to the appropriate subnets and create the deletegation on the app subnet for App Services  */
         {
             "name": "routeAssignment",
             "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
@@ -665,7 +730,7 @@
                             "name": "[concat(parameters('spokeVnetName'),'/',parameters('dataSubnetName'))]",
                             "type": "Microsoft.Network/virtualNetworks/subnets",
                             "apiVersion": "[parameters('networkApiVersion')]",
-                            "dependsOn" : [
+                            "dependsOn": [
                                 "[concat('Microsoft.Network/virtualNetworks/',parameters('spokeVnetName'),'/subnets/',parameters('appSubnetName'))]"
                             ],
                             "properties": {
@@ -719,116 +784,101 @@
                 }
             }
         },
-        /* Deploy a VM into the primary subnet in the hub Virtual Network */
+        /* Create a Storage Account for the Function */
         {
-            "name": "[parameters('hubVmName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
-                "[concat('Microsoft.Network/routeTables/', parameters('hubPriRouteTable'))]",
-                "[concat('Microsoft.Network/azureFirewalls/', parameters('azureFirewallName'))]",
-                "[concat('Microsoft.OperationalInsights/workspaces/', variables('laWorkspaceName'))]",
-                "Microsoft.Resources/deployments/routeAssignment"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "tagValues": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "vmName": {
-                        "value": "[parameters('hubVmName')]"
-                    },
-                    "vnetName": {
-                        "value": "[parameters('hubVnetName')]"
-                    },
-                    "subnetName": {
-                        "value": "[parameters('primarySubnetName')]"
-                    },
-                    "virtualMachineSize": {
-                        "value": "[parameters('vmSku')]"
-                    },
-                    "adminUserName": {
-                        "value": "[parameters('vmAdminUsername')]"
-                    },
-                    "adminPassword": {
-                        "value": "[parameters('vmAdminPassword')]"
-                    },
-                    "myWorkspaceId": {
-                        "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
-                    },
-                    "myWorkspaceKey": {
-                        "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/arm-templates/master/examples/vm-windows-server-2016/vm-win-2016.json",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        /* Create an Azure Bastion instance in the hub Virtual Network */
-        {
-            "name": "[parameters('bastionName')]",
-            "type": "Microsoft.Network/bastionHosts",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "[variables('storageApiVersion')]",
+            "name": "[variables('storageAccountName')]",
             "location": "[variables('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/publicIpAddresses/',parameters('bastionPublicIpName'))]",
-                "[concat('Microsoft.Network/virtualNetworks/',parameters('hubVnetName'))]",
-                "Microsoft.Resources/deployments/vmw01"
-            ],
             "tags": "[parameters('tags')]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
             "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "bastionConfig",
-                        "properties": {
-                            "subnet": {
-                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('hubVnetName'), 'AzureBastionSubnet')]"
-                            },
-                            "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('bastionPublicIpName'))]"
-                            },
-                            "privateIPAllocationMethod": "Dynamic"
-                        }
-                    }
-                ]
+                "supportsHttpsTrafficOnly": true
             }
         },
-        /* Create an App Service Plan */
+        /* Create a Functions App Elastic Premium Plan */
         {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "[variables('webApiVersion')]",
-            "name": "[parameters('appServicePlanName')]",
+            "name": "[parameters('functionAppPlanName')]",
             "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
             "sku": {
-                "name": "[variables('appServicePlanSku')]"
+                "tier": "[variables('functionAppPlanTier')]",
+                "name": "[variables('functionAppPlanSkuName')]"
             },
             "kind": "[variables('appServiceKind')]",
             "properties": {
                 "reserved": true
             }
         },
-        /* Create Web App */
+        /* Create App Insights instance */
+        {
+            "apiVersion": "[variables('appInsightsApiVersion')]",
+            "name": "[variables('appInsightsName')]",
+            "type": "microsoft.insights/components",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "ApplicationId": "[variables('appInsightsName')]",
+                "Request_Source": "IbizaWebAppExtensionCreate"
+            }
+        },
+        /* Create the Function App */
         {
             "type": "Microsoft.Web/sites",
             "apiVersion": "[variables('webApiVersion')]",
-            "name": "[variables('uniqueWebAppName')]",
+            "name": "[variables('functionName')]",
             "location": "[variables('location')]",
-            "kind": "app",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
-                "[concat('Microsoft.Resources/deployments/',parameters('hubVmName'))]",
+                "[resourceId('Microsoft.Web/serverfarms', parameters('functionAppPlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[resourceId('Microsoft.insights/components', variables('appInsightsName'))]",
                 "Microsoft.Resources/deployments/routeAssignment"
             ],
+            "kind": "[variables('functionAppKind')]",
+            "tags": "[parameters('tags')]",
             "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('functionAppPlanName'))]",
                 "clientAffinityEnabled": false,
                 "siteConfig": {
                     "linuxFxVersion": "[variables('linuxFxVersion')]",
-                    "alwaysOn": true
+                    "appSettings": [
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~3"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "python"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value, ';EndpointSuffix=','core.windows.net')]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value, ';EndpointSuffix=','core.windows.net')]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTSHARE",
+                            "value": "[toLower(variables('functionName'))]"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').ConnectionString]"
+                        },
+                        {
+                            "name": "WEBSITE_VNET_ROUTE_ALL",
+                            "value": "1"
+                        }
+                    ]
                 }
             },
             "resources": [
@@ -837,11 +887,12 @@
                     "apiVersion": "[variables('webApiVersion')]",
                     "name": "web",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]"
+                        "[resourceId('Microsoft.Web/sites', variables('functionName'))]"
                     ],
                     "properties": {
                         "repoUrl": "[variables('repoUrl')]",
                         "branch": "[variables('branch')]",
+                        "publishRunbook": true,
                         "isManualIntegration": true
                     }
                 },
@@ -850,39 +901,14 @@
                     "type": "networkConfig",
                     "apiVersion": "[variables('webApiVersion')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]"
+                        "[resourceId('Microsoft.Web/sites', variables('functionName'))]"
                     ],
                     "properties": {
                         "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('spokeVnetName'), parameters('appSubnetName'))]",
                         "swiftSupported": true
                     }
-                },
-                {
-                    "name": "[concat(variables('uniqueWebAppName'),'/appsettings')]",
-                    "type": "Microsoft.Web/sites/config",
-                    "apiVersion": "[variables('webApiVersion')]",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"                        
-                    ],
-                    "properties": {
-                        "WEBSITE_VNET_ROUTE_ALL": "1"
-                    }
                 }
-
             ]
         }
-    ],
-    "outputs": {
-        "VmHubPrimaryIp": {
-            "type": "string",
-            "value": "[reference(parameters('hubVmName')).outputs.vmPrivateIpAddress.value]"
-        },
-        "WebAppUri": {
-            "type": "string",
-            "value": "[concat('http://',reference(variables('uniqueWebAppName')).defaultHostName.value)]"
-        }
-    }
+    ]
 }
