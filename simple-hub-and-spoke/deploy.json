@@ -1,0 +1,853 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmAdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Administrator name for VMs that are created"
+            }
+        },
+        "vmAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the VMs that are created"
+            }
+        },
+        "vmSku": {
+            "type": "string",
+            "metadata": {
+                "description": "The SKU of VM to deploy"
+            },
+            "defaultValue": "Standard_DS2_v2"
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that wil be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "hubVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the hub Virtual Network"
+            },
+            "defaultValue": "vnet-hub"
+        },
+        "spokeVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the spoke Virtual Networks"
+            },
+            "defaultValue": "vnet-spoke"
+        },
+        "hubCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block assigned to the hub Virtual Network"
+            },
+            "defaultValue": "10.0.0.0/16"
+        },
+        "spokeCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block assigned to the spoke Virtual Network"
+            },
+            "defaultValue": "10.1.0.0/16"
+        },
+        "hubGatewaySubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block assigned to the hub Gateway subnet"
+            },
+            "defaultValue": "10.0.0.0/24"
+        },
+        "hubBastionSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block assigned to the hub Bastion subnet"
+            },
+            "defaultValue": "10.0.1.0/24"
+        },
+        "hubAzureFirewallSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block assigned to the hub Azure Firewall Subnet"
+            },
+            "defaultValue": "10.0.2.0/24"
+        },
+        "hubPrimarySubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block assigned to the hub primary subnet"
+            },
+            "defaultValue": "10.0.3.0/24"
+        },
+        "spokeAppSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block assigned to the spoke application subnet"
+            },
+            "defaultValue": "10.1.0.0/24"
+        },
+        "spokeDataSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block assigned to the spoke data subnet"
+            },
+            "defaultValue": "10.1.1.0/24"
+        },
+        "primarySubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the primary subnet in the hub"
+            },
+            "defaultValue": "snet-pri"
+        },
+        "spokeAppSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the application subnet in the spoke"
+            },
+            "defaultValue": "snet-app"
+        },
+        "spokeDataSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the data subnet in the spoke"
+            },
+            "defaultValue": "snet-data"
+        },
+        "bastionPublicIpName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the Public IP used by Azure Bastion"
+            },
+            "defaultValue": "pip-bastion"
+        },
+        "firewallPublicIpName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the Public IP used by Azure Firewall"
+            },
+            "defaultValue": "pip-fw"
+        },
+        "bastionName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the instance of Azure Bastion"
+            },
+            "defaultValue": "bsthub"
+        },
+        "firewallName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the instance of Azure Firewall"
+            },
+            "defaultValue": "fwhub"
+        },
+        "hubPrimaryRouteTable": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the Route Table assigned to the primary subnet in the hub Virtual Network"
+            },
+            "defaultValue": "rt-hub-pri"
+        },
+        "spokeRouteTable": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the Route Table assigned to the application and data subnets in the spoke Virtual Network"
+            },
+            "defaultValue": "rt-spoke"
+        },
+        "hubVmName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the VM in the primary subnet in the hub VNet"
+            },
+            "defaultValue": "vmhw01"
+        },
+        "spokeVmName": {
+            "type": "string",
+            "metadata": {
+                "description": "The naming prefix assigned to the VMs in the spokes VNets"
+            },
+            "defaultValue": "vms1w01"
+        },
+        "laRetentionPeriod": {
+            "type": "int",
+            "metadata": {
+                "description": "The retention period for the Log Analytics Workspace"
+            },
+            "defaultValue": 60
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "networkApiVersion": "2020-04-01",
+        "resourceDeploymentsApiVersion": "2020-06-01",
+        "insightsApiversion": "2015-11-01-preview",
+        "diagnosticApiVersion": "2017-05-01-preview",
+        "bastionSubnetName": "AzureBastionSubnet",
+        "gatewaySubnetName": "GatewaySubnet",
+        "firewallSubnetName": "AzureFirewallSubnet",
+        "hubToSpokePeeringName": "peerhubtospoke",
+        "spokeToHubPeeringName": "peerspoketohub",
+        "laWorkspaceName": "[concat('la-', uniqueString(resourceGroup().id))]"
+    },
+    "resources": [
+        /* Create a Log Analytics Workspace */
+        {
+            "name": "[variables('laworkspaceName')]",
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "apiVersion": "[variables('insightsApiVersion')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "sku": {
+                    "name": "PerGB2018"
+                },
+                "retentionInDays": "[parameters('laRetentionPeriod')]"
+            },
+            "resources": [
+            ]
+        },
+        /* Create hub Virtual Network */
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('hubVnetName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('hubCidr')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('gatewaySubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('hubGatewaySubnetCidr')]"
+                        }
+                    },
+                    {
+                        "name": "[variables('bastionSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('hubBastionSubnetCidr')]"
+                        }
+                    },
+                    {
+                        "name": "[variables('firewallSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('hubAzureFirewallSubnetCidr')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('primarySubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('hubPrimarySubnetCidr')]"
+                        }
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        /* Create spoke Virtual Network */
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('spokeVnetName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('spokeCidr')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('spokeAppSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('spokeAppSubnetCidr')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('spokeDataSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('spokeDataSubnetCidr')]"
+                        }
+                    }
+                ],
+                "enableDdosProtection": false
+            },
+            "resources": [
+            ]
+        },
+        /* Create a Public IP for the Azure Bastion service hosted in the hub Virtual Network */
+        {
+            "name": "[parameters('bastionPublicIpName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
+        /* Create a Public IP for the Azure Firewall instance hosted in the hub Virtual Network */
+        {
+            "name": "[parameters('firewallPublicIpName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
+        /* Create the Azure Firewall instance */
+        {
+            "name": "[parameters('firewallName')]",
+            "type": "Microsoft.Network/azureFirewalls",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIpAddresses/', parameters('firewallPublicIpName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
+                "[concat('Microsoft.OperationalInsights/workspaces/', variables('laWorkspaceName'))]"
+            ],
+            "zones": [
+                "1"
+            ],
+            "properties": {
+                "networkRuleCollections": [
+                    {
+                        "name": "AllowAllInternet",
+                        "properties": {
+                            "priority": 100,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "AllTraffic",
+                                    "protocols": [
+                                        "Any"
+                                    ],
+                                    "sourceAddresses": [
+                                        "*"
+                                    ],
+                                    "destinationAddresses": [
+                                        "*"
+                                    ],
+                                    "destinationPorts": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "AllowHubToSpoke",
+                        "properties": {
+                            "priority": 101,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "AllTraffic",
+                                    "protocols": [
+                                        "Any"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('hubPrimarySubnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[parameters('spokeCidr')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "AllowIntraSpoke",
+                        "properties": {
+                            "priority": 102,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "AllTrafficAppToData",
+                                    "protocols": [
+                                        "Any"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeAppSubnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[parameters('spokeDataSubnetCidr')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "applicationRuleCollections": [
+                ],
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('hubVnetName'), 'AzureFirewallSubnet')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('firewallPublicIpName'))]"
+                            }
+                        }
+                    }
+                ],
+                "threatIntelMode": "Alert",
+                "sku": {
+                    "name": "AZFW_VNet",
+                    "tier": "Standard"
+                }
+            }
+        },
+        /* Configure the diagnostic settings for Azure Firewall to write the Log Analytics Workspace */
+        {
+            "name": "[concat(parameters('firewallName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.Network/azureFirewalls/providers/diagnosticSettings",
+            "apiVersion": "[variables('diagnosticApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/azureFirewalls/',parameters('firewallName'))]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]",
+                "logs": [
+                    {
+                        "category": "AzureFirewallApplicationRule",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AzureFirewallNetworkRule",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        /* Create a Route Table for the hub Virtual Network primary subnet */
+        {
+            "name": "[parameters('hubPrimaryRouteTable')]",
+            "type": "Microsoft.Network/routeTables",
+            "dependsOn": [
+                "[concat('Microsoft.Network/azureFirewalls/', parameters('firewallName'))]"
+            ],
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-default",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[reference(parameters('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                        }
+                    },
+                    {
+                        "name": "udr-spoke",
+                        "properties": {
+                            "addressPrefix": "[parameters('spokeCidr')]",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[reference(parameters('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                        }
+                    }
+                ],
+                "disableBgpRoutePropagation": "False"
+            },
+            "resources": [
+            ]
+        },
+        /* Create a Route Table for the spoke Virtual Networks */
+        {
+            "name": "[parameters('spokeRouteTable')]",
+            "type": "Microsoft.Network/routeTables",
+            "dependsOn": [
+                "[concat('Microsoft.Network/azureFirewalls/', parameters('firewallName'))]"
+            ],
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-default",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[reference(parameters('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                        }
+                    },
+                    {
+                        "name": "udr-hub",
+                        "properties": {
+                            "addressPrefix": "[parameters('hubCidr')]",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[reference(parameters('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                        }
+                    },
+                    {
+                        "name": "udr-spoke",
+                        "properties": {
+                            "addressPrefix": "[parameters('spokeCidr')]",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[reference(parameters('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                        }
+                    }
+                ],
+                "disableBgpRoutePropagation": "False"
+            },
+            "resources": [
+            ]
+        },
+        /* Assign Route Tables to the appropriate subnets */
+        {
+            "name": "routeAssignment",
+            "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "[concat('Microsoft.Network/routeTables/', parameters('hubPrimaryRouteTable'))]",
+                "[concat('Microsoft.Network/routeTables/', parameters('spokeRouteTable'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('spokeVnetName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "parameters": {
+                    "netApiVersionNum": {
+                        "value": "[variables('networkApiVersion')]"
+                    },
+                    "hubPriRouteTableId": {
+                        "value": "[resourceId('Microsoft.Network/routeTables',parameters('hubPrimaryRouteTable'))]"
+                    },
+                    "spokeRouteTableId": {
+                        "value": "[resourceId('Microsoft.Network/routeTables',parameters('spokeRouteTable'))]"
+                    },
+                    "hubVnetName": {
+                        "value": "[parameters('hubVnetName')]"
+                    },
+                    "hubPrimarySubnetCidr": {
+                        "value": "[parameters('hubPrimarySubnetCidr')]"
+                    },
+                    "primarySubnetName": {
+                        "value": "[parameters('primarySubnetName')]"
+                    },
+                    "spokeVnetName": {
+                        "value": "[parameters('spokeVnetName')]"
+                    },
+                    "appSubnetName": {
+                        "value": "[parameters('spokeAppSubnetName')]"
+                    },
+                    "dataSubnetName": {
+                        "value": "[parameters('spokeDataSubnetName')]"
+                    },
+                    "appSubnetCidr": {
+                        "value": "[parameters('spokeAppSubnetCidr')]"
+                    },
+                    "dataSubnetCidr": {
+                        "value": "[parameters('spokeDataSubnetCidr')]"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "netApiVersionNum": {
+                            "type": "string"
+                        },
+                        "hubVnetName": {
+                            "type": "string"
+                        },
+                        "hubPrimarySubnetCidr": {
+                            "type": "string"
+                        },
+                        "primarySubnetName": {
+                            "type": "string"
+                        },
+                        "hubPriRouteTableId": {
+                            "type": "string"
+                        },
+                        "spokeRouteTableId": {
+                            "type": "string"
+                        },
+                        "spokeVnetName": {
+                            "type": "string"
+                        },
+                        "appSubnetName": {
+                            "type": "string"
+                        },
+                        "dataSubnetName": {
+                            "type": "string"
+                        },
+                        "appSubnetCidr": {
+                            "type": "string"
+                        },
+                        "dataSubnetCidr": {
+                            "type": "string"
+                        }
+                    },
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('hubVnetName'),'/',parameters('primarySubnetName'))]",
+                            "type": "Microsoft.Network/virtualNetworks/subnets",
+                            "apiVersion": "[parameters('netApiVersionNum')]",
+                            "properties": {
+                                "addressPrefix": "[parameters('hubPrimarySubnetCidr')]",
+                                "routeTable": {
+                                    "id": "[parameters('hubPriRouteTableId')]"
+                                }
+                            }
+                        },
+                        {
+                            "name": "[concat(parameters('spokeVnetName'),'/',parameters('appSubnetName'))]",
+                            "type": "Microsoft.Network/virtualNetworks/subnets",
+                            "apiVersion": "[parameters('netApiVersionNum')]",
+                            "properties": {
+                                "addressPrefix": "[parameters('appSubnetCidr')]",
+                                "routeTable": {
+                                    "id": "[parameters('spokeRouteTableId')]"
+                                }
+                            }
+                        },
+                        {
+                            "name": "[concat(parameters('spokeVnetName'),'/',parameters('dataSubnetName'))]",
+                            "type": "Microsoft.Network/virtualNetworks/subnets",
+                            "dependsOn": [
+                                "[concat('Microsoft.Network/virtualNetworks/',parameters('spokeVnetName'), '/subnets/',parameters('appSubnetName'))]"
+                            ],
+                            "apiVersion": "[parameters('netApiVersionNum')]",
+                            "properties": {
+                                "addressPrefix": "[parameters('dataSubnetCidr')]",
+                                "routeTable": {
+                                    "id": "[parameters('spokeRouteTableId')]"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        /* Create Virtual Network Peering on hub to peer spoke to it */
+        {
+            "name": "[concat(parameters('hubVnetName'),'/',variables('hubToSpokePeeringName'))]",
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('spokeVnetName'))]",
+                "Microsoft.Resources/deployments/routeAssignment"
+            ],
+            "properties": {
+                "allowVirtualNetworkAccess": "true",
+                "allowForwardedTraffic": "true",
+                "allowGatewayTransit": "false",
+                "remoteVirtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('spokeVnetName'))]"
+                }
+            }
+        },
+        /* Create Virtual Network Peering on spoke to peer hub to it */
+        {
+            "name": "[concat(parameters('spokeVnetName'),'/',variables('spokeToHubPeeringName'))]",
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('spokeVnetName'))]",
+                "Microsoft.Resources/deployments/routeAssignment"
+            ],
+            "properties": {
+                "allowVirtualNetworkAccess": "true",
+                "allowForwardedTraffic": "true",
+                "allowGatewayTransit": "false",
+                "useRemoteGateways": "false",
+                "remoteVirtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('hubVnetName'))]"
+                }
+            }
+        },
+        /* Deploy a VM into the primary subnet in the hub Virtual Network */
+        {
+            "name": "[parameters('hubVmName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('hubVnetName'))]",
+                "[concat('Microsoft.OperationalInsights/workspaces/', variables('laWorkspaceName'))]",
+                "Microsoft.Resources/deployments/routeAssignment"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "tagValues": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "vmName": {
+                        "value": "[parameters('hubVmName')]"
+                    },
+                    "vnetName": {
+                        "value": "[parameters('hubVnetName')]"
+                    },
+                    "subnetName": {
+                        "value": "[parameters('primarySubnetName')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[parameters('vmSku')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/arm-templates/master/examples/vm-windows-server-2016/vm-win-2016.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        /* Deploy a VM into the primary subnet of the spoke Virtual Network */
+        {
+            "name": "[parameters('spokeVmName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('spokeVnetName'))]",
+                "[concat(concat('Microsoft.Network/virtualNetworks/', parameters('spokeVnetName')),'/virtualNetworkPeerings/',variables('spokeToHubPeeringName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/',parameters('hubVnetName'),'/virtualNetworkPeerings/',variables('hubToSpokePeeringName'))]",
+                "[concat('Microsoft.OperationalInsights/workspaces/', variables('laWorkspaceName'))]"
+
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "tagValues": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "vmName": {
+                        "value": "[parameters('spokeVmName')]"
+                    },
+                    "vnetName": {
+                        "value": "[parameters('spokeVnetName')]"
+                    },
+                    "subnetName": {
+                        "value": "[parameters('spokeAppSubnetName')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[parameters('vmSku')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName')), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/arm-templates/master/examples/vm-windows-server-2016/vm-win-2016.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        /* Create an Azure Bastion instance in the hub Virtual Network */
+        {
+            "name": "[parameters('bastionName')]",
+            "type": "Microsoft.Network/bastionHosts",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIpAddresses/',parameters('bastionPublicIpName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/',parameters('hubVnetName'))]",
+                "[concat('Microsoft.Resources/deployments/',parameters('hubVmName'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "bastionConfig",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('hubVnetName'), variables('bastionSubnetName'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', parameters('bastionPublicIpName'))]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {
+        "VmHubVmIp": {
+            "type": "string",
+            "value": "[reference(parameters('hubVmName')).outputs.vmPrivateIpAddress.value]"
+        },
+        "VmSpokeVmIp": {
+            "type": "string",
+            "value": "[reference(parameters('spokeVmName')).outputs.vmPrivateIpAddress.value]"
+        }
+    }
+}
