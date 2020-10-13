@@ -205,7 +205,6 @@
         "branch": "master"
     },
     "resources": [
-        /* Create centralized Log Analytics Workspace */
         {
             "name": "[variables('laWorkspaceName')]",
             "type": "Microsoft.OperationalInsights/workspaces",
@@ -221,7 +220,6 @@
             "resources": [
             ]
         },
-        /* Create hub Virtual Network */
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[parameters('hubVnetName')]",
@@ -265,7 +263,6 @@
             "resources": [
             ]
         },
-        /* Create spoke Virtual Network */
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[parameters('spokeVnetName')]",
@@ -298,7 +295,6 @@
             "resources": [
             ]
         },
-        /* Create a Public IP for the Azure Bastion service hosted in the hub Virtual Network */
         {
             "name": "[parameters('bastionPublicIpName')]",
             "type": "Microsoft.Network/publicIpAddresses",
@@ -312,7 +308,6 @@
                 "name": "Standard"
             }
         },
-        /* Create a Public IP for the Azure Firewall instance */
         {
             "name": "[parameters('azFirewallPublicIpName')]",
             "type": "Microsoft.Network/publicIpAddresses",
@@ -326,7 +321,6 @@
                 "name": "Standard"
             }
         },
-        /* Create the Azure Firewall instance */
         {
             "name": "[parameters('azureFirewallName')]",
             "type": "Microsoft.Network/azureFirewalls",
@@ -435,7 +429,6 @@
                 }
             }
         },
-        /* Configure the diagnostic settings for Azure Firewall to write the Log Analytics Workspace */
         {
             "name": "[concat(parameters('azureFirewallName'),'/microsoft.insights/diag')]",
             "type": "Microsoft.Network/azureFirewalls/providers/diagnosticSettings",
@@ -468,7 +461,6 @@
             "resources": [
             ]
         },
-        /* Create a Route Table for the primary subnet in the hub Virtual Network */
         {
             "name": "[parameters('hubPriRouteTable')]",
             "type": "Microsoft.Network/routeTables",
@@ -509,7 +501,6 @@
             "resources": [
             ]
         },
-        /* Create a Route Table for the app subnet in the spoke Virtual Network */
         {
             "name": "[parameters('spokeRouteTable')]",
             "type": "Microsoft.Network/routeTables",
@@ -543,7 +534,6 @@
             "resources": [
             ]
         },
-        /* Assign Route Tables to the appropriate subnets */
         {
             "name": "routeAssignment",
             "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
@@ -679,7 +669,6 @@
                 }
             }
         },
-        /* Create Virtual Network Peering for hub to spoke */
         {
             "name": "[concat(parameters('hubVnetName'),'/',variables('hubToSpokePeeringName'))]",
             "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
@@ -699,7 +688,6 @@
                 }
             }
         },
-        /* Create Virtual Network Peering for spoke to hub */
         {
             "name": "[concat(parameters('spokeVnetName'),'/',variables('spokeToHubPeeringName'))]",
             "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
@@ -719,7 +707,6 @@
                 }
             }
         },
-        /* Deploy a VM into the primary subnet in the hub Virtual Network */
         {
             "name": "[parameters('hubVmName')]",
             "type": "Microsoft.Resources/deployments",
@@ -768,7 +755,6 @@
                 }
             }
         },
-        /* Create an Azure Bastion instance in the hub Virtual Network */
         {
             "name": "[parameters('bastionName')]",
             "type": "Microsoft.Network/bastionHosts",
@@ -797,7 +783,6 @@
                 ]
             }
         },
-        /* Create an App Service Plan */
         {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "[variables('webApiVersion')]",
@@ -811,7 +796,6 @@
                 "reserved": true
             }
         },
-        /* Create Web App */
         {
             "type": "Microsoft.Web/sites",
             "apiVersion": "[variables('webApiVersion')]",
@@ -882,7 +866,7 @@
         },
         "WebAppUri": {
             "type": "string",
-            "value": "[concat('http://',reference(variables('uniqueWebAppName')).defaultHostName.value)]"
+            "value": "[concat('http://',reference(variables('uniqueWebAppName')).defaultHostName)]"
         }
     }
 }

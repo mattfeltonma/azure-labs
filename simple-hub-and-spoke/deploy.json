@@ -199,7 +199,6 @@
         "laWorkspaceName": "[concat('la-', uniqueString(resourceGroup().id))]"
     },
     "resources": [
-        /* Create a Log Analytics Workspace */
         {
             "name": "[variables('laworkspaceName')]",
             "type": "Microsoft.OperationalInsights/workspaces",
@@ -214,7 +213,6 @@
             "resources": [
             ]
         },
-        /* Create hub Virtual Network */
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[parameters('hubVnetName')]",
@@ -257,7 +255,6 @@
             "resources": [
             ]
         },
-        /* Create spoke Virtual Network */
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[parameters('spokeVnetName')]",
@@ -289,7 +286,6 @@
             "resources": [
             ]
         },
-        /* Create a Public IP for the Azure Bastion service hosted in the hub Virtual Network */
         {
             "name": "[parameters('bastionPublicIpName')]",
             "type": "Microsoft.Network/publicIpAddresses",
@@ -303,7 +299,6 @@
                 "name": "Standard"
             }
         },
-        /* Create a Public IP for the Azure Firewall instance hosted in the hub Virtual Network */
         {
             "name": "[parameters('firewallPublicIpName')]",
             "type": "Microsoft.Network/publicIpAddresses",
@@ -317,7 +312,6 @@
                 "name": "Standard"
             }
         },
-        /* Create the Azure Firewall instance */
         {
             "name": "[parameters('firewallName')]",
             "type": "Microsoft.Network/azureFirewalls",
@@ -435,7 +429,6 @@
                 }
             }
         },
-        /* Configure the diagnostic settings for Azure Firewall to write the Log Analytics Workspace */
         {
             "name": "[concat(parameters('firewallName'),'/microsoft.insights/diag')]",
             "type": "Microsoft.Network/azureFirewalls/providers/diagnosticSettings",
@@ -468,7 +461,6 @@
             "resources": [
             ]
         },
-        /* Create a Route Table for the hub Virtual Network primary subnet */
         {
             "name": "[parameters('hubPrimaryRouteTable')]",
             "type": "Microsoft.Network/routeTables",
@@ -502,7 +494,6 @@
             "resources": [
             ]
         },
-        /* Create a Route Table for the spoke Virtual Networks */
         {
             "name": "[parameters('spokeRouteTable')]",
             "type": "Microsoft.Network/routeTables",
@@ -544,7 +535,6 @@
             "resources": [
             ]
         },
-        /* Assign Route Tables to the appropriate subnets */
         {
             "name": "routeAssignment",
             "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
@@ -673,7 +663,6 @@
                 }
             }
         },
-        /* Create Virtual Network Peering on hub to peer spoke to it */
         {
             "name": "[concat(parameters('hubVnetName'),'/',variables('hubToSpokePeeringName'))]",
             "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
@@ -693,7 +682,6 @@
                 }
             }
         },
-        /* Create Virtual Network Peering on spoke to peer hub to it */
         {
             "name": "[concat(parameters('spokeVnetName'),'/',variables('spokeToHubPeeringName'))]",
             "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
@@ -714,7 +702,6 @@
                 }
             }
         },
-        /* Deploy a VM into the primary subnet in the hub Virtual Network */
         {
             "name": "[parameters('hubVmName')]",
             "type": "Microsoft.Resources/deployments",
@@ -761,7 +748,6 @@
                 }
             }
         },
-        /* Deploy a VM into the primary subnet of the spoke Virtual Network */
         {
             "name": "[parameters('spokeVmName')]",
             "type": "Microsoft.Resources/deployments",
@@ -810,7 +796,6 @@
                 }
             }
         },
-        /* Create an Azure Bastion instance in the hub Virtual Network */
         {
             "name": "[parameters('bastionName')]",
             "type": "Microsoft.Network/bastionHosts",

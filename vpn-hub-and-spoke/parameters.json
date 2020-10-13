@@ -2,29 +2,23 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        /* The local username created on the VMs */
         "vmAdminUsername": {
             "value":"SOMEACCOUNTNAME"
         },
-        /* The address of the BGP peer in CIDR format */
         "bgpPeerPrefixes": {
             "value": [
                 "XX.XX.XX.XX/XX"
             ]
         },
-        /* The public IP address of the Local Network Gateway (your router) */
         "lgwPublicIPAddress": {
             "value":"XX.XX.XX.XX"
         },
-        /* The private ASN in use within your on-premises environment */
         "localBgpAsn": {
             "value":"XX.XX.XX.XX"
         },
-        /* The IP address of the BGP peer */
         "bgpPeerAddress": {
             "value":"XX.XX.XX.XX"
         },
-        /* The password assigned to the administrator user account created on the VM.  This example shows how to reference the password from Key Vault */
         "vmAdminPassword": {
             "reference": {
                 "keyVault": {
@@ -34,8 +28,7 @@
                 "secretVersion": "<SECRET_VERSION>"
             }
         },
-        /* The shared secret used between for the VPN connection.  This example shows how to reference the password from Key Vault */
-        "vpnSharedSecret" {
+        "vpnSharedSecret": {
             "reference": {
                 "keyVault": {
                     "id": "/subscriptions/<SUBSCRIPTIONID/resourceGroups/<KEYVAULT_RG_NAME>/providers/Microsoft.KeyVault/vaults/<KEYVAULT_NAME>"
