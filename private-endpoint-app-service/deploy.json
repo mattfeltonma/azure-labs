@@ -219,7 +219,7 @@
         "uniqueWebAppName": "[concat(parameters('webAppName'),uniqueString(subscription().id, resourceGroup().id))]",
         "uniquePrivateEndpointName": "[substring(concat(concat('pl-',parameters('webAppName')),uniqueString(subscription().id, resourceGroup().id)),10)]",
         "uniquePrivateLinkConnectionName": "[substring(concat(concat('plconn',parameters('webAppName')),uniqueString(subscription().id, resourceGroup().id)),10)]",
-        "repoUrl": "https://github.com/mattfeltonma/python-sample-web-app.git",
+        "repoUrl": "https://github.com/mattfeltonma/azure-function-example.git",
         "branch": "master"
     },
     "resources": [
