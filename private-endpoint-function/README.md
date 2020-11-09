@@ -15,7 +15,7 @@ The template also deploys a [simple Python function](https://github.com/mattfelt
 
 Note that you may receive an error during the deployment during the source control step of the deployment.  This should be a non-issue.
 
-![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/private-endpoint-function/lab_visual.jpeg)
+![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/private-endpoint-function/lab_visual.png)
 
 ## Installation
 1.  Create a resource group.
