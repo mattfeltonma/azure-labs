@@ -638,7 +638,7 @@
                         }
                     },
                     {
-                        "name": "VmWebAccess",
+                        "name": "VmInternetAccess",
                         "properties": {
                             "priority": 101,
                             "action": {
@@ -647,7 +647,7 @@
                             "rules": [
                                 {
                                     "name": "AllowVMAppAccess",
-                                    "description": "Allows VM full access to the web",
+                                    "description": "Allows VM access to the web",
                                     "protocols": [
                                         "TCP"
                                     ],
@@ -660,6 +660,22 @@
                                     "destinationPorts": [
                                         "80",
                                         "443"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowKMSActivation",
+                                    "description": "Allows VM acess to KMS servers",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[variables('hubSharedServicesCidr')]"
+                                    ],
+                                    "destinationFqdns": [
+                                        "kms.core.windows.net"
+                                    ],
+                                    "destinationPorts": [
+                                        "1688"
                                     ]
                                 }
                             ]
