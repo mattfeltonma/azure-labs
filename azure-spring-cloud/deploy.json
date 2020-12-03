@@ -151,7 +151,8 @@
         "uniqueSqlPlConnName": "[substring(concat(concat('plconn',variables('mysqlServerName')),uniqueString(subscription().id, resourceGroup().id)),10)]",
         "appPrivateZoneLinkName": "[concat(variables('appPrivateDnsZone'), '-link')]",
         "keyVaultPrivateZoneLinkName": "[concat(variables('keyVaultPrivateDnsZone'), '-link')]",
-        "msSqlPrivateZoneLinkName": "[concat(variables('msSqlPrivateDnsZone'), '-link')]"
+        "msSqlPrivateZoneLinkName": "[concat(variables('msSqlPrivateDnsZone'), '-link')]",
+        "deployDnsARecord": "deploy-springDnsRecord"
     },
     "resources": [
         {
@@ -1443,6 +1444,69 @@
                         }
                     }
                 ]
+            }
+        },
+        /* Provision an Application Gateway */
+        {
+            "name": "[variables('deployDnsARecord')]",
+            "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
+            "type": "Microsoft.Resources/deployments",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/updateVirtualNetwork"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "parameters": {
+                    "networkApiVersion": {
+                        "value": "[variables('networkApiVersion')]"
+                    },
+                    "dnsApiVersion": {
+                        "value": "[variables('dnsApiVersion')]"
+                    },
+                    "springInstanceRg": {
+                        "value": "[reference(variables('springCloudInstanceName')).networkProfile.serviceRuntimeNetworkResourceGroup]"
+                    },
+                    "appPrivateDnsZone": {
+                        "value": "[variables('appPrivateDnsZone')]"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "networkApiVersion": {
+                            "type": "string"
+                        },
+                        "dnsApiVersion": {
+                            "type": "string"
+                        },
+                        "springInstanceRg": {
+                            "type": "string"
+                        },
+                        "appPrivateDnsZone": {
+                            "type": "string"
+                        }
+                    },
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/A",
+                            "apiVersion": "[parameters('dnsApiVersion')]",
+                            "name": "[concat(parameters('appPrivateDnsZone'), '/*')]",
+                            "location": "global",
+                            "properties": {
+                                "ttl": 3600,
+                                "aRecords": [
+                                    {
+                                        "ipv4Address": "[reference(resourceId(parameters('springInstanceRg'),'Microsoft.Network/loadBalancers','kubernetes-internal'), parameters('networkApiVersion')).frontendIPConfigurations[0].properties.privateIpAddress]"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
             }
         }
     ],
