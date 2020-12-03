@@ -18,20 +18,26 @@ Additional features of the lab are:
 
 ## Prerequisites
 1. [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+
 2. Run the two commands below to add the required extensions to Azure CLI.
+
     `az extension add --name firewall`
     `az extension add --name spring-cloud`
     
 3. Record your tenant id of the Azure AD instance associated with the subscription you will be deploying to.
+
     `az account show --subscription mysubscription --query tenantId --output tsv`
 
 4. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance.
+
     `az ad user show --id someuser@sometenant.com --query objectId --output tsv`
 
 5. Get the object id of the Spring Cloud Resource Provider from your Azure AD tenant.
+
     `az ad sp show --id e8de9221-a19c-4c81-b814-fd37c6caf9d2 --output tsv`
 
 6. Create a resource group to deploy the resource to.
+
     `az group create --name my-resource-group`
 
 ## Installation
