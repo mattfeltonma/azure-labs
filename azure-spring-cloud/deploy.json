@@ -130,7 +130,6 @@
         "bastionName": "bstss",
         "azureFirewallName": "fwhub",
         "hubRouteTable": "rt-hub",
-        "spokeRouteTable": "rt-spoke",
         "hubVmName": "vm01",
         "hubToSpokePeeringName": "peerhubtospoke",
         "spokeToHubPeeringName": "peerspoketohub",
@@ -152,7 +151,9 @@
         "appPrivateZoneLinkName": "[concat(variables('appPrivateDnsZone'), '-link')]",
         "keyVaultPrivateZoneLinkName": "[concat(variables('keyVaultPrivateDnsZone'), '-link')]",
         "msSqlPrivateZoneLinkName": "[concat(variables('msSqlPrivateDnsZone'), '-link')]",
-        "deployDnsARecord": "deploy-springDnsRecord"
+        "deployDnsARecord": "deploy-springDnsRecord",
+        "deployRouteAssign": "deploy-routeAssign",
+        "deployDnsSettings": "deploy-dnsSettings"
     },
     "resources": [
         {
@@ -1097,7 +1098,7 @@
             ]
         },
         {
-            "name": "updateVirtualNetwork",
+            "name": "[variables('deployDnsSettings')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
             "dependsOn": [
@@ -1314,38 +1315,12 @@
             ]
         },
         {
-            "name": "[variables('spokeRouteTable')]",
-            "type": "Microsoft.Network/routeTables",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/azureFirewalls/',variables('azureFirewallName'))]"
-            ],
-            "properties": {
-                "routes": [
-                    {
-                        "name": "udr-default",
-                        "properties": {
-                            "addressPrefix": "0.0.0.0/0",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[reference(variables('azureFirewallName')).ipConfigurations[0].properties.privateIPAddress]"
-                        }
-                    }
-                ],
-                "disableBgpRoutePropagation": "True"
-            },
-            "resources": [
-            ]
-        },
-        {
-            "name": "routeAssignment",
+            "name": "[variables('deployRouteAssign')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.AppPlatform/Spring/', variables('springCloudInstanceName'))]",
-                "[concat('Microsoft.Network/routeTables/', variables('hubRouteTable'))]",
-                "[concat('Microsoft.Network/routeTables/', variables('spokeRouteTable'))]"
+                "[concat('Microsoft.Network/routeTables/', variables('hubRouteTable'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1379,7 +1354,7 @@
                 "[concat('Microsoft.Network/virtualNetworks/', variables('hubVnetName'))]",
                 "[concat('Microsoft.Network/azureFirewalls/', variables('azureFirewallName'))]",
                 "[concat('Microsoft.OperationalInsights/workspaces/', variables('laWorkspaceName'))]",
-                "Microsoft.Resources/deployments/routeAssignment"
+                "[concat('Microsoft.Resources/deployments/', variables('deployRouteAssign'))]"
             ],
             "properties": {
                 "mode": "Incremental",
