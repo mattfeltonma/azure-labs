@@ -1446,7 +1446,6 @@
                 ]
             }
         },
-        /* Provision an Application Gateway */
         {
             "name": "[variables('deployDnsARecord')]",
             "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
