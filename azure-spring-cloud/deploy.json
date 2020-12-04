@@ -1235,7 +1235,7 @@
                 "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]",
                 "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]",
                 "[resourceId('Microsoft.Network/azureFirewalls', variables('azureFirewallName'))]",
-                "Microsoft.Resources/deployments/updateVirtualNetwork"
+                "[concat('Microsoft.Resources/deployments/', variables('deployDnsSettings'))]"
             ],
             "type": "Microsoft.AppPlatform/Spring",
             "sku": {
@@ -1426,7 +1426,7 @@
             "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
             "type": "Microsoft.Resources/deployments",
             "dependsOn": [
-                "Microsoft.Resources/deployments/updateVirtualNetwork"
+                "[concat('Microsoft.Resources/deployments/', variables('deployDnsSettings'))]"
             ],
             "properties": {
                 "mode": "Incremental",
