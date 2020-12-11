@@ -9,18 +9,6 @@
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
         },
-        "vmAdminUsername": {
-            "type": "string",
-            "metadata": {
-                "description": "Administrator name for VMs that are created"
-            }
-        },
-        "vmAdminPassword": {
-            "type": "securestring",
-            "metadata": {
-                "description": "Password for the VMs that are created"
-            }
-        },
         "tags": {
             "type": "object",
             "metadata": {

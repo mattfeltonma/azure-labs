@@ -89,6 +89,7 @@
             "name": "[variables('hubDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/resourceGroups',variables('hubRgName'))]"
             ],
@@ -98,13 +99,7 @@
                     "uniqueData": {
                         "value": "[variables('uniqueData')]"
                     },
-                    "vmAdminUsername": {
-                        "value": "[parameters('vmAdminUsername')]"
-                    },
-                    "vmAdminPassword": {
-                        "value": "[parameters('vmAdminPassword')]"
-                    },
-                    "tagValues": {
+                    "tags": {
                         "value": "[parameters('tags')]"
                     },
                     "hubVnetCidr": {
@@ -139,7 +134,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/deploy-hub.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/deploy-hub.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
