@@ -485,6 +485,7 @@
             "name": "[variables('deployBlobStPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/privateDnsZones/',variables('queueStorageDnsZoneName'),'/virtualNetworkLinks/', variables('queueStoragePlLinkName'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployDnsServerSettings'))]"
@@ -533,6 +534,7 @@
             "name": "[variables('deployFileStPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployBlobStPe'))]"
             ],
@@ -580,6 +582,7 @@
             "name": "[variables('deployTableStPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployFileStPe'))]"
             ],
@@ -627,6 +630,7 @@
             "name": "[variables('deployQueueStPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployTableStPe'))]"
             ],
@@ -674,6 +678,7 @@
             "name": "[variables('deployLaPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/privateDnsZones/',variables('queueStorageDnsZoneName'),'/virtualNetworkLinks/', variables('queueStoragePlLinkName'))]"
             ],
