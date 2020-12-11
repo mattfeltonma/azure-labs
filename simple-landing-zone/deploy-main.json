@@ -89,7 +89,7 @@
             "name": "[variables('hubDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "location": "[parameters('location')]",
+            "resourceGroup": "[variables('hubRgName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Resources/resourceGroups',variables('hubRgName'))]"
             ],
@@ -101,9 +101,6 @@
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
-                    },
-                    "location": {
-                        "value": "[parameters('location')]"
                     },
                     "hubVnetCidr": {
                         "value": "[variables('hubVnetCidr')]"

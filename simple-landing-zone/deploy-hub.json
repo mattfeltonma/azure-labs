@@ -18,12 +18,6 @@
                 "environment": "lab"
             }
         },
-        "location": {
-            "type": "string",
-            "metadata": {
-                "description": "The location resources will be deployed to"
-            }         
-        },
         "hubVnetCidr": {
             "type": "string",
             "metadata": {
@@ -113,13 +107,14 @@
         }
     },
     "variables": {
+        "location": "[resourceGroup().location]",
         "logAnalyticsRetention": 30,
         "vnetStandardDdosProtection": false,
         "hubVnetName": "[concat('vnet-hub', parameters('uniqueData'))]",
         "gatewaySubnetName": "GatewaySubnet",
         "bastionSubnetName": "AzureBastionSubnet",
         "fwPayloadSubnetName": "AzureFirewallSubnet",
-        "networkWatcherName": "[concat('NetworkWatcher_', parameters('location'))]",
+        "networkWatcherName": "[concat('NetworkWatcher_', variables('location'))]",
         "centralSvcSubnetName": "snet-central",
         "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
@@ -158,7 +153,7 @@
             "name": "[variables('laWorkspaceName')]",
             "type": "Microsoft.OperationalInsights/workspaces",
             "apiVersion": "[variables('laApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "sku": {
@@ -172,7 +167,7 @@
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "[variables('storageApiVersion')]",
             "name": "[variables('logStorageAccountName')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "sku": {
                 "name": "Standard_RAGRS"
@@ -186,7 +181,7 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('bastionNsgName')]",
             "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "securityRules": [
@@ -254,7 +249,7 @@
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('centralSvcNsgName')]",
             "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "securityRules": []
@@ -265,7 +260,7 @@
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('hubVnetName')]",
             "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]",
@@ -423,7 +418,7 @@
                             "type": "Microsoft.Network/virtualNetworks",
                             "name": "[variables('hubVnetName')]",
                             "apiVersion": "[variables('networkApiVersion')]",
-                            "location": "[parameters('location')]",
+                            "location": "[variables('location')]",
                             "tags": "[parameters('tags')]",
                             "dependsOn": [
                             ],
@@ -485,7 +480,7 @@
             "name": "[variables('deployBlobStPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/privateDnsZones/',variables('queueStorageDnsZoneName'),'/virtualNetworkLinks/', variables('queueStoragePlLinkName'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployDnsServerSettings'))]"
@@ -497,7 +492,7 @@
                         "value": "[parameters('uniqueData')]"
                     },
                     "privateEndpointLocation": {
-                        "value": "[parameters('location')]"
+                        "value": "[variables('location')]"
                     },
                     "privateEndpointVnetName": {
                         "value": "[variables('hubVnetName')]"
@@ -534,7 +529,7 @@
             "name": "[variables('deployFileStPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployBlobStPe'))]"
             ],
@@ -545,7 +540,7 @@
                         "value": "[parameters('uniqueData')]"
                     },
                     "privateEndpointLocation": {
-                        "value": "[parameters('location')]"
+                        "value": "[variables('location')]"
                     },
                     "privateEndpointVnetName": {
                         "value": "[variables('hubVnetName')]"
@@ -582,7 +577,7 @@
             "name": "[variables('deployTableStPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployFileStPe'))]"
             ],
@@ -593,7 +588,7 @@
                         "value": "[parameters('uniqueData')]"
                     },
                     "privateEndpointLocation": {
-                        "value": "[parameters('location')]"
+                        "value": "[variables('location')]"
                     },
                     "privateEndpointVnetName": {
                         "value": "[variables('hubVnetName')]"
@@ -630,7 +625,7 @@
             "name": "[variables('deployQueueStPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployTableStPe'))]"
             ],
@@ -641,7 +636,7 @@
                         "value": "[parameters('uniqueData')]"
                     },
                     "privateEndpointLocation": {
-                        "value": "[parameters('location')]"
+                        "value": "[variables('location')]"
                     },
                     "privateEndpointVnetName": {
                         "value": "[variables('hubVnetName')]"
@@ -678,7 +673,7 @@
             "name": "[variables('deployLaPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/privateDnsZones/',variables('queueStorageDnsZoneName'),'/virtualNetworkLinks/', variables('queueStoragePlLinkName'))]"
             ],
@@ -689,7 +684,7 @@
                         "value": "[parameters('uniqueData')]"
                     },
                     "privateEndpointLocation": {
-                        "value": "[parameters('location')]"
+                        "value": "[variables('location')]"
                     },
                     "privateEndpointVnetName": {
                         "value": "[variables('hubVnetName')]"
@@ -718,7 +713,7 @@
             "name": "[concat(variables('networkWatcherName'),'/', variables('bastionNsgFlowLogName'))]",
             "type": "Microsoft.Network/networkWatchers/FlowLogs/",
             "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "properties": {
                 "targetResourceId": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('bastionNsgName'))]",
                 "storageId": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]",
@@ -744,7 +739,7 @@
             "name": "[concat(variables('networkWatcherName'),'/', variables('centralSvcNsgFlowLogName'))]",
             "type": "Microsoft.Network/networkWatchers/FlowLogs/",
             "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "properties": {
                 "targetResourceId": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('centralSvcNsgName'))]",
                 "storageId": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]",
@@ -771,7 +766,7 @@
             "name": "[variables('bastionPublicIpName')]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "publicIpAllocationMethod": "Static"
@@ -784,7 +779,7 @@
             "name": "[variables('firewallPublicIpName')]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "publicIpAllocationMethod": "Static"
@@ -798,7 +793,7 @@
             "name": "[variables('firewallName')]",
             "type": "Microsoft.Network/azureFirewalls",
             "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('firewallPublicIpName'))]",
@@ -1092,7 +1087,7 @@
             "name": "[concat(variables('firewallName'),'/microsoft.insights/diag')]",
             "type": "Microsoft.Network/azureFirewalls/providers/diagnosticSettings",
             "apiVersion": "[variables('diagnosticApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'))]"
@@ -1129,7 +1124,7 @@
             "name": "[variables('bastionName')]",
             "type": "Microsoft.Network/bastionHosts",
             "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[parameters('location')]",
+            "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
