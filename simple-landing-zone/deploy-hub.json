@@ -219,7 +219,10 @@
                             "description": "Allows health probes from Azure Load Balancer",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
-                            "destinationPortRange": "443",
+                            "destinationPortRanges": [
+                                "443",
+                                "4443"
+                            ],
                             "sourceAddressPrefix": "AzureLoadBalancer",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
@@ -703,12 +706,26 @@
                 }
             }
         },
+        /* Create Network Watcher */
+        {
+            "name": "[variables('networkWatcherName')]",
+            "type": "Microsoft.Network/networkWatchers",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {},
+            "resources": []
+        },
         /* Enable NSG Flow Logs */
         {
             "name": "[concat(variables('networkWatcherName'),'/', variables('bastionNsgFlowLogName'))]",
             "type": "Microsoft.Network/networkWatchers/FlowLogs/",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkWatchers', variables('networkWatcherName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
+            ],
             "properties": {
                 "targetResourceId": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('bastionNsgName'))]",
                 "storageId": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]",
@@ -735,6 +752,10 @@
             "type": "Microsoft.Network/networkWatchers/FlowLogs/",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkWatchers', variables('networkWatcherName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
+            ],
             "properties": {
                 "targetResourceId": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('centralSvcNsgName'))]",
                 "storageId": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]",
