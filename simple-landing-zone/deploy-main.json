@@ -16,7 +16,7 @@
             "metadata": {
                 "description": "The location to deploy the resources"
             }
-        },
+        }, /*
         "vmAdminUsername": {
             "type": "string",
             "metadata": {
@@ -28,7 +28,7 @@
             "metadata": {
                 "description": "Password for the VMs that are created"
             }
-        },
+        }, */
         "uniqueGuid": {
             "type": "string",
             "metadata": {
