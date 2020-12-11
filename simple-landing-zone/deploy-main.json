@@ -1,0 +1,158 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that wil be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location to deploy the resources"
+            }
+        },
+        "vmAdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Administrator name for VMs that are created"
+            }
+        },
+        "vmAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the VMs that are created"
+            }
+        },
+        "uniqueGuid": {
+            "type": "string",
+            "metadata": {
+                "description": "Creates a new GUID to create uniqueness for resources"
+            },
+            "defaultValue": "[newGuid()]"
+        }
+    },
+    "variables": {
+        "resourcesApiVersion": "2020-06-01",
+        "uniqueData": "[substring(parameters('uniqueGuid'),0,8)]",
+        "hubRgName": "[concat('rg-hub-',variables('uniqueData'))]",
+        "sharedSvcRgName": "[concat('rg-shared-',variables('uniqueData'))]",
+        "workloadRgName": "[concat('rg-work-',variables('uniqueData'))]",
+        "hubVnetCidr": "10.0.0.0/16",
+        "hubGatewaySubnetCidr": "10.0.0.0/27",
+        "hubBastionSubnetCidr": "10.0.1.0/27",
+        "hubFwSubnetPayCidr": "10.0.2.0/26",
+        "hubCentralSvcSubnetCidr": "10.0.3.0/24",
+        "sharedVnetCidr": "10.1.0.0/16",
+        "sharedVnetSubnetAdCidr": "10.1.0.0/24",
+        "sharedVnetSubnetSupportCidr": "10.1.1.0/24",
+        "sharedVnetSubnetPrivCidr": "10.1.2.0/24",
+        "spokeVnetCidr": "10.2.0.0/16",
+        "hubDeploymentName": "deploy-hub",
+        "sharedSvcDeploymentName": "deploy-shared",
+        "spokeDeploymentName": "deploy-spoke"
+    },
+    "resources": [
+        {
+            "name": "[variables('hubRgName')]",
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+            }
+        },
+        {
+            "name": "[variables('sharedSvcRgName')]",
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+            }
+        },
+        {
+            "name": "[variables('workloadRgName')]",
+            "type": "Microsoft.Resources/resourceGroups",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+            }
+        },
+        {
+            "name": "[variables('hubDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/resourceGroups',variables('hubRgName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[variables('uniqueData')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "tagValues": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "hubVnetCidr": {
+                        "value": "[variables('hubVnetCidr')]"
+                    },
+                    "hubGatewaySubnetCidr": {
+                        "value": "[variables('hubGatewaySubnetCidr')]"
+                    },
+                    "hubBastionSubnetCidr": {
+                        "value": "[variables('hubBastionSubnetCidr')]"
+                    },
+                    "hubFwSubnetPayCidr": {
+                        "value": "[variables('hubFwSubnetPayCidr')]"
+                    },
+                    "hubCentralSvcSubnetCidr": {
+                        "value": "[variables('hubCentralSvcSubnetCidr')]"
+                    },
+                    "sharedVnetCidr": {
+                        "value": "[variables('sharedVnetCidr')]"
+                    },
+                    "sharedVnetSubnetAdCidr": {
+                        "value": "[variables('sharedVnetSubnetAdCidr')]"
+                    },
+                    "sharedVnetSubnetSupportCidr": {
+                        "value": "[variables('sharedVnetSubnetSupportCidr')]"
+                    },
+                    "sharedVnetSubnetPrivCidr": {
+                        "value": "[variables('sharedVnetSubnetPrivCidr')]"
+                    },
+                    "spokeVnetCidr": {
+                        "value": "[variables('spokeVnetCidr')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/deploy-hub.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        /*"VmHubVmIp": {
+            "type": "string",
+            "value": "[reference(parameters('hubVmName')).outputs.vmPrivateIpAddress.value]"
+        },
+        "VmSpokeVmIp": {
+            "type": "string",
+            "value": "[reference(parameters('spokeVmName')).outputs.vmPrivateIpAddress.value]"
+        }*/
+    }
+}

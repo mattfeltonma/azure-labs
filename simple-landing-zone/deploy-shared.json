@@ -1,0 +1,1142 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "vmAdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Administrator name for VMs that are created"
+            }
+        },
+        "vmAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the VMs that are created"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that wil be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "hubVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the hub virtual network"
+            },
+            "defaultValue": {
+                "environment": "10.0.0.0/16"
+            }
+        },
+        "hubGatewaySubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Gateway subnet in the hub virtual network"
+            },
+            "defaultValue": {
+                "environment": "10.0.0.0/27"
+            }
+        },
+        "hubBastionSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Bastion subnet in the hub virtual network"
+            },
+            "defaultValue": {
+                "environment": "10.0.1.0/27"
+            }
+        },
+        "hubFwSubnetPayCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Azure Firewall payload subnet in the hub virtual network"
+            },
+            "defaultValue": {
+                "environment": "10.0.2.0/27"
+            }
+        },
+        "hubCentralSvcSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the subnet used to store centralized private enpdoint services"
+            }
+        },
+        "sharedVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Shared Services virtual network"
+            },
+            "defaultValue": {
+                "environment": "10.1.0.0/16"
+            }
+        },
+        "sharedVnetSubnetAdCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the subnet used for Windows Active Directory domain controllers"
+            },
+            "defaultValue": {
+                "environment": "10.1.0.0/24"
+            }
+        },
+        "sharedVnetSubnetSupportCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the subnet used for support services"
+            },
+            "defaultValue": {
+                "environment": "10.1.1.0/24"
+            }
+        },
+        "sharedVnetSubnetPrivCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the subnet used for privileged activities"
+            },
+            "defaultValue": {
+                "environment": "10.1.2.0/24"
+            }
+        },
+        "spokeVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the spoke virtual network.  This is used in the firewall rules."
+            },
+            "defaultValue": {
+                "environment": "10.2.0.0/16"
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "logAnalyticsRetention": 30,
+        "vmSku": "Standard_DS2_v2",
+        "vnetStandardDdosProtection": false,
+        "hubVnetName": "[concat('vnet-hub', parameters('uniqueData'))]",
+        "sharedVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
+        "gatewaySubnetName": "GatewaySubnet",
+        "bastionSubnetName": "AzureBastionSubnet",
+        "fwPayloadSubnetName": "AzureFirewallSubnet",
+        "centralSvcSubnetName": "snet-central",
+        "sharedSupportSvcSubnetName": "snet-support",
+        "sharedAdSubnetName": "snet-ad",
+        "sharedPrivSubnetName": "snet-priv",
+        "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
+        "bastionName": "[concat('bst', parameters('uniqueData'))]",
+        "firewallPublicIpName": "[concat('pip-fw', parameters('uniqueData'))]",
+        "firewallName": "[concat('fw', parameters('uniqueData'))]",
+        "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
+        "bastionNsgName": "[concat('nsg-bst', parameters('uniqueData'))]",
+        "privNsgName": "[concat('nsg-priv', parameters('uniqueData'))]",
+        "centralSvcNsgName": "[concat('nsg-cent', parameters('uniqueData'))]",
+        "adNsgName": "[concat('nsg-ad', parameters('uniqueData'))]",
+        "rtSharedSvc": "[concat('rt-shared', parameters('uniqueData'))]",
+        "privVmName": "[concat('vm-priv',parameters('uniqueData'))]",
+        "privVmDeploymentName": "deploy-privm",
+        "peeringHubToSharedName": "peerhubtoshared",
+        "peeringSharedToHubName": "peersharedtohub",
+        "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
+        "azureMonitorDnsZoneName1": "privatelink.monitor.azure.com",
+        "azureMonitorDnsZoneName2": "privatelink.oms.opinsights.azure.com",
+        "azureMonitorDnsZoneName3": "privatelink.ods.opinsights.azure.com",
+        "azureMonitorDnsZoneName4": "privatelink.agentsvc.azure-automation.net",
+        "networkApiVersion": "2020-04-01",
+        "laApiVersion": "2015-11-01-preview",
+        "diagnosticApiVersion": "2017-05-01-preview",
+        "resourcesApiVersion": "2020-06-01"
+    },
+    "resources": [
+        /* Create Log Analytics Workspace*/
+        {
+            "name": "[variables('laWorkspaceName')]",
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "apiVersion": "[variables('laApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "sku": {
+                    "name": "PerGB2018"
+                },
+                "retentionInDays": "[variables('logAnalyticsRetention')]"
+            }
+        },
+        /* Create NSG for Bastion subnet */
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('bastionNsgName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowHttps",
+                        "properties": {
+                            "description": "Allow incoming HTTPS traffic from Internet",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowControlPlane",
+                        "properties": {
+                            "description": "Allow control plane traffic",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "GatewayManager",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHealthProbes",
+                        "properties": {
+                            "description": "Allows health probes from Azure Load Balancer",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        /* Create NSG for Central Private Endpoint Services */
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('centralSvcNsgName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        /* Create NSG for Windows AD Subnet */
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('bastionNsgName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowADWS",
+                        "properties": {
+                            "description": "Client - Allow AD Web Services",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "9389",
+                            "sourceAddressPrefixes": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowADGlbCat",
+                        "properties": {
+                            "description": "Client - Allow AD Global Catalog",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3268-3269",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowLdap",
+                        "properties": {
+                            "description": "Client - Allow AD LDAP",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowLdapSsl",
+                        "properties": {
+                            "description": "Client - Allow AD SSL",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "636",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 103,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowRpcMapper",
+                        "properties": {
+                            "description": "Client - Allow RPC Mapper",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "135",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 104,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowRpcDynamic",
+                        "properties": {
+                            "description": "Client - Allow RPC dynamic ports",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "49152-65535",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 105,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowSmb",
+                        "properties": {
+                            "description": "Client - Allow Smb",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "445",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 106,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowDns",
+                        "properties": {
+                            "description": "Client - Allow Dns",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "53",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 107,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowKerberos",
+                        "properties": {
+                            "description": "Client - Allow Kerberos",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "88",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 108,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowNtp",
+                        "properties": {
+                            "description": "Client - Allow NTP",
+                            "protocol": "Udp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "123",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 109,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AlllowKerbChgSet",
+                        "properties": {
+                            "description": "Client - Allow Kerberos Password Set/Change",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "464",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 110,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowNetbiosUdp",
+                        "properties": {
+                            "description": "Client - Allow NETBIOS UDP",
+                            "protocol": "Udp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "137-138",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 111,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowNetbiosTcp",
+                        "properties": {
+                            "description": "Client - Allow NETBIOS TCP",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "139",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 112,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowRdp",
+                        "properties": {
+                            "description": "Allow Rdp",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefixes": [
+                                "[parameters('sharedVnetSubnetPrivCidr')]",
+                                "[parameters('hubBastionSubnetCidr')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 113,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        /* Create NSG for Privileged Subnet */
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('privNsgName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowRdp",
+                        "properties": {
+                            "description": "Allow incoming HTTPS traffic from Internet",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "[parameters('hubBastionSubnetCidr')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        /* Create hub virtual network */
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('hubVnetName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('hubVnetCidr')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('gatewaySubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('hubGatewaySubnetCidr')]"
+                        }
+                    },
+                    {
+                        "name": "[variables('bastionSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('hubBastionSubnetCidr')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('fwPayloadSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('hubFwSubnetPayCidr')]"
+                        }
+                    },
+                    {
+                        "name": "[variables('centralSvcSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('hubCentralSvcSubnetCidr')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Disabled"
+                        }
+                    }
+                ],
+                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
+            },
+            "resources": [
+            ]
+        },
+        /* Create Public IPs for Azure Bastion and Azure Firewall */
+        {
+            "name": "[variables('bastionPublicIpName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
+        {
+            "name": "[variables('firewallPublicIpName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
+        /* Create Azure Firewall instance and diagnostic settings */
+        {
+            "name": "[variables('firewallName')]",
+            "type": "Microsoft.Network/azureFirewalls",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIpAddresses', variables('firewallPublicIpName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+            ],
+            "zones": [
+                "1"
+            ],
+            "properties": {
+                "networkRuleCollections": [
+                    {
+                        "name": "AllowVmRequired",
+                        "properties": {
+                            "priority": 100,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "AllowKMSActivation",
+                                    "description": "Allows VM acess to KMS servers",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('sharedVnetCidr')]",
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationFqdns": [
+                                        "kms.core.windows.net"
+                                    ],
+                                    "destinationPorts": [
+                                        "1688"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "AllowAdClient",
+                        "properties": {
+                            "priority": 101,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "AllowADWS",
+                                    "description": "Allow AD Web Services",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "9389"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowADGlbCat",
+                                    "description": "Allow AD Global Catalogs",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "3268-3269"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowLdap",
+                                    "description": "Client - Allow AD LDAP",
+                                    "protocols": [
+                                        "TCP",
+                                        "UDP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "389"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowLdapSsl",
+                                    "description": "Allow AD SSL",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "636"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowRpcMapper",
+                                    "description": "Allow RPC Mapper",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "135"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowRpcDynamic",
+                                    "description": "Allow RPC dynamic ports",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "49152-65535"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowSmb",
+                                    "description": "Allow Smb",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "445"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowDns",
+                                    "description": "Allow DNS",
+                                    "protocols": [
+                                        "TCP",
+                                        "UDP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "53"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowKerberos",
+                                    "description": "Allow Kerberos",
+                                    "protocols": [
+                                        "TCP",
+                                        "UDP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "88"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowNtp",
+                                    "description": "Allow Ntp",
+                                    "protocols": [
+                                        "UDP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "123"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowKerbChgSet",
+                                    "description": "Allow Kerberos Password Set/Change",
+                                    "protocols": [
+                                        "TCP",
+                                        "UDP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "464"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowNetbiosUdp",
+                                    "description": "Allow NETBIOS UDP",
+                                    "protocols": [
+                                        "UDP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "137-138"
+                                    ]
+                                },
+                                {
+                                    "name": "AllowNetbiosTcp",
+                                    "description": "Allow NETBIOS TCP",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[variables('sharedAdSubnetName')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "139"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+
+                ],
+                "applicationRuleCollections": [
+                ],
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVnetName'), variables('fwPayloadSubnetName'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('firewallPublicIpName'))]"
+                            }
+                        }
+                    }
+                ],
+                "threatIntelMode": "Alert",
+                "sku": {
+                    "name": "AZFW_VNet",
+                    "tier": "Standard"
+                },
+                "additionalProperties": {
+                    "Network.DNS.EnableProxy": "true"
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('firewallName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.Network/azureFirewalls/providers/diagnosticSettings",
+            "apiVersion": "[variables('diagnosticApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'))]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]",
+                "logs": [
+                    {
+                        "category": "AzureFirewallApplicationRule",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AzureFirewallNetworkRule",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AzureFirewallDnsProxy",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        /* Create shared services route table */
+        {
+            "name": "[variables('rtSharedSvc')]",
+            "type": "Microsoft.Network/routeTables",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/azureFirewalls', variables('firewallName'))]"
+            ],
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-default",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                        }
+                    }
+                ],
+                "disableBgpRoutePropagation": "False"
+            },
+            "resources": [
+            ]
+        },
+        /* Create shared services virtual network */
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('sharedVnetName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('supportSvcNsgName'))]",
+                "[resourceId('Microsoft.Network/routeTables',variables('rtSharedSvc'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('sharedVnetCidr')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('sharedAdSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('sharedVnetSubnetAdCidr')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]"
+                            },
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables', variables('rtSharedSvc'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('sharedPrivSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('sharedVnetSubnetPrivCidr')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privNsgName'))]"
+                            },
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables', variables('rtSharedSvc'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('sharedSupportSvcSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('sharedVnetSubnetSupportCidr')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('supportSvcNsgName'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Disabled"
+                        }
+                    }
+                ],
+                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
+            },
+            "resources": [
+            ]
+        },
+        /* Peer hub to shared services */
+        {
+            "name": "[concat(variables('hubVnetName'),'/',variables('peeringHubToSharedName'))]",
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('hubVnetName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', variables('sharedVnetName'))]"
+            ],
+            "properties": {
+                "allowVirtualNetworkAccess": "true",
+                "allowForwardedTraffic": "true",
+                "allowGatewayTransit": "false",
+                "remoteVirtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks',variables('sharedVnetName'))]"
+                }
+            }
+        },
+        /* Peer shared services to hub */
+        {
+            "name": "[concat(variables('sharedVnetName'),'/',variables('peeringSharedToHubName'))]",
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('hubVnetName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', variables('sharedVnetName'))]"
+            ],
+            "properties": {
+                "allowVirtualNetworkAccess": "true",
+                "allowForwardedTraffic": "true",
+                "allowGatewayTransit": "false",
+                "useRemoteGateways": "false",
+                "remoteVirtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks',variables('hubVnetName'))]"
+                }
+            }
+        },
+        /* Deploy Azure Bastion instance */
+        {
+            "name": "[variables('bastionName')]",
+            "type": "Microsoft.Network/bastionHosts",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]",
+                "[concat('Microsoft.Network/virtualNetworks', variables('hubVnetName'),'/virtualNetworkPeerings', variables('peeringHubToSharedName'))]",
+                "[concat('Microsoft.Network/virtualNetworks', variables('hubVnetName'),'/virtualNetworkPeerings', variables('peeringSharedToHubName'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "bastionConfig",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('hubVnetName'), variables('bastionSubnetName'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            }
+        },
+        /* Deploy privileged VM */
+        {
+            "name": "[variables('privVmDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]",
+                "[concat('Microsoft.Network/virtualNetworks', variables('hubVnetName'),'/virtualNetworkPeerings', variables('peeringHubToSharedName'))]",
+                "[concat('Microsoft.Network/virtualNetworks', variables('hubVnetName'),'/virtualNetworkPeerings', variables('peeringSharedToHubName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "tagValues": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('privVmName')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('sharedVnetName')]"
+                    },
+                    "subnetName": {
+                        "value": "[variables('sharedPrivSubnetName')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/arm-templates/master/examples/vm-windows-server-2016/vm-win-2016.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "firewallIp": {
+            "type": "string",
+            "value": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+        },
+        "hubVnetResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+        }
+    }
+}

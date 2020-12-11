@@ -1,0 +1,246 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "privateEndpointLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The region the private endpoint will be created in"
+            }
+        },
+        "privateEndpointVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the virtual network where the private endpoint will be placed"
+            }
+        },
+        "privateEndpointSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the subnet in the virtual network where the private endpoint will be placed"
+            }
+        },
+        "vnetResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the the resource group where the virtual network exists"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "vnetSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id of the subscription the virtual network exists in"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
+        },
+        "laWorkspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource the private endpoint is being created for"
+            }
+        },
+        "laWorkspaceResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the resoure the private endpoint is being created for"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the VM"
+            }
+        }
+    },
+    "variables": {
+        "privateLinkEndpointName": "[substring(concat('pl',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
+        "privateLinkConnName": "[substring(concat('plconn',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
+        "privateLinkScopeName": "[substring(concat('plscope',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
+        "privateLinkScopeResourceName": "[substring(concat('plscres',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
+        "networkApiVersion": "2020-05-01",
+        "insightsApiVersion": "2019-10-17-preview",
+        "dnsApiVersion": "2018-09-01"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "privatelink.monitor.azure.com",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "privatelink.oms.opinsights.azure.com",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "privatelink.ods.opinsights.azure.com",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "privatelink.agentsvc.azure-automation.net",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "privatelink.monitor.azure.com/privatelink.monitor.azure.com-link",
+            "location": "global",
+            "dependsOn": [
+                "Microsoft.Network/privateDnsZones/privatelink.monitor.azure.com"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('privateEndpointVnetName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "privatelink.oms.opinsights.azure.com/privatelink.oms.opinsights.azure.com-link",
+            "location": "global",
+            "dependsOn": [
+                "Microsoft.Network/privateDnsZones/privatelink.oms.opinsights.azure.com",
+                "Microsoft.Network/privateDnsZones/privatelink.monitor.azure.com/virtualNetworkLinks/privatelink.monitor.azure.com-link"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('privateEndpointVnetName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "privatelink.ods.opinsights.azure.com/privatelink.ods.opinsights.azure.com-link",
+            "location": "global",
+            "dependsOn": [
+                "Microsoft.Network/privateDnsZones/privatelink.ods.opinsights.azure.com",
+                "Microsoft.Network/privateDnsZones/privatelink.oms.opinsights.azure.com/virtualNetworkLinks/privatelink.oms.opinsights.azure.com-link"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('privateEndpointVnetName'))]"
+                }
+            }
+        },      
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "privatelink.agentsvc.azure-automation.net/privatelink.agentsvc.azure-automation.net-link",
+            "location": "global",
+            "dependsOn": [
+                "Microsoft.Network/privateDnsZones/privatelink.agentsvc.azure-automation.net",
+                "Microsoft.Network/privateDnsZones/privatelink.ods.opinsights.azure.com/virtualNetworkLinks/privatelink.ods.opinsights.azure.com-link"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('privateEndpointVnetName'))]"
+                }
+            }
+        },
+        {
+            "name": "[variables('privateLinkScopeName')]",
+            "type": "microsoft.insights/privateLinkScopes",
+            "apiVersion": "[variables('insightsApiVersion')]",
+            "location": "global",
+            "tags": "[parameters('tags')]",
+            "properties": {}
+        },
+        {
+            "name": "[concat(variables('privateLinkScopeName'),'/',variables('privateLinkScopeResourceName'))]",
+            "type": "microsoft.insights/privateLinkScopes/scopedResources",
+            "apiVersion": "[variables('insightsApiVersion')]",
+            "dependsOn": [
+                "[resourceId('microsoft.insights/privateLinkScopes', variables('privateLinkScopeName'))]"                
+            ],
+            "properties": {
+                "linkedResourceId":"[parameters('laWorkspaceResourceId')]"
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "name": "[variables('privateLinkEndpointName')]",
+            "location": "[parameters('privateEndpointLocation')]",
+            "dependsOn": [
+                "[concat('microsoft.insights/privateLinkScopes/',variables('privateLinkScopeName'),'/scopedResources/',variables('privateLinkScopeResourceName'))]",
+                "Microsoft.Network/privateDnsZones/privatelink.agentsvc.azure-automation.net/virtualNetworkLinks/privatelink.agentsvc.azure-automation.net-link"
+            ],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "subnet": {
+                    "id": "[resourceId(parameters('vnetSubscriptionId'),parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks/subnets',parameters('privateEndpointVnetName'),parameters('privateEndpointSubnetName'))]"
+                },
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[variables('privateLinkConnName')]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('microsoft.insights/privateLinkScopes',variables('privateLinkScopeName'))]",
+                            "groupIds": [
+                                "azuremonitor"
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "name": "[concat(variables('privateLinkEndpointName'),'/default')]",
+            "location": "[parameters('privateEndpointLocation')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateEndpoints' , variables('privateLinkEndpointName'))]"
+            ],
+            "properties": {
+                "privateDnsZoneConfigs": [
+                    {
+                        "name": "monitor",
+                        "properties": {
+                            "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones','privatelink.monitor.azure.com')]"
+                        }
+                    },
+                    {
+                        "name": "oms",
+                        "properties": {
+                            "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones','privatelink.oms.opinsights.azure.com')]"
+                        }
+                    },
+                    {
+                        "name": "ods",
+                        "properties": {
+                            "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones','privatelink.ods.opinsights.azure.com')]"
+                        }
+                    },
+                    {
+                        "name": "agentsvc",
+                        "properties": {
+                            "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones','privatelink.agentsvc.azure-automation.net')]"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {
+    }
+}
