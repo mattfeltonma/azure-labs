@@ -102,6 +102,9 @@
                     "tags": {
                         "value": "[parameters('tags')]"
                     },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
                     "hubVnetCidr": {
                         "value": "[variables('hubVnetCidr')]"
                     },
