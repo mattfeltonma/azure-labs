@@ -16,7 +16,15 @@
             "metadata": {
                 "description": "The location to deploy the resources"
             }
-        }, /*
+        },
+        "networkWatcherResourceGroup" : {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where Network Watcher resources exist"
+            },
+            "defaultValue": "NetworkWatcherRG"
+        }
+             /*
         "vmAdminUsername": {
             "type": "string",
             "metadata": {
@@ -131,6 +139,9 @@
                     },
                     "spokeVnetCidr": {
                         "value": "[variables('spokeVnetCidr')]"
+                    },
+                    "networkWatcherRg": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
                     }
                 },
                 "templateLink": {

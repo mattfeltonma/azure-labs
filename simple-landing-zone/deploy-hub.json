@@ -169,6 +169,7 @@
             "name": "[variables('logStorageAccountName')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
+            "kind": "StorageV2",
             "sku": {
                 "name": "Standard_RAGRS"
             },
