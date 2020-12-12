@@ -120,7 +120,6 @@
         "gatewaySubnetName": "GatewaySubnet",
         "bastionSubnetName": "AzureBastionSubnet",
         "fwPayloadSubnetName": "AzureFirewallSubnet",
-        "networkWatcherName": "[concat('NetworkWatcher_', variables('location'))]",
         "centralSvcSubnetName": "snet-central",
         "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
@@ -130,7 +129,6 @@
         "bastionNsgName": "[concat('nsg-bst', parameters('uniqueData'))]",
         "centralSvcNsgName": "[concat('nsg-cent', parameters('uniqueData'))]",
         "bastionNsgFlowLogName": "[concat('bstflowlog')]",
-        "centralSvcNsgFlowLogName": "[concat('centsvcflowlog')]",
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
         "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
@@ -720,6 +718,7 @@
             "name": "[variables('deployBastionNsgFlowLog')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
@@ -734,7 +733,7 @@
                         "value": "[variables('location')]"
                     },
                     "targetNsgName": {
-                        "value": "[variables('bastionNsgFlowLogName')]"
+                        "value": "[variables('bastionNsgName')]"
                     },
                     "targetNsgResourceId": {
                         "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('bastionNsgName'))]"

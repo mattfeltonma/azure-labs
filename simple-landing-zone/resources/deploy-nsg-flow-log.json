@@ -56,7 +56,6 @@
                 "targetResourceId": "[parameters('targetNsgResourceId')]",
                 "storageId": "[parameters('targetStorageResourceId')]",
                 "enabled": true,
-                "flowAnalyticsConfiguration": {},
                 "retentionPolicy": {
                     "days": "[parameters('logRetention')]",
                     "enabled": true
