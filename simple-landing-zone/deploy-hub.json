@@ -250,6 +250,37 @@
                             "priority": 1000,
                             "direction": "Inbound"
                         }
+                    },
+                    {
+                        "name": "AllowOutboundAzureCloud",
+                        "properties": {
+                            "description": "Allows Bastion hosts to communicate with management components",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "AzureCloud",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "AllowOutboundVirtualNetwork",
+                        "properties": {
+                            "description": "Allows Bastion to connect to VMs over SSH and RDP",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRanges": [
+                                "3389",
+                                "22"
+                            ],
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 101,
+                            "direction": "Outbound"
+                        }
                     }
                 ]
             }
@@ -767,7 +798,7 @@
                         "value": "[variables('location')]"
                     },
                     "targetNsgName": {
-                        "value": "[variables('bastionNsgFlowLogName')]"
+                        "value": "[variables('centralSvcNsgName')]"
                     },
                     "targetNsgResourceId": {
                         "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('centralSvcNsgName'))]"
