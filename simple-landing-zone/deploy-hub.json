@@ -716,8 +716,6 @@
             }
         },
         /* Enable NSG Flow Logs */
-        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
-        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
         {
             "name": "[variables('deployBastionNsgFlowLog')]",
             "type": "Microsoft.Resources/deployments",
