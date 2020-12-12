@@ -212,7 +212,10 @@
                             "description": "Allow control plane traffic",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
-                            "destinationPortRange": "443",
+                            "destinationPortRanges": [
+                                "443",
+                                "4443"
+                            ],
                             "sourceAddressPrefix": "GatewayManager",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
@@ -226,10 +229,7 @@
                             "description": "Allows health probes from Azure Load Balancer",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
-                            "destinationPortRanges": [
-                                "443",
-                                "4443"
-                            ],
+                            "destinationPortRange": "443",
                             "sourceAddressPrefix": "AzureLoadBalancer",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
@@ -752,6 +752,7 @@
             "name": "[variables('deployCentralSvcNsgFlowLog')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
