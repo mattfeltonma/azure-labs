@@ -25,15 +25,15 @@ Additional features of the lab are:
 
     `az extension add --name spring-cloud`
     
-3. Record your tenant id of the Azure AD instance associated with the subscription you will be deploying to.
+3. Record your tenant id of the Azure AD instance associated with the subscription you will be deploying to. This will be used for the tenantId parameter of the template.
 
     `az account show --subscription mysubscription --query tenantId --output tsv`
 
-4. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance.
+4. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance. This will be used for the keyVaultAdminObjectId parameter of the template.
 
     `az ad user show --id someuser@sometenant.com --query objectId --output tsv`
 
-5. Get the object id of the Spring Cloud Resource Provider from your Azure AD tenant.
+5. Get the object id of the Spring Cloud Resource Provider from your Azure AD tenant. This will be used for the springCloudPrincipalObjectId parameter of the template.
 
     `az ad sp show --id e8de9221-a19c-4c81-b814-fd37c6caf9d2 --output tsv`
 
@@ -44,7 +44,7 @@ Additional features of the lab are:
 ## Installation
 1. Execute the template including the parameters of the tenant id from step 3, the object id from step 4, the object id from step 5, and a username for the administrator account on the virtual machine created and for the My SQL instance.
 
-    `az deployment group create --resource-group my-resource-group --name initial --template-file="/Users/mattfelton/OneDrive - Microsoft/Code/Azure Labs/azure-labs/azure-spring-cloud/deploy.json" --parameters tenantId <TENANT_ID>  keyVaultAdminObjectId <KEY_VAULT_ADMIN_OBJECT_ID> springCloudPrincipalObjectId <SPRING_CLOUD_SP_OBJECT_ID>`
+    `az deployment group create --resource-group my-resource-group --name initial --template-uri="https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/azure-spring-cloud/deploy.json" --parameters tenantId <TENANT_ID>  keyVaultAdminObjectId <KEY_VAULT_ADMIN_OBJECT_ID> springCloudPrincipalObjectId <SPRING_CLOUD_SP_OBJECT_ID>`
 
 You will be prompted to set a password.  This will be the password for the virtual machine and the My SQL instance.
 
