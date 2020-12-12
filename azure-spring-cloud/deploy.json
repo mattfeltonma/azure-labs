@@ -1388,7 +1388,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-spring-cloud/master/resources/deploy-vm-2016.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/azure-spring-cloud/resources/deploy-vm-2016.json",
                     "contentVersion": "1.0.0.0"
                 }
             }

@@ -104,6 +104,12 @@
             "defaultValue": {
                 "environment": "10.2.0.0/16"
             }
+        },
+        "networkWatcherRg": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where the Network Watcher instances are stored"
+            }
         }
     },
     "variables": {
@@ -139,6 +145,8 @@
         "deployFileStPe": "deploy-storagefileprivateendpoint",
         "deployTableStPe": "deploy-storagetableprivateendpoint",
         "deployQueueStPe": "deploy-storagequeueprivateendpoint",
+        "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
+        "deployCentralSvcNsgFlowLog": "deploy-centsvcnsgflowlog",        
         "deployLaPe": "deploy-laprivateendpoint",
         "networkApiVersion": "2020-04-01",
         "laApiVersion": "2015-11-01-preview",
@@ -707,74 +715,72 @@
                 }
             }
         },
-        /* Create Network Watcher */
-        {
-            "name": "[variables('networkWatcherName')]",
-            "type": "Microsoft.Network/networkWatchers",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "properties": {},
-            "resources": []
-        },
         /* Enable NSG Flow Logs */
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
         {
-            "name": "[concat(variables('networkWatcherName'),'/', variables('bastionNsgFlowLogName'))]",
-            "type": "Microsoft.Network/networkWatchers/FlowLogs/",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
+            "name": "[variables('deployBastionNsgFlowLog')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkWatchers', variables('networkWatcherName'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
             ],
             "properties": {
-                "targetResourceId": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('bastionNsgName'))]",
-                "storageId": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]",
-                "enabled": true,
-                "flowAnalyticsConfiguration": {
-                    "networkWatcherFlowAnalyticsConfiguration": {
-                        "enabled": true,
-                        "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]",
-                        "trafficAnalyticsInterval": 10
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('bastionNsgFlowLogName')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('bastionNsgName'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
                     }
                 },
-                "retentionPolicy": {
-                    "days": 5,
-                    "enabled": true
-                },
-                "format": {
-                    "type": "JSON",
-                    "version": 2
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
-            "name": "[concat(variables('networkWatcherName'),'/', variables('centralSvcNsgFlowLogName'))]",
-            "type": "Microsoft.Network/networkWatchers/FlowLogs/",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
+            "name": "[variables('deployCentralSvcNsgFlowLog')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkWatchers', variables('networkWatcherName'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
             ],
             "properties": {
-                "targetResourceId": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('centralSvcNsgName'))]",
-                "storageId": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]",
-                "enabled": true,
-                "flowAnalyticsConfiguration": {
-                    "networkWatcherFlowAnalyticsConfiguration": {
-                        "enabled": true,
-                        "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]",
-                        "trafficAnalyticsInterval": 10
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('bastionNsgFlowLogName')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('centralSvcNsgName'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
                     }
                 },
-                "retentionPolicy": {
-                    "days": 5,
-                    "enabled": true
-                },
-                "format": {
-                    "type": "JSON",
-                    "version": 2
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "contentVersion": "1.0.0.0"
                 }
             }
         },

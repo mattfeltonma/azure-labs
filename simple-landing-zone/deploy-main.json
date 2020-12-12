@@ -23,7 +23,7 @@
                 "description": "The resource group where Network Watcher resources exist"
             },
             "defaultValue": "NetworkWatcherRG"
-        }
+        },
              /*
         "vmAdminUsername": {
             "type": "string",
