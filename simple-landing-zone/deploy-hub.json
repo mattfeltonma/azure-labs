@@ -528,9 +528,6 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    },
                     "privateEndpointLocation": {
                         "value": "[variables('location')]"
                     },
@@ -575,9 +572,6 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    },
                     "privateEndpointLocation": {
                         "value": "[variables('location')]"
                     },
@@ -622,9 +616,6 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    },
                     "privateEndpointLocation": {
                         "value": "[variables('location')]"
                     },
@@ -669,9 +660,6 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    },
                     "privateEndpointLocation": {
                         "value": "[variables('location')]"
                     },

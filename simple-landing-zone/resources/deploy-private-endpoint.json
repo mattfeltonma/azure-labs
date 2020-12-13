@@ -89,7 +89,7 @@
     "variables": {
         "networkApiVersion": "2020-05-01",
         "resourceDeploymentsApiVersion": "2019-10-01",
-        "privateLinkEndpointName": "[substring(concat('pl',parameters('resourceName'),parameters('uniqueData')),0,16)]",
+        "privateLinkEndpointName": "[substring(concat('pl',parameters('resourceName'), parameters('privateEndpointSubResource')[0],parameters('uniqueData')),0,16)]",
         "privateLinkConnName": "[substring(concat('plconn',parameters('resourceName'),parameters('uniqueData')),0,16)]",
         "privateEndpointIpDeploy": "deploy-getPeIp"
     },
