@@ -547,9 +547,7 @@
                         "value": "[variables('blobStorageDnsZoneName')]"
                     },
                     "privateEndpointSubResource": {
-                        "value": [
-                            "blob"
-                        ]
+                        "value": "blob"  
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -591,9 +589,7 @@
                         "value": "[variables('fileStorageDnsZoneName')]"
                     },
                     "privateEndpointSubResource": {
-                        "value": [
-                            "file"
-                        ]
+                        "value": "file"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -635,9 +631,7 @@
                         "value": "[variables('tableStorageDnsZoneName')]"
                     },
                     "privateEndpointSubResource": {
-                        "value": [
-                            "table"
-                        ]
+                        "value":  "table"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -679,9 +673,7 @@
                         "value": "[variables('queueStorageDnsZoneName')]"
                     },
                     "privateEndpointSubResource": {
-                        "value": [
-                            "queue"
-                        ]
+                        "value": "queue"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
