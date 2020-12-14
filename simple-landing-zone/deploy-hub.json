@@ -751,7 +751,8 @@
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deployBastionNsgFlowLog'))]"
             ],
             "properties": {
                 "mode": "Incremental",

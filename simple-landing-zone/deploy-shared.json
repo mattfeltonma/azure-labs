@@ -593,7 +593,8 @@
             "apiVersion": "[variables('resourcesApiVersion')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('supportNsgName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('supportNsgName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('adNsgFlowLogDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -626,7 +627,8 @@
             "apiVersion": "[variables('resourcesApiVersion')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privNsgName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privNsgName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('supportNsgFlowLogDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
