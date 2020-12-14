@@ -60,6 +60,12 @@
                 "description": "The CIDR assigned to the subnet used for Windows Active Directory domain controllers"
             }
         },
+        "sharedVnetSubnetSupportCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the subnet used for support services"
+            }
+        },
         "sharedVnetSubnetPrivCidr": {
             "type": "string",
             "metadata": {
