@@ -22,29 +22,25 @@
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the hub virtual network"
-            },
-            "defaultValue": "10.0.0.0/16"
+            }
         },
         "hubGatewaySubnetCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the Gateway subnet in the hub virtual network"
-            },
-            "defaultValue": "10.0.0.0/27"
+            }
         },
         "hubBastionSubnetCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the Bastion subnet in the hub virtual network"
-            },
-            "defaultValue": "10.0.1.0/27"
+            }
         },
         "hubFwSubnetPayCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the Azure Firewall payload subnet in the hub virtual network"
-            },
-            "defaultValue": "10.0.2.0/27"
+            }
         },
         "hubCentralSvcSubnetCidr": {
             "type": "string",
@@ -56,36 +52,25 @@
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the Shared Services virtual network"
-            },
-            "defaultValue": "10.1.0.0/16"
+            }
         },
         "sharedVnetSubnetAdCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for Windows Active Directory domain controllers"
-            },
-            "defaultValue": "10.1.0.0/24"
-        },
-        "sharedVnetSubnetSupportCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the subnet used for support services"
-            },
-            "defaultValue": "10.1.1.0/24"
+            }
         },
         "sharedVnetSubnetPrivCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for privileged activities"
-            },
-            "defaultValue": "10.1.2.0/24"
+            }
         },
         "spokeVnetCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the spoke virtual network.  This is used in the firewall rules."
-            },
-            "defaultValue": "10.2.0.0/16"
+            }
         },
         "networkWatcherRg": {
             "type": "string",
