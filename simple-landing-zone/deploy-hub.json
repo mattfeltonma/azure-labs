@@ -675,7 +675,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/privateDnsZones/',variables('queueStorageDnsZoneName'),'/virtualNetworkLinks/', variables('queueStoragePlLinkName'))]"
+                "[concat('Microsoft.Network/privateDnsZones/',variables('queueStorageDnsZoneName'),'/virtualNetworkLinks/', variables('queueStoragePlLinkName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployQueueStPe'))]"
             ],
             "properties": {
                 "mode": "Incremental",
