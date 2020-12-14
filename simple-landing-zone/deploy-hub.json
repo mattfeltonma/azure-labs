@@ -23,36 +23,28 @@
             "metadata": {
                 "description": "The CIDR assigned to the hub virtual network"
             },
-            "defaultValue": {
-                "environment": "10.0.0.0/16"
-            }
+            "defaultValue": "10.0.0.0/16"
         },
         "hubGatewaySubnetCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the Gateway subnet in the hub virtual network"
             },
-            "defaultValue": {
-                "environment": "10.0.0.0/27"
-            }
+            "defaultValue": "10.0.0.0/27"
         },
         "hubBastionSubnetCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the Bastion subnet in the hub virtual network"
             },
-            "defaultValue": {
-                "environment": "10.0.1.0/27"
-            }
+            "defaultValue": "10.0.1.0/27"
         },
         "hubFwSubnetPayCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the Azure Firewall payload subnet in the hub virtual network"
             },
-            "defaultValue": {
-                "environment": "10.0.2.0/27"
-            }
+            "defaultValue": "10.0.2.0/27"
         },
         "hubCentralSvcSubnetCidr": {
             "type": "string",
@@ -65,57 +57,51 @@
             "metadata": {
                 "description": "The CIDR assigned to the Shared Services virtual network"
             },
-            "defaultValue": {
-                "environment": "10.1.0.0/16"
-            }
+            "defaultValue": "10.1.0.0/16"
         },
         "sharedVnetSubnetAdCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for Windows Active Directory domain controllers"
             },
-            "defaultValue": {
-                "environment": "10.1.0.0/24"
-            }
+            "defaultValue": "10.1.0.0/24"
         },
         "sharedVnetSubnetSupportCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for support services"
             },
-            "defaultValue": {
-                "environment": "10.1.1.0/24"
-            }
+            "defaultValue": "10.1.1.0/24"
         },
         "sharedVnetSubnetPrivCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for privileged activities"
             },
-            "defaultValue": {
-                "environment": "10.1.2.0/24"
-            }
+            "defaultValue": "10.1.2.0/24"
         },
         "spokeVnetCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the spoke virtual network.  This is used in the firewall rules."
             },
-            "defaultValue": {
-                "environment": "10.2.0.0/16"
-            }
+            "defaultValue": "10.2.0.0/16"
         },
         "networkWatcherRg": {
             "type": "string",
             "metadata": {
                 "description": "The resource group where the Network Watcher instances are stored"
-            }
+            },
+            "defaultValue": "NetworkWatcherRG"
         }
     },
     "variables": {
         "location": "[resourceGroup().location]",
         "logAnalyticsRetention": 30,
         "vnetStandardDdosProtection": false,
+        "firewallAz": [
+            "1"
+        ],
         "hubVnetName": "[concat('vnet-hub', parameters('uniqueData'))]",
         "gatewaySubnetName": "GatewaySubnet",
         "bastionSubnetName": "AzureBastionSubnet",
@@ -128,7 +114,6 @@
         "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
         "bastionNsgName": "[concat('nsg-bst', parameters('uniqueData'))]",
         "centralSvcNsgName": "[concat('nsg-cent', parameters('uniqueData'))]",
-        "bastionNsgFlowLogName": "[concat('bstflowlog')]",
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
         "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
@@ -144,7 +129,7 @@
         "deployTableStPe": "deploy-storagetableprivateendpoint",
         "deployQueueStPe": "deploy-storagequeueprivateendpoint",
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
-        "deployCentralSvcNsgFlowLog": "deploy-centsvcnsgflowlog",        
+        "deployCentralSvcNsgFlowLog": "deploy-centsvcnsgflowlog",
         "deployLaPe": "deploy-laprivateendpoint",
         "networkApiVersion": "2020-04-01",
         "laApiVersion": "2015-11-01-preview",
@@ -165,6 +150,8 @@
                 "sku": {
                     "name": "PerGB2018"
                 },
+                "publicNetworkAccessForIngestion": "Disabled",
+                "publicNetworkAccessForQuery": "Enabled",
                 "retentionInDays": "[variables('logAnalyticsRetention')]"
             }
         },
@@ -180,6 +167,12 @@
                 "name": "Standard_RAGRS"
             },
             "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Deny"
+                },
                 "supportsHttpsTrafficOnly": true
             }
         },
@@ -547,7 +540,7 @@
                         "value": "[variables('blobStorageDnsZoneName')]"
                     },
                     "privateEndpointSubResource": {
-                        "value": "blob"  
+                        "value": "blob"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -631,7 +624,7 @@
                         "value": "[variables('tableStorageDnsZoneName')]"
                     },
                     "privateEndpointSubResource": {
-                        "value":  "table"
+                        "value": "table"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -832,9 +825,7 @@
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
                 "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
             ],
-            "zones": [
-                "1"
-            ],
+            "zones": "[variables('firewallAz')]",
             "properties": {
                 "networkRuleCollections": [
                     {
@@ -1087,8 +1078,35 @@
                                 }
                             ]
                         }
+                    },
+                    {
+                        "name": "AllowPrivMgmt",
+                        "properties": {
+                            "priority": 102,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "AllowRdpSsh",
+                                    "description": "Allow Rdp and SSH",
+                                    "protocols": [
+                                        "TCP"
+                                    ],
+                                    "sourceAddresses": [
+                                        "[parameters('sharedVnetSubnetPrivCidr')]"
+                                    ],
+                                    "destinationAddresses": [
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "destinationPorts": [
+                                        "3389",
+                                        "22"
+                                    ]
+                                }
+                            ]
+                        }
                     }
-
                 ],
                 "applicationRuleCollections": [
                 ],
@@ -1185,9 +1203,29 @@
             "type": "string",
             "value": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
         },
+        "hubVnetName": {
+            "type": "string",
+            "value": "[variables('hubVnetName')]"
+        },
         "hubVnetResourceId": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+        },
+        "laWorkspaceResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+        },
+        "laWorkspaceId": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
+        },
+        "laWorkspaceKey": {
+           "type": "string",
+            "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
+        },            
+        "logStorageResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
         }
     }
 }

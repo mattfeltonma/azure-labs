@@ -24,7 +24,6 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
-             /*
         "vmAdminUsername": {
             "type": "string",
             "metadata": {
@@ -36,7 +35,7 @@
             "metadata": {
                 "description": "Password for the VMs that are created"
             }
-        }, */
+        },
         "uniqueGuid": {
             "type": "string",
             "metadata": {
@@ -141,6 +140,73 @@
                         "value": "[variables('spokeVnetCidr')]"
                     },
                     "networkWatcherRg": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/deploy-hub.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('sharedSvcDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "resourceGroup": "[variables('hubRgName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('hubDeploymentName'))]",
+                "[resourceId('Microsoft.Resources/resourceGroups',variables('sharedSvcRgName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[variables('uniqueData')]"
+                    },
+                    "vmAdminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"                        
+                    },
+                    "vmAdminUserPassword": {
+                        "value": "[parameters('vmAdminPassword')]"                        
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "sharedVnetCidr": {
+                        "value": "[variables('sharedVnetCidr')]"
+                    },
+                    "sharedVnetSubnetAdCidr": {
+                        "value": "[variables('sharedVnetSubnetAdCidr')]"
+                    },
+                    "sharedVnetSubnetPrivCidr": {
+                        "value": "[variables('sharedVnetSubnetPrivCidr')]"
+                    },
+                    "sharedVnetSubnetSupportCidr": {
+                        "value": "[variables('sharedVnetSubnetSupportCidr')]"
+                    },
+                    "hubVnetName": {
+                        "value": "[reference(variables('hubDeploymentName')).outputs.hubVnetName.value]"
+                    },
+                    "hubVnetResourceGroup": {
+                        "value": "[variables('hubRgName')]"
+                    },
+                    "hubBastionSubnetCidr": {
+                        "value": "[variables('hubBastionSubnetCidr')]"
+                    },
+                    "laWorkspaceId": {
+                        "value": "[reference(variables('hubDeploymentName')).outputs.laWorkspaceId.value]"
+                    },
+                    "laWorkspaceKey": {
+                        "value": "[reference(variables('hubDeploymentName')).outputs.laWorkspaceKey.value]"
+                    },
+                    "logStorageAccountResourceId": {
+                        "value": "[reference(variables('hubDeploymentName')).outputs.logStorageResourceId.value]"
+                    },
+                    "firewallIp": {
+                        "value": "[reference(variables('hubDeploymentName')).outputs.firewallIp.value]"
+                    },
+                    "networkWatcheRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
                     }
                 },
