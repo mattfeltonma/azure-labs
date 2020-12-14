@@ -280,6 +280,76 @@
                 "securityRules": []
             }
         },
+        /* Enable NSG Flow Logs */
+        {
+            "name": "[variables('deployBastionNsgFlowLog')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('bastionNsgName')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('bastionNsgName'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployCentralSvcNsgFlowLog')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deployBastionNsgFlowLog'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('centralSvcNsgName')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('centralSvcNsgName'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
         /* Create hub virtual network */
         {
             "type": "Microsoft.Network/virtualNetworks",
@@ -288,8 +358,7 @@
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployCentralSvcNsgFlowLog'))]"
             ],
             "properties": {
                 "addressSpace": {
@@ -705,76 +774,6 @@
                 },
                 "templateLink": {
                     "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-la-private-endpoint.json",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        /* Enable NSG Flow Logs */
-        {
-            "name": "[variables('deployBastionNsgFlowLog')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "resourceGroup": "[parameters('networkWatcherRg')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    },
-                    "location": {
-                        "value": "[variables('location')]"
-                    },
-                    "targetNsgName": {
-                        "value": "[variables('bastionNsgName')]"
-                    },
-                    "targetNsgResourceId": {
-                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('bastionNsgName'))]"
-                    },
-                    "targetStorageResourceId": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-nsg-flow-log.json",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deployCentralSvcNsgFlowLog')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "resourceGroup": "[parameters('networkWatcherRg')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]",
-                "[concat('Microsoft.Resources/deployments/',variables('deployBastionNsgFlowLog'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    },
-                    "location": {
-                        "value": "[variables('location')]"
-                    },
-                    "targetNsgName": {
-                        "value": "[variables('centralSvcNsgName')]"
-                    },
-                    "targetNsgResourceId": {
-                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('centralSvcNsgName'))]"
-                    },
-                    "targetStorageResourceId": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-nsg-flow-log.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
