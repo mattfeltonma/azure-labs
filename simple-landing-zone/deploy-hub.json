@@ -1213,7 +1213,7 @@
         },
         "laWorkspaceKey": {
            "type": "string",
-            "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
+            "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
         },            
         "logStorageResourceId": {
             "type": "string",
