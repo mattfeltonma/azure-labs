@@ -167,7 +167,7 @@
                     "vmAdminUserName": {
                         "value": "[parameters('vmAdminUsername')]"                        
                     },
-                    "vmAdminUserPassword": {
+                    "vmAdminPassword": {
                         "value": "[parameters('vmAdminPassword')]"                        
                     },
                     "tags": {
@@ -188,7 +188,7 @@
                     "hubVnetName": {
                         "value": "[reference(variables('hubDeploymentName')).outputs.hubVnetName.value]"
                     },
-                    "hubVnetResourceGroup": {
+                    "hubVnetResourceGroupName": {
                         "value": "[variables('hubRgName')]"
                     },
                     "hubBastionSubnetCidr": {
@@ -206,7 +206,7 @@
                     "firewallIp": {
                         "value": "[reference(variables('hubDeploymentName')).outputs.firewallIp.value]"
                     },
-                    "networkWatcheRg": {
+                    "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
                     }
                 },
