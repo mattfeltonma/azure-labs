@@ -656,7 +656,6 @@
                 }
             }
         },
-
         /* Deploy privileged VM */
         {
             "name": "[variables('privVmDeploymentName')]",
@@ -697,7 +696,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/arm-templates/master/examples/vm-windows-server-2016/vm-win-2016.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-windows-server-2019.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
