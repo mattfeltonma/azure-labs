@@ -815,7 +815,8 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('firewallPublicIpName'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
-                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployLaPe'))]"
             ],
             "zones": "[variables('firewallAz')]",
             "properties": {
@@ -1169,7 +1170,8 @@
             "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
+                
             ],
             "tags": "[parameters('tags')]",
             "properties": {
