@@ -153,7 +153,7 @@
             "name": "[variables('sharedSvcDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "resourceGroup": "[variables('hubRgName')]",
+            "resourceGroup": "[variables('sharedSvcRgName')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/',variables('hubDeploymentName'))]",
                 "[resourceId('Microsoft.Resources/resourceGroups',variables('sharedSvcRgName'))]"

@@ -161,6 +161,9 @@
             "name": "[variables('privateLinkScopeName')]",
             "type": "microsoft.insights/privateLinkScopes",
             "apiVersion": "[variables('insightsApiVersion')]",
+            "dependsOn": [
+                "Microsoft.Network/privateDnsZones/privatelink.agentsvc.azure-automation.net/virtualNetworkLinks/privatelink.agentsvc.azure-automation.net-link"
+            ],
             "location": "global",
             "tags": "[parameters('tags')]",
             "properties": {}
@@ -182,8 +185,7 @@
             "name": "[variables('privateLinkEndpointName')]",
             "location": "[parameters('privateEndpointLocation')]",
             "dependsOn": [
-                "[concat('microsoft.insights/privateLinkScopes/',variables('privateLinkScopeName'),'/scopedResources/',variables('privateLinkScopeResourceName'))]",
-                "Microsoft.Network/privateDnsZones/privatelink.agentsvc.azure-automation.net/virtualNetworkLinks/privatelink.agentsvc.azure-automation.net-link"
+                "[concat('microsoft.insights/privateLinkScopes/',variables('privateLinkScopeName'),'/scopedResources/',variables('privateLinkScopeResourceName'))]"
             ],
             "tags": "[parameters('tags')]",
             "properties": {
