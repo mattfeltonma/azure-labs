@@ -1170,8 +1170,8 @@
             "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
-                
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+
             ],
             "tags": "[parameters('tags')]",
             "properties": {
