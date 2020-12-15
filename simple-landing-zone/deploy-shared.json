@@ -662,7 +662,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments',variables('hubPeeringDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('hubPeeringDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
