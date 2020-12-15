@@ -130,6 +130,33 @@
         "storageApiVersion": "2019-06-01"
     },
     "resources": [
+        /* Create Public IPs for Azure Bastion and Azure Firewall */
+        {
+            "name": "[variables('bastionPublicIpName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
+        {
+            "name": "[variables('firewallPublicIpName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
         /* Create Log Analytics Workspace*/
         {
             "name": "[variables('laWorkspaceName')]",
@@ -494,317 +521,6 @@
                 }
             }
         },
-        /* Set DNS server for Vnet */
-        {
-            "name": "[variables('deployDnsServerSettings')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "resources": [
-                        {
-                            "type": "Microsoft.Network/virtualNetworks",
-                            "name": "[variables('hubVnetName')]",
-                            "apiVersion": "[variables('networkApiVersion')]",
-                            "location": "[variables('location')]",
-                            "tags": "[parameters('tags')]",
-                            "dependsOn": [
-                            ],
-                            "properties": {
-                                "addressSpace": {
-                                    "addressPrefixes": [
-                                        "[parameters('hubVnetCidr')]"
-                                    ]
-                                },
-                                "subnets": [
-                                    {
-                                        "name": "[variables('gatewaySubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('hubGatewaySubnetCidr')]"
-                                        }
-                                    },
-                                    {
-                                        "name": "[variables('bastionSubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('hubBastionSubnetCidr')]",
-                                            "networkSecurityGroup": {
-                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "name": "[variables('fwPayloadSubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('hubFwSubnetPayCidr')]"
-                                        }
-                                    },
-                                    {
-                                        "name": "[variables('centralSvcSubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('hubCentralSvcSubnetCidr')]",
-                                            "networkSecurityGroup": {
-                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
-                                            },
-                                            "privateEndpointNetworkPolicies": "Disabled"
-                                        }
-                                    }
-                                ],
-                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
-                                "dhcpOptions": {
-                                    "dnsServers": [
-                                        "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
-                                    ]
-                                }
-                            },
-                            "resources": [
-                            ]
-                        }
-                    ]
-                }
-            }
-        },
-        /* Create Private Endpoint for Azure Storage Account for blob */
-        {
-            "name": "[variables('deployBlobStPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/privateDnsZones/',variables('queueStorageDnsZoneName'),'/virtualNetworkLinks/', variables('queueStoragePlLinkName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployDnsServerSettings'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('hubVnetName')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "resourceName": {
-                        "value": "[variables('logStorageAccountName')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
-                    },
-                    "privateDnsZoneName": {
-                        "value": "[variables('blobStorageDnsZoneName')]"
-                    },
-                    "privateEndpointSubResource": {
-                        "value": "blob"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-private-endpoint.json",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        /* Create Private Endpoint for Azure Storage Account for file */
-        {
-            "name": "[variables('deployFileStPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployBlobStPe'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('hubVnetName')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "resourceName": {
-                        "value": "[variables('logStorageAccountName')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
-                    },
-                    "privateDnsZoneName": {
-                        "value": "[variables('fileStorageDnsZoneName')]"
-                    },
-                    "privateEndpointSubResource": {
-                        "value": "file"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-private-endpoint.json",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        /* Create Private Endpoint for Azure Storage Account for table */
-        {
-            "name": "[variables('deployTableStPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployFileStPe'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('hubVnetName')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "resourceName": {
-                        "value": "[variables('logStorageAccountName')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
-                    },
-                    "privateDnsZoneName": {
-                        "value": "[variables('tableStorageDnsZoneName')]"
-                    },
-                    "privateEndpointSubResource": {
-                        "value": "table"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-private-endpoint.json",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        /* Create Private Endpoint for Azure Storage Account for queue */
-        {
-            "name": "[variables('deployQueueStPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployTableStPe'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('hubVnetName')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "resourceName": {
-                        "value": "[variables('logStorageAccountName')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
-                    },
-                    "privateDnsZoneName": {
-                        "value": "[variables('queueStorageDnsZoneName')]"
-                    },
-                    "privateEndpointSubResource": {
-                        "value": "queue"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-private-endpoint.json",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        /* Create Private Endpoint for Log Analytics Workspace */
-        {
-            "name": "[variables('deployLaPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/privateDnsZones/',variables('queueStorageDnsZoneName'),'/virtualNetworkLinks/', variables('queueStoragePlLinkName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployQueueStPe'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    },
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('hubVnetName')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "laWorkspaceName": {
-                        "value": "[variables('laWorkspaceName')]"
-                    },
-                    "laWorkspaceResourceId": {
-                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-la-private-endpoint.json",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        /* Create Public IPs for Azure Bastion and Azure Firewall */
-        {
-            "name": "[variables('bastionPublicIpName')]",
-            "type": "Microsoft.Network/publicIpAddresses",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "properties": {
-                "publicIpAllocationMethod": "Static"
-            },
-            "sku": {
-                "name": "Standard"
-            }
-        },
-        {
-            "name": "[variables('firewallPublicIpName')]",
-            "type": "Microsoft.Network/publicIpAddresses",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "properties": {
-                "publicIpAllocationMethod": "Static"
-            },
-            "sku": {
-                "name": "Standard"
-            }
-        },
         /* Create Azure Firewall instance and diagnostic settings */
         {
             "name": "[variables('firewallName')]",
@@ -813,10 +529,10 @@
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
+                "[concat('Microsoft.Network/privateDnsZones/',variables('queueStorageDnsZoneName'),'/virtualNetworkLinks/', variables('queueStoragePlLinkName'))]",
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('firewallPublicIpName'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
-                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployLaPe'))]"
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
             ],
             "zones": "[variables('firewallAz')]",
             "properties": {
@@ -1161,6 +877,288 @@
             },
             "resources": [
             ]
+        },
+        /* Set DNS server for Vnet */
+        {
+            "name": "[variables('deployDnsServerSettings')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworks",
+                            "name": "[variables('hubVnetName')]",
+                            "apiVersion": "[variables('networkApiVersion')]",
+                            "location": "[variables('location')]",
+                            "tags": "[parameters('tags')]",
+                            "dependsOn": [
+                            ],
+                            "properties": {
+                                "addressSpace": {
+                                    "addressPrefixes": [
+                                        "[parameters('hubVnetCidr')]"
+                                    ]
+                                },
+                                "subnets": [
+                                    {
+                                        "name": "[variables('gatewaySubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('hubGatewaySubnetCidr')]"
+                                        }
+                                    },
+                                    {
+                                        "name": "[variables('bastionSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('hubBastionSubnetCidr')]",
+                                            "networkSecurityGroup": {
+                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "[variables('fwPayloadSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('hubFwSubnetPayCidr')]"
+                                        }
+                                    },
+                                    {
+                                        "name": "[variables('centralSvcSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('hubCentralSvcSubnetCidr')]",
+                                            "networkSecurityGroup": {
+                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
+                                            },
+                                            "privateEndpointNetworkPolicies": "Disabled"
+                                        }
+                                    }
+                                ],
+                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
+                                "dhcpOptions": {
+                                    "dnsServers": [
+                                        "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                                    ]
+                                }
+                            },
+                            "resources": [
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        /* Create Private Endpoint for Azure Storage Account for blob */
+        {
+            "name": "[variables('deployBlobStPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployDnsServerSettings'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('hubVnetName')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('centralSvcSubnetName')]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('logStorageAccountName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                    },
+                    "privateDnsZoneName": {
+                        "value": "[variables('blobStorageDnsZoneName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "blob"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-private-endpoint.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        /* Create Private Endpoint for Azure Storage Account for file */
+        {
+            "name": "[variables('deployFileStPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployBlobStPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('hubVnetName')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('centralSvcSubnetName')]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('logStorageAccountName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                    },
+                    "privateDnsZoneName": {
+                        "value": "[variables('fileStorageDnsZoneName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "file"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-private-endpoint.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        /* Create Private Endpoint for Azure Storage Account for table */
+        {
+            "name": "[variables('deployTableStPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployFileStPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('hubVnetName')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('centralSvcSubnetName')]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('logStorageAccountName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                    },
+                    "privateDnsZoneName": {
+                        "value": "[variables('tableStorageDnsZoneName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "table"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-private-endpoint.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        /* Create Private Endpoint for Azure Storage Account for queue */
+        {
+            "name": "[variables('deployQueueStPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployTableStPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('hubVnetName')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('centralSvcSubnetName')]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('logStorageAccountName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                    },
+                    "privateDnsZoneName": {
+                        "value": "[variables('queueStorageDnsZoneName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "queue"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-private-endpoint.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        /* Create Private Endpoint for Log Analytics Workspace */
+        {
+            "name": "[variables('deployLaPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployQueueStPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('hubVnetName')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('centralSvcSubnetName')]"
+                    },
+                    "laWorkspaceName": {
+                        "value": "[variables('laWorkspaceName')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-la-private-endpoint.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
         },
         /* Deploy Azure Bastion instance */
         {
