@@ -113,30 +113,29 @@
         }
     },
     "variables": {
-        "location": "[resourceGroup().location]",
-        "vmSku": "Standard_DS2_v2",
-        "vnetStandardDdosProtection": false,
-        "sharedVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
-        "sharedSupportSvcSubnetName": "snet-support",
-        "sharedAdSubnetName": "snet-ad",
-        "sharedPrivSubnetName": "snet-priv",
-        "privNsgName": "[concat('nsg-priv', parameters('uniqueData'))]",
+        "networkApiVersion": "2020-04-01",
+        "resourcesApiVersion": "2020-06-01",
+        "adNsgFlowLogDeploymentName": "deploy-adflowlog",
         "adNsgName": "[concat('nsg-ad', parameters('uniqueData'))]",
-        "supportNsgName": "[concat('nsg-support', parameters('uniqueData'))]",
-        "sharedSvcRouteTableName": "[concat('rt-shared', parameters('uniqueData'))]",
-        "privVmName": "[concat('vm-priv',parameters('uniqueData'))]",
+        "hubPeeringDeploymentName": "deploy-peering",
+        "location": "[resourceGroup().location]",
         "peeringHubToSharedName": "peerhubtoshared",
         "peeringSharedToHubName": "peersharedtohub",
-        "privVmDeploymentName": "deploy-privm",
-        "hubPeeringDeploymentName": "deploy-peering",
-        "adNsgFlowLogDeploymentName": "deploy-adflowlog",
         "privNsgFlowLogDeploymentName": "deloy-privflowlog",
+        "privNsgName": "[concat('nsg-priv', parameters('uniqueData'))]",
+        "privVmDeploymentName": "deploy-privm",
+        "privVmName": "[concat('vm-priv',parameters('uniqueData'))]",
+        "sharedAdSubnetName": "snet-ad",
+        "sharedPrivSubnetName": "snet-priv",
+        "sharedSupportSvcSubnetName": "snet-support",
+        "sharedSvcRouteTableName": "[concat('rt-shared', parameters('uniqueData'))]",
+        "sharedVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
         "supportNsgFlowLogDeploymentName": "deploy-supportflowlog",
-        "networkApiVersion": "2020-04-01",
-        "resourcesApiVersion": "2020-06-01"
+        "supportNsgName": "[concat('nsg-support', parameters('uniqueData'))]",
+        "vmSku": "Standard_DS2_v2",
+        "vnetStandardDdosProtection": false
     },
     "resources": [
-        /* Create NSG for Privileged Management subnet */
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('supportNsgName')]",
@@ -147,7 +146,6 @@
                 "securityRules": []
             }
         },
-        /* Create NSG for Windows AD Subnet */
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('adNsgName')]",
@@ -372,7 +370,6 @@
                 ]
             }
         },
-        /* Create NSG for Privileged Subnet */
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('privNsgName')]",
@@ -412,7 +409,6 @@
                 ]
             }
         },
-        /* Nested deployment for NSG Flow logs */
         {
             "name": "[variables('adNsgFlowLogDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
@@ -514,7 +510,6 @@
                 }
             }
         },
-        /* Create shared services route table */
         {
             "name": "[variables('sharedSvcRouteTableName')]",
             "type": "Microsoft.Network/routeTables",
@@ -540,7 +535,6 @@
             "resources": [
             ]
         },
-        /* Create shared services virtual network */
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('sharedVnetName')]",
@@ -597,7 +591,12 @@
                         }
                     }
                 ],
-                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
+                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
+                "dhcpOptions": {
+                    "dnsServers": [
+                        "[parameters('firewallIp')]"
+                    ]
+                }
             },
             "resources": [
                 {
@@ -620,7 +619,6 @@
                 }
             ]
         },
-        /* Nested deployment to peer hub to spoke*/
         {
             "name": "[variables('hubPeeringDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
@@ -656,7 +654,6 @@
                 }
             }
         },
-        /* Deploy privileged VM */
         {
             "name": "[variables('privVmDeploymentName')]",
             "type": "Microsoft.Resources/deployments",

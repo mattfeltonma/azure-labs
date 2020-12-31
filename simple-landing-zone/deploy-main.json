@@ -45,24 +45,24 @@
         }
     },
     "variables": {
-        "resourcesApiVersion": "2020-06-01",
         "uniqueData": "[substring(parameters('uniqueGuid'),0,8)]",
-        "hubRgName": "[concat('rg-hub-',variables('uniqueData'))]",
-        "sharedSvcRgName": "[concat('rg-shared-',variables('uniqueData'))]",
-        "workloadRgName": "[concat('rg-work-',variables('uniqueData'))]",
-        "hubVnetCidr": "10.0.0.0/16",
-        "hubGatewaySubnetCidr": "10.0.0.0/27",
+        "resourcesApiVersion": "2020-06-01",
         "hubBastionSubnetCidr": "10.0.1.0/27",
-        "hubFwSubnetPayCidr": "10.0.2.0/26",
         "hubCentralSvcSubnetCidr": "10.0.3.0/24",
+        "hubDeploymentName": "deploy-hub",
+        "hubFwSubnetPayCidr": "10.0.2.0/26",
+        "hubGatewaySubnetCidr": "10.0.0.0/27",
+        "hubRgName": "[concat('rg-hub-',variables('uniqueData'))]",
+        "hubVnetCidr": "10.0.0.0/16",
+        "sharedSvcDeploymentName": "deploy-shared",
+        "sharedSvcRgName": "[concat('rg-shared-',variables('uniqueData'))]",
         "sharedVnetCidr": "10.1.0.0/16",
         "sharedVnetSubnetAdCidr": "10.1.0.0/24",
-        "sharedVnetSubnetSupportCidr": "10.1.1.0/24",
         "sharedVnetSubnetPrivCidr": "10.1.2.0/24",
+        "sharedVnetSubnetSupportCidr": "10.1.1.0/24",
+        "spokeDeploymentName": "deploy-spoke",
         "spokeVnetCidr": "10.2.0.0/16",
-        "hubDeploymentName": "deploy-hub",
-        "sharedSvcDeploymentName": "deploy-shared",
-        "spokeDeploymentName": "deploy-spoke"
+        "workloadRgName": "[concat('rg-work-',variables('uniqueData'))]"
     },
     "resources": [
         {

@@ -87,6 +87,12 @@
         }
     },
     "variables": {
+        "diagnosticApiVersion": "2017-05-01-preview",
+        "dnsApiVersion": "2018-09-01",
+        "laApiVersion": "2015-11-01-preview",
+        "networkApiVersion": "2020-04-01",
+        "resourcesApiVersion": "2020-06-01",
+        "storageApiVersion": "2019-06-01",
         "location": "[resourceGroup().location]",
         "logAnalyticsRetention": 30,
         "vnetStandardDdosProtection": false,
@@ -108,12 +114,12 @@
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
         "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
-        "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "queueStorageDnsZoneName": "privatelink.queue.core.windows.net",
+        "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "blobStoragePlLinkName": "[concat(variables('blobStorageDnsZoneName'), '-link')]",
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
-        "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
         "queueStoragePlLinkName": "[concat(variables('queueStorageDnsZoneName'), '-link')]",
+        "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployBlobStPe": "deploy-storageblobprivateendpoint",
         "deployFileStPe": "deploy-storagefileprivateendpoint",
@@ -121,16 +127,9 @@
         "deployQueueStPe": "deploy-storagequeueprivateendpoint",
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
         "deployCentralSvcNsgFlowLog": "deploy-centsvcnsgflowlog",
-        "deployLaPe": "deploy-laprivateendpoint",
-        "networkApiVersion": "2020-04-01",
-        "laApiVersion": "2015-11-01-preview",
-        "diagnosticApiVersion": "2017-05-01-preview",
-        "dnsApiVersion": "2018-09-01",
-        "resourcesApiVersion": "2020-06-01",
-        "storageApiVersion": "2019-06-01"
+        "deployLaPe": "deploy-laprivateendpoint"
     },
     "resources": [
-        /* Create Public IPs for Azure Bastion and Azure Firewall */
         {
             "name": "[variables('bastionPublicIpName')]",
             "type": "Microsoft.Network/publicIpAddresses",
@@ -157,7 +156,6 @@
                 "name": "Standard"
             }
         },
-        /* Create Log Analytics Workspace*/
         {
             "name": "[variables('laWorkspaceName')]",
             "type": "Microsoft.OperationalInsights/workspaces",
@@ -173,7 +171,6 @@
                 "retentionInDays": "[variables('logAnalyticsRetention')]"
             }
         },
-        /* Create Azure Storage Account */
         {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "[variables('storageApiVersion')]",
@@ -194,7 +191,6 @@
                 "supportsHttpsTrafficOnly": true
             }
         },
-        /* Create NSG for Bastion subnet */
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('bastionNsgName')]",
@@ -296,7 +292,6 @@
                 ]
             }
         },
-        /* Create NSG for Central Private Endpoint Services */
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('centralSvcNsgName')]",
@@ -307,7 +302,6 @@
                 "securityRules": []
             }
         },
-        /* Enable NSG Flow Logs */
         {
             "name": "[variables('deployBastionNsgFlowLog')]",
             "type": "Microsoft.Resources/deployments",
@@ -377,7 +371,6 @@
                 }
             }
         },
-        /* Create hub virtual network */
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('hubVnetName')]",
@@ -431,7 +424,6 @@
             "resources": [
             ]
         },
-        /* Create Private DNS Zones */
         {
             "type": "Microsoft.Network/privateDnsZones",
             "apiVersion": "[variables('dnsApiVersion')]",
@@ -456,7 +448,6 @@
             "name": "[variables('queueStorageDnsZoneName')]",
             "location": "global"
         },
-        /* Link Private DNS Zones */
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
             "apiVersion": "[variables('dnsApiVersion')]",
@@ -521,7 +512,6 @@
                 }
             }
         },
-        /* Create Azure Firewall instance and diagnostic settings */
         {
             "name": "[variables('firewallName')]",
             "type": "Microsoft.Network/azureFirewalls",
@@ -878,7 +868,6 @@
             "resources": [
             ]
         },
-        /* Set DNS server for Vnet */
         {
             "name": "[variables('deployDnsServerSettings')]",
             "type": "Microsoft.Resources/deployments",
@@ -953,7 +942,6 @@
                 }
             }
         },
-        /* Create Private Endpoint for Azure Storage Account for blob */
         {
             "name": "[variables('deployBlobStPe')]",
             "type": "Microsoft.Resources/deployments",
@@ -995,7 +983,6 @@
                 }
             }
         },
-        /* Create Private Endpoint for Azure Storage Account for file */
         {
             "name": "[variables('deployFileStPe')]",
             "type": "Microsoft.Resources/deployments",
@@ -1037,7 +1024,6 @@
                 }
             }
         },
-        /* Create Private Endpoint for Azure Storage Account for table */
         {
             "name": "[variables('deployTableStPe')]",
             "type": "Microsoft.Resources/deployments",
@@ -1079,7 +1065,6 @@
                 }
             }
         },
-        /* Create Private Endpoint for Azure Storage Account for queue */
         {
             "name": "[variables('deployQueueStPe')]",
             "type": "Microsoft.Resources/deployments",
@@ -1121,7 +1106,6 @@
                 }
             }
         },
-        /* Create Private Endpoint for Log Analytics Workspace */
         {
             "name": "[variables('deployLaPe')]",
             "type": "Microsoft.Resources/deployments",
@@ -1160,7 +1144,6 @@
                 }
             }
         },
-        /* Deploy Azure Bastion instance */
         {
             "name": "[variables('bastionName')]",
             "type": "Microsoft.Network/bastionHosts",
