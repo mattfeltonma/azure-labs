@@ -57,19 +57,19 @@
         "sharedVnetSubnetAdCidr": {
             "type": "string",
             "metadata": {
-                "description": "The CIDR assigned to the subnet used for Windows Active Directory domain controllers"
+                "description": "The CIDR assigned to the AD subnet in the Shared Services virtual network"
             }
         },
-        "sharedVnetSubnetSupportCidr": {
+        "sharedVnetSubnetInfraCidr": {
             "type": "string",
             "metadata": {
-                "description": "The CIDR assigned to the subnet used for support services"
+                "description": "The CIDR assigned to the infrastructure subnet in the Shared Services virtual network"
             }
         },
         "sharedVnetSubnetPrivCidr": {
             "type": "string",
             "metadata": {
-                "description": "The CIDR assigned to the subnet used for privileged activities"
+                "description": "The CIDR assigned to the privileged subnet in the Shared Services virtual network"
             }
         },
         "spokeVnetCidr": {
