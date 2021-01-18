@@ -144,7 +144,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/deploy-hub.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/deploy-hub.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -211,7 +211,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/deploy-shared.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/deploy-shared.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
