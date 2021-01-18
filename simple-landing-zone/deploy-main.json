@@ -133,7 +133,7 @@
                     "sharedVnetSubnetAdCidr": {
                         "value": "[variables('sharedVnetSubnetAdCidr')]"
                     },
-                    "sharedVnetSubnetSupportCidr": {
+                    "sharedVnetSubnetInfraCidr": {
                         "value": "[variables('sharedVnetSubnetInfraCidr')]"
                     },
                     "sharedVnetSubnetPrivCidr": {
