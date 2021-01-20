@@ -42,10 +42,10 @@
                 "description": "The CIDR assigned to the subnet used for Windows Active Directory domain controllers"
             }
         },
-        "sharedVnetSubnetSupportCidr": {
+        "sharedVnetSubnetInfraCidr": {
             "type": "string",
             "metadata": {
-                "description": "The CIDR assigned to the subnet used for support services"
+                "description": "The CIDR assigned to the subnet used for other infrastructure services such as backup or PKI"
             }
         },
         "sharedVnetSubnetPrivCidr": {
@@ -127,18 +127,18 @@
         "privVmName": "[concat('vm-priv',parameters('uniqueData'))]",
         "sharedAdSubnetName": "snet-ad",
         "sharedPrivSubnetName": "snet-priv",
-        "sharedSupportSvcSubnetName": "snet-support",
+        "sharedInfraSvcSubnetName": "snet-infra",
         "sharedSvcRouteTableName": "[concat('rt-shared', parameters('uniqueData'))]",
         "sharedVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
-        "supportNsgFlowLogDeploymentName": "deploy-supportflowlog",
-        "supportNsgName": "[concat('nsg-support', parameters('uniqueData'))]",
+        "infraNsgFlowLogDeploymentName": "deploy-infralowlog",
+        "infraNsgName": "[concat('nsg-infra', parameters('uniqueData'))]",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
     },
     "resources": [
         {
             "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[variables('supportNsgName')]",
+            "name": "[variables('infraNsgName')]",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
@@ -437,18 +437,18 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-nsg-flow-log.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
-            "name": "[variables('supportNsgFlowLogDeploymentName')]",
+            "name": "[variables('infraNsgFlowLogDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('supportNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('adNsgFlowLogDeploymentName'))]"
             ],
             "properties": {
@@ -461,17 +461,17 @@
                         "value": "[variables('location')]"
                     },
                     "targetNsgName": {
-                        "value": "[variables('supportNsgName')]"
+                        "value": "[variables('infraNsgName')]"
                     },
                     "targetNsgResourceId": {
-                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('supportNsgName'))]"
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('infraNsgName'))]"
                     },
                     "targetStorageResourceId": {
                         "value": "[parameters('logStorageAccountResourceId')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-nsg-flow-log.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -483,7 +483,7 @@
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privNsgName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('supportNsgFlowLogDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('infraNsgFlowLogDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -505,7 +505,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-nsg-flow-log.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -542,7 +542,7 @@
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('supportNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privNsgName'))]",
                 "[resourceId('Microsoft.Network/routeTables', variables('sharedSvcRouteTableName'))]"
@@ -567,14 +567,14 @@
                         }
                     },
                     {
-                        "name": "[variables('sharedSupportSvcSubnetName')]",
+                        "name": "[variables('sharedInfraSvcSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('sharedVnetSubnetSupportCidr')]",
+                            "addressPrefix": "[parameters('sharedVnetSubnetInfraCidr')]",
                             "routeTable": {
                                 "id": "[resourceId('Microsoft.Network/routeTables',variables('sharedSvcRouteTableName'))]"
                             },
                             "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('supportNsgName'))]"
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]"
                             }
                         }
                     },
@@ -693,7 +693,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/resources/deploy-windows-server-2019.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-windows-server-2019.json",
                     "contentVersion": "1.0.0.0"
                 }
             }

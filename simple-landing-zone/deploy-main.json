@@ -59,10 +59,13 @@
         "sharedVnetCidr": "10.1.0.0/16",
         "sharedVnetSubnetAdCidr": "10.1.0.0/24",
         "sharedVnetSubnetPrivCidr": "10.1.2.0/24",
-        "sharedVnetSubnetSupportCidr": "10.1.1.0/24",
+        "sharedVnetSubnetInfraCidr": "10.1.1.0/24",
         "spokeDeploymentName": "deploy-spoke",
+        "spokeRgName": "[concat('rg-spoke-',variables('uniqueData'))]",
         "spokeVnetCidr": "10.2.0.0/16",
-        "workloadRgName": "[concat('rg-work-',variables('uniqueData'))]"
+        "spokeVnetSubnetAppCidr": "10.2.0.0/24",
+        "spokeVnetSubnetDataCidr": "10.2.1.0/24",
+        "spokeVnetSubnetSupportCidr": "10.2.2.0/24"
     },
     "resources": [
         {
@@ -84,7 +87,7 @@
             }
         },
         {
-            "name": "[variables('workloadRgName')]",
+            "name": "[variables('spokeRgName')]",
             "type": "Microsoft.Resources/resourceGroups",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "location": "[parameters('location')]",
@@ -130,8 +133,8 @@
                     "sharedVnetSubnetAdCidr": {
                         "value": "[variables('sharedVnetSubnetAdCidr')]"
                     },
-                    "sharedVnetSubnetSupportCidr": {
-                        "value": "[variables('sharedVnetSubnetSupportCidr')]"
+                    "sharedVnetSubnetInfraCidr": {
+                        "value": "[variables('sharedVnetSubnetInfraCidr')]"
                     },
                     "sharedVnetSubnetPrivCidr": {
                         "value": "[variables('sharedVnetSubnetPrivCidr')]"
@@ -144,7 +147,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/deploy-hub.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/deploy-hub.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -182,8 +185,8 @@
                     "sharedVnetSubnetPrivCidr": {
                         "value": "[variables('sharedVnetSubnetPrivCidr')]"
                     },
-                    "sharedVnetSubnetSupportCidr": {
-                        "value": "[variables('sharedVnetSubnetSupportCidr')]"
+                    "sharedVnetSubnetInfraCidr": {
+                        "value": "[variables('sharedVnetSubnetInfraCidr')]"
                     },
                     "hubVnetName": {
                         "value": "[reference(variables('hubDeploymentName')).outputs.hubVnetName.value]"
@@ -211,7 +214,60 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/v2/simple-landing-zone/deploy-shared.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/deploy-shared.json",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('spokeDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "resourceGroup": "[variables('spokeRgName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('hubDeploymentName'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('SharedSvcDeploymentName'))]",
+                "[resourceId('Microsoft.Resources/resourceGroups',variables('spokeRgName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[variables('uniqueData')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "firewallIp": {
+                        "value": "[reference(variables('hubDeploymentName')).outputs.firewallIp.value]"
+                    },
+                    "hubVnetName": {
+                        "value": "[reference(variables('hubDeploymentName')).outputs.hubVnetName.value]"
+                    },
+                    "hubVnetResourceGroupName": {
+                        "value": "[variables('hubRgName')]"
+                    },
+                    "logStorageAccountResourceId": {
+                        "value": "[reference(variables('hubDeploymentName')).outputs.logStorageResourceId.value]"
+                    },
+                    "networkWatcherRg": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
+                    "spokeVnetCidr": {
+                        "value": "[variables('spokeVnetCidr')]"
+                    },
+                    "spokeVnetSubnetAppCidr": {
+                        "value": "[variables('spokeVnetSubnetAppCidr')]"
+                    },
+                    "spokeVnetSubnetDataCidr": {
+                        "value": "[variables('spokeVnetSubnetDataCidr')]"
+                    },
+                    "spokeVnetSubnetSupportCidr": {
+                        "value": "[variables('spokeVnetSubnetSupportCidr')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/deploy-spoke.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
