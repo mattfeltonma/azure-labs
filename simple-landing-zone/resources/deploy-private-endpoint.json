@@ -15,16 +15,54 @@
                 "description": "The region the private endpoint will be created in"
             }
         },
-        "privateEndpointVnetName": {
+        "privateDnsZoneResourceGroup": {
             "type": "string",
             "metadata": {
-                "description": "The name of the virtual network where the private endpoint will be placed"
+                "description": "The name of the resource group where the private dns zone exists"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "privateDnsZoneSubscription": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id of the subscription where the private dns zone exists"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
+        },
+        "privateDnsZoneName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the private dns zone"
             }
         },
         "privateEndpointSubnetName": {
             "type": "string",
             "metadata": {
                 "description": "The name of the subnet in the virtual network where the private endpoint will be placed"
+            }
+        },
+       "privateEndpointSubResource": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the private endpoint subresource. Examples include queue or blob"
+            }
+        },
+        "privateEndpointVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the virtual network where the private endpoint will be placed"
+            }
+        },
+        "resourceIdentifier": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the resoure the private endpoint is being created for"
+            }
+        },
+        "resourceName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource the private endpoint is being created for"
             }
         },
         "vnetResourceGroup": {
@@ -40,44 +78,6 @@
                 "description": "The subscription id of the subscription the virtual network exists in"
             },
             "defaultValue": "[subscription().subscriptionId]"
-        },
-        "resourceName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the resource the private endpoint is being created for"
-            }
-        },
-        "resourceIdentifier": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource id of the resoure the private endpoint is being created for"
-            }
-        },
-        "privateDnsZoneName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the private dns zone"
-            }
-        },
-        "privateDnsZoneResourceGroup": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the resource group where the private dns zone exists"
-            },
-            "defaultValue": "[resourceGroup().name]"
-        },
-        "privateDnsZoneSubscription": {
-            "type": "string",
-            "metadata": {
-                "description": "The subscription id of the subscription where the private dns zone exists"
-            },
-            "defaultValue": "[subscription().subscriptionId]"
-        },
-        "privateEndpointSubResource": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the private endpoint subresource. Examples include queue or blob"
-            }
         },
         "tags": {
             "type": "object",

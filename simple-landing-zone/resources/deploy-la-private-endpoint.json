@@ -9,10 +9,28 @@
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
         },
+        "laWorkspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource the private endpoint is being created for"
+            }
+        },
+        "laWorkspaceResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the resoure the private endpoint is being created for"
+            }
+        },
         "privateEndpointLocation": {
             "type": "string",
             "metadata": {
                 "description": "The region the private endpoint will be created in"
+            }
+        },
+        "privateEndpointSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the subnet in the virtual network where the private endpoint will be placed"
             }
         },
         "privateEndpointVnetName": {
@@ -21,10 +39,10 @@
                 "description": "The name of the virtual network where the private endpoint will be placed"
             }
         },
-        "privateEndpointSubnetName": {
-            "type": "string",
+        "tags": {
+            "type": "object",
             "metadata": {
-                "description": "The name of the subnet in the virtual network where the private endpoint will be placed"
+                "description": "The tags that will be associated to the VM"
             }
         },
         "vnetResourceGroup": {
@@ -40,34 +58,16 @@
                 "description": "The subscription id of the subscription the virtual network exists in"
             },
             "defaultValue": "[subscription().subscriptionId]"
-        },
-        "laWorkspaceName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the resource the private endpoint is being created for"
-            }
-        },
-        "laWorkspaceResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource id of the resoure the private endpoint is being created for"
-            }
-        },
-        "tags": {
-            "type": "object",
-            "metadata": {
-                "description": "The tags that will be associated to the VM"
-            }
         }
     },
     "variables": {
-        "privateLinkEndpointName": "[substring(concat('pl',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
-        "privateLinkConnName": "[substring(concat('plconn',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
-        "privateLinkScopeName": "[substring(concat('plscope',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
-        "privateLinkScopeResourceName": "[substring(concat('plscres',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
-        "networkApiVersion": "2020-05-01",
+        "dnsApiVersion": "2018-09-01",
         "insightsApiVersion": "2019-10-17-preview",
-        "dnsApiVersion": "2018-09-01"
+        "networkApiVersion": "2020-05-01",
+        "privateLinkConnName": "[substring(concat('plconn',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
+        "privateLinkEndpointName": "[substring(concat('pl',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
+        "privateLinkScopeName": "[substring(concat('plscope',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
+        "privateLinkScopeResourceName": "[substring(concat('plscres',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]"
     },
     "resources": [
         {

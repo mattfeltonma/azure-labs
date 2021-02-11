@@ -17,7 +17,7 @@
                 "description": "The location to deploy the resources"
             }
         },
-        "networkWatcherResourceGroup" : {
+        "networkWatcherResourceGroup": {
             "type": "string",
             "metadata": {
                 "description": "The resource group where Network Watcher resources exist"
@@ -112,20 +112,23 @@
                     "tags": {
                         "value": "[parameters('tags')]"
                     },
-                    "hubVnetCidr": {
-                        "value": "[variables('hubVnetCidr')]"
-                    },
-                    "hubGatewaySubnetCidr": {
-                        "value": "[variables('hubGatewaySubnetCidr')]"
-                    },
                     "hubBastionSubnetCidr": {
                         "value": "[variables('hubBastionSubnetCidr')]"
+                    },
+                    "hubCentralSvcSubnetCidr": {
+                        "value": "[variables('hubCentralSvcSubnetCidr')]"
                     },
                     "hubFwSubnetPayCidr": {
                         "value": "[variables('hubFwSubnetPayCidr')]"
                     },
-                    "hubCentralSvcSubnetCidr": {
-                        "value": "[variables('hubCentralSvcSubnetCidr')]"
+                    "hubGatewaySubnetCidr": {
+                        "value": "[variables('hubGatewaySubnetCidr')]"
+                    },
+                    "hubVnetCidr": {
+                        "value": "[variables('hubVnetCidr')]"
+                    },
+                    "networkWatcherRg": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
                     },
                     "sharedVnetCidr": {
                         "value": "[variables('sharedVnetCidr')]"
@@ -133,21 +136,15 @@
                     "sharedVnetSubnetAdCidr": {
                         "value": "[variables('sharedVnetSubnetAdCidr')]"
                     },
-                    "sharedVnetSubnetInfraCidr": {
-                        "value": "[variables('sharedVnetSubnetInfraCidr')]"
-                    },
                     "sharedVnetSubnetPrivCidr": {
                         "value": "[variables('sharedVnetSubnetPrivCidr')]"
                     },
                     "spokeVnetCidr": {
                         "value": "[variables('spokeVnetCidr')]"
-                    },
-                    "networkWatcherRg": {
-                        "value": "[parameters('networkWatcherResourceGroup')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/deploy-hub.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-hub.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -167,26 +164,14 @@
                     "uniqueData": {
                         "value": "[variables('uniqueData')]"
                     },
-                    "vmAdminUserName": {
-                        "value": "[parameters('vmAdminUsername')]"                        
-                    },
-                    "vmAdminPassword": {
-                        "value": "[parameters('vmAdminPassword')]"                        
-                    },
                     "tags": {
                         "value": "[parameters('tags')]"
                     },
-                    "sharedVnetCidr": {
-                        "value": "[variables('sharedVnetCidr')]"
+                    "firewallIp": {
+                        "value": "[reference(variables('hubDeploymentName')).outputs.firewallIp.value]"
                     },
-                    "sharedVnetSubnetAdCidr": {
-                        "value": "[variables('sharedVnetSubnetAdCidr')]"
-                    },
-                    "sharedVnetSubnetPrivCidr": {
-                        "value": "[variables('sharedVnetSubnetPrivCidr')]"
-                    },
-                    "sharedVnetSubnetInfraCidr": {
-                        "value": "[variables('sharedVnetSubnetInfraCidr')]"
+                    "hubBastionSubnetCidr": {
+                        "value": "[variables('hubBastionSubnetCidr')]"
                     },
                     "hubVnetName": {
                         "value": "[reference(variables('hubDeploymentName')).outputs.hubVnetName.value]"
@@ -194,27 +179,42 @@
                     "hubVnetResourceGroupName": {
                         "value": "[variables('hubRgName')]"
                     },
-                    "hubBastionSubnetCidr": {
-                        "value": "[variables('hubBastionSubnetCidr')]"
-                    },
                     "laWorkspaceId": {
                         "value": "[reference(variables('hubDeploymentName')).outputs.laWorkspaceId.value]"
                     },
                     "laWorkspaceKey": {
                         "value": "[reference(variables('hubDeploymentName')).outputs.laWorkspaceKey.value]"
                     },
+                    "laWorkspaceResourceId": {
+                        "value": "[reference(variables('hubDeploymentName')).outputs.laWorkspaceResourceId.value]"
+                    },
                     "logStorageAccountResourceId": {
                         "value": "[reference(variables('hubDeploymentName')).outputs.logStorageResourceId.value]"
                     },
-                    "firewallIp": {
-                        "value": "[reference(variables('hubDeploymentName')).outputs.firewallIp.value]"
-                    },
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
+                    "sharedVnetCidr": {
+                        "value": "[variables('sharedVnetCidr')]"
+                    },
+                    "sharedVnetSubnetAdCidr": {
+                        "value": "[variables('sharedVnetSubnetAdCidr')]"
+                    },
+                    "sharedVnetSubnetInfraCidr": {
+                        "value": "[variables('sharedVnetSubnetInfraCidr')]"
+                    },
+                    "sharedVnetSubnetPrivCidr": {
+                        "value": "[variables('sharedVnetSubnetPrivCidr')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/deploy-shared.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-shared.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -247,6 +247,9 @@
                     "hubVnetResourceGroupName": {
                         "value": "[variables('hubRgName')]"
                     },
+                    "laWorkspaceResourceId": {
+                        "value": "[reference(variables('hubDeploymentName')).outputs.laWorkspaceResourceId.value]"
+                    },
                     "logStorageAccountResourceId": {
                         "value": "[reference(variables('hubDeploymentName')).outputs.logStorageResourceId.value]"
                     },
@@ -267,20 +270,12 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/deploy-spoke.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-spoke.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
         }
     ],
     "outputs": {
-        /*"VmHubVmIp": {
-            "type": "string",
-            "value": "[reference(parameters('hubVmName')).outputs.vmPrivateIpAddress.value]"
-        },
-        "VmSpokeVmIp": {
-            "type": "string",
-            "value": "[reference(parameters('spokeVmName')).outputs.vmPrivateIpAddress.value]"
-        }*/
     }
 }

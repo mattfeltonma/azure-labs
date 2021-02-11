@@ -9,26 +9,68 @@
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
         },
-        "vmAdminUsername": {
+        "firewallIp": {
             "type": "string",
             "metadata": {
-                "description": "Administrator name for VMs that are created"
+                "description": "The ip of the firewall that will be used for next hop in the routing table"
             }
         },
-        "vmAdminPassword": {
-            "type": "securestring",
+        "hubBastionSubnetCidr": {
+            "type": "string",
             "metadata": {
-                "description": "Password for the VMs that are created"
+                "description": "The CIDR assigned to the Bastion subnet in the hub"
             }
         },
-        "tags": {
-            "type": "object",
+        "hubVnetName": {
+            "type": "string",
             "metadata": {
-                "description": "The tags that wil be associated to the resources"
+                "description": "The name of the hub virtual network"
+            }
+        },
+        "hubVnetResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group the hub virtual network exists in"
             },
-            "defaultValue": {
-                "environment": "lab"
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "hubVnetSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id of the subscription the hub is stored in"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
+        },
+        "laWorkspaceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The workspace id of the central log analytics workspace"
             }
+        },
+        "laWorkspaceKey": {
+            "type": "string",
+            "metadata": {
+                "description": "The workspace key of the central log analytics workspace"
+            }
+        },
+        "laWorkspaceResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The Log Analytics Workspace resource id"
+            }
+        },
+        "logStorageAccountResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The storage account used for storage of NSG flow logs"
+            }
+        },
+        "networkWatcherRg": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where the Network Watcher instances are stored"
+            },
+            "defaultValue": "NetworkWatcherRG"
         },
         "sharedVnetCidr": {
             "type": "string",
@@ -54,62 +96,26 @@
                 "description": "The CIDR assigned to the subnet used for privileged activities"
             }
         },
-        "hubVnetName": {
-            "type": "string",
+        "tags": {
+            "type": "object",
             "metadata": {
-                "description": "The name of the hub virtual network"
-            }
-        },
-        "hubVnetResourceGroupName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the resource group the hub virtual network exists in"
+                "description": "The tags that wil be associated to the resources"
             },
-            "defaultValue": "[resourceGroup().name]"
-        },
-        "hubVnetSubscriptionId": {
-            "type": "string",
-            "metadata": {
-                "description": "The subscription id of the subscription the hub is stored in"
-            },
-            "defaultValue": "[subscription().subscriptionId]"
-        },
-        "hubBastionSubnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the Bastion subnet in the hub"
+            "defaultValue": {
+                "environment": "lab"
             }
         },
-        "laWorkspaceId": {
+        "vmAdminUsername": {
             "type": "string",
             "metadata": {
-                "description": "The workspace id of the central log analytics workspace"
+                "description": "Administrator name for VMs that are created"
             }
         },
-        "laWorkspaceKey": {
-            "type": "string",
+        "vmAdminPassword": {
+            "type": "securestring",
             "metadata": {
-                "description": "The workspace key of the central log analytics workspace"
+                "description": "Password for the VMs that are created"
             }
-        },
-        "logStorageAccountResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "The storage account used for storage of NSG flow logs"
-            }
-        },
-        "firewallIp": {
-            "type": "string",
-            "metadata": {
-                "description": "The ip of the firewall that will be used for next hop in the routing table"
-            }
-        },
-        "networkWatcherRg": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource group where the Network Watcher instances are stored"
-            },
-            "defaultValue": "NetworkWatcherRG"
         }
     },
     "variables": {
@@ -426,6 +432,9 @@
                     "location": {
                         "value": "[variables('location')]"
                     },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('laWorkspaceResourceId')]"
+                    },
                     "targetNsgName": {
                         "value": "[variables('adNsgName')]"
                     },
@@ -460,6 +469,9 @@
                     "location": {
                         "value": "[variables('location')]"
                     },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('laWorkspaceResourceId')]"
+                    },
                     "targetNsgName": {
                         "value": "[variables('infraNsgName')]"
                     },
@@ -493,6 +505,9 @@
                     },
                     "location": {
                         "value": "[variables('location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('laWorkspaceResourceId')]"
                     },
                     "targetNsgName": {
                         "value": "[variables('privNsgName')]"

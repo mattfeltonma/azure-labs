@@ -9,15 +9,6 @@
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
         },
-        "tags": {
-            "type": "object",
-            "metadata": {
-                "description": "The tags that wil be associated to the resources"
-            },
-            "defaultValue": {
-                "environment": "lab"
-            }
-        },
         "firewallIp": {
             "type": "string",
             "metadata": {
@@ -43,6 +34,12 @@
                 "description": "The subscription id of the subscription the hub is stored in"
             },
             "defaultValue": "[subscription().subscriptionId]"
+        },
+        "laWorkspaceResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The Log Analytics Workspace resource id"
+            }
         },
         "logStorageAccountResourceId": {
             "type": "string",
@@ -80,6 +77,15 @@
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for support services being served up via Private Endpoints"
             }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that wil be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
         }
     },
     "variables": {
@@ -88,7 +94,7 @@
         "appNsgFlowLogDeploymentName": "deploy-appflowlog",
         "appNsgName": "[concat('nsg-app', parameters('uniqueData'))]",
         "dataNsgFlowLogDeploymentName": "deploy-dataflowlog",
-        "dataNsgName": "[concat('nsg-data', parameters('uniqueData'))]",        
+        "dataNsgName": "[concat('nsg-data', parameters('uniqueData'))]",
         "hubPeeringDeploymentName": "deploy-peering",
         "location": "[resourceGroup().location]",
         "peeringHubToSpokeName": "peerhubtospoke",
@@ -150,6 +156,9 @@
                     "location": {
                         "value": "[variables('location')]"
                     },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('laWorkspaceResourceId')]"
+                    },
                     "targetNsgName": {
                         "value": "[variables('appNsgName')]"
                     },
@@ -161,7 +170,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-nsg-flow-log.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -184,6 +193,9 @@
                     "location": {
                         "value": "[variables('location')]"
                     },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('laWorkspaceResourceId')]"
+                    },
                     "targetNsgName": {
                         "value": "[variables('dataNsgName')]"
                     },
@@ -195,7 +207,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-nsg-flow-log.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -218,6 +230,9 @@
                     "location": {
                         "value": "[variables('location')]"
                     },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('laWorkspaceResourceId')]"
+                    },
                     "targetNsgName": {
                         "value": "[variables('supportNsgName')]"
                     },
@@ -229,7 +244,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-nsg-flow-log.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
