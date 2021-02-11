@@ -144,7 +144,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-hub.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-hub.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -214,7 +214,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-shared.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-shared.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -270,7 +270,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/simple-landing-zone/simple-landing-zone/resources/deploy-spoke.json",
+                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-spoke.json",
                     "contentVersion": "1.0.0.0"
                 }
             }
