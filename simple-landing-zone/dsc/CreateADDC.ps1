@@ -1,4 +1,4 @@
-configuration CreateADPDC
+configuration CreateADDC
 {
    param
    (

@@ -120,8 +120,9 @@
         "networkApiVersion": "2020-07-01",
         "vmApiVersion": "2020-06-01",
         "dataDiskType": "StandardSSD_LRS",
-        "adModulesURL": "[uri(parameters('linkedTemplateLocation'), concat('dsc/CreateADDC.zip'))]",
-        "adConfigurationFunction": "CreateADDC.ps1\\CreateADDC",
+        "modulesUrl": "[uri(parameters('linkedTemplateLocation'), concat('dsc/CreateADDC.zip'))]",
+        "configurationScript": "CreateADDC.ps1",
+        "configurationFunction": "CreateADDC",
         "location": "[resourceGroup().location]",
         "nicName": "[concat(parameters('vmName'),parameters('uniqueData'))]",
         "osDiskType": "StandardSSD_LRS",
@@ -265,8 +266,9 @@
                         "autoUpgradeMinorVersion": true,
                         "settings": {
                             "configuration": {
-                                "url": "[variables('adModulesURL')]",
-                                "script": "[variables('adConfigurationFunction')]"
+                                "url": "[variables('modulesUrl')]",
+                                "script": "[variables('configurationScript')]",
+                                "function": "[variables('configurationFunction')]"
                             },
                             "Properties": {
                                 "DomainName": "[parameters('adDomainName')]",
