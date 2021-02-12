@@ -39,6 +39,13 @@
                 "description": "The name assigned to the Active Directory domain"
             }
         },
+        "adNetBiosName": {
+            "type": "string",
+            "metadata": {
+                "description": "The NetBIOS name of the Active Directory domain"
+            },
+            "defaultValue": "[parameters('adDomainName')]"
+        },
         "dataDiskSize": {
             "type": "int",
             "metadata": {
@@ -272,6 +279,7 @@
                             },
                             "Properties": {
                                 "DomainName": "[parameters('adDomainName')]",
+                                "NetBiosName": "[parameters('adNetBiosName')]",
                                 "AdminCreds": {
                                     "UserName": "[parameters('adminUsername')]",
                                     "Password": "PrivateSettingsRef:AdminPassword"

@@ -6,6 +6,9 @@ configuration CreateADDC
         [String]$DomainName,
 
         [Parameter(Mandatory)]
+        [String]$NetBiosName,
+        
+        [Parameter(Mandatory)]
         [System.Management.Automation.PSCredential]$Admincreds,
 
         [Int]$RetryCount=20,
@@ -93,6 +96,7 @@ configuration CreateADDC
         xADDomain FirstDS
         {
             DomainName = $DomainName
+            DomainNetBiosName = $DomainNetBiosName
             DomainAdministratorCredential = $DomainCreds
             SafemodeAdministratorPassword = $DomainCreds
             DatabasePath = "F:\NTDS"
