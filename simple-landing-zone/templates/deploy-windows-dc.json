@@ -127,7 +127,7 @@
         "networkApiVersion": "2020-07-01",
         "vmApiVersion": "2020-06-01",
         "dataDiskType": "StandardSSD_LRS",
-        "modulesUrl": "[uri(parameters('linkedTemplateLocation'), concat('dsc/CreateADDC.zip'))]",
+        "modulesUrl": "[uri(parameters('linkedTemplateLocation'), concat('dscCreateADDC.zip'))]",
         "configurationScript": "CreateADDC.ps1",
         "configurationFunction": "CreateADDC",
         "location": "[resourceGroup().location]",
