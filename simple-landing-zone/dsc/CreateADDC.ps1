@@ -96,7 +96,7 @@ configuration CreateADDC
         xADDomain FirstDS
         {
             DomainName = $DomainName
-            DomainNetBiosName = $DomainNetBiosName
+            DomainNetBiosName = $NetBiosName
             DomainAdministratorCredential = $DomainCreds
             SafemodeAdministratorPassword = $DomainCreds
             DatabasePath = "F:\NTDS"
