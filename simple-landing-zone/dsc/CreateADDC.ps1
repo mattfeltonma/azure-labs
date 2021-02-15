@@ -15,8 +15,8 @@ configuration CreateADDC {
     )
 
     Import-DscResource -ModuleName xActiveDirectory, xStorage, xNetworking, PSDesiredStateConfiguration, xPendingReboot
-    [System.Management.Automation.PSCredential ]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
-    $Interface = Get-NetAdapter | Where Name -Like "Ethernet*" | Select-Object -First 1
+    [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
+    $Interface = Get-NetAdapter | Where-Object Name -Like "Ethernet*" | Select-Object -First 1
     $InterfaceAlias = $($Interface.Name)
 
     Node localhost
@@ -58,16 +58,19 @@ configuration CreateADDC {
             DependsOn = "[WindowsFeature]DNS"
         }
 
-        xWaitforDisk Disk2 {
-            DiskNumber = 2
+        xWaitforDisk Disk2 
+        {
+            DiskId = 2
+            DiskIdType = "Number"
             RetryIntervalSec = $RetryIntervalSec
             RetryCount = $RetryCount
         }
 
         xDisk ADDataDisk 
         {
-            DiskNumber = 2
-            2r =D"iveLetterF"
+            DiskId = 2
+            DiskIdType = "Number"
+            DriveLetter= "F"
             DependsOn = "[xWaitForDisk]Disk2"
         }
 
@@ -134,7 +137,7 @@ configuration CreateADDC {
                 JobTitle = $_.Title
                 Office = $_.Office
                 OfficePhone = $_.OfficePhone
-                Path = ("OU=Employees,DC={0},DC={1}" -f ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
+                Path = ('OU=Employees,DC={0},DC={1}' -f ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
                 EmployeeID = $_.EmployeeID
                 EmailAddress = $_.EmailAddress
                 Password = $DomainCreds
@@ -151,7 +154,7 @@ configuration CreateADDC {
                 GroupCategory = $_.GroupCategory
                 Description = $_.Description
                 Members = $_.Members
-                Path = ("OU=Groups,DC={0},DC={1}" -f ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
+                Path = ('OU=Groups,DC={0},DC={1}' -f ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
                 DependsOn = "[xADDomain]FirstDS"
             }
         })
@@ -162,3 +165,4 @@ configuration CreateADDC {
             DependsOn = "[xADDomain]FirstDS"
         }
     }
+} 
