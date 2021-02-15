@@ -144,21 +144,7 @@ configuration CreateADDC {
                 DependsOn = "[xADDomain]FirstDS"
             }
         })
-
-        @($ConfigurationData.NonNodeData.ADGroups).foreach( {
-            xADGroup "$($_.GroupName)"
-            {
-                Ensure = 'Present'
-                GroupName = $_.GroupName
-                GroupScope = $_.GroupScope
-                Category = $_.GroupCategory
-                Description = $_.Description
-                Members = $_.Members
-                Path = ('OU=Groups,DC={0},DC={1}' -f ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
-                DependsOn = "[xADDomain]FirstDS"
-            }
-        })
-
+        
         xPendingReboot RebootAfterPromotion
         {
             Name = "RebootAfterPromotion"
