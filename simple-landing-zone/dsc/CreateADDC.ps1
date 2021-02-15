@@ -115,7 +115,7 @@ configuration CreateADDC {
             DependsOn = "[xADDomain]FirstDS"
         }
 
-        @(ConfigurationData.NonNodeData.OrganizationalUnits).foreach( {
+        @($ConfigurationData.NonNodeData.OrganizationalUnits).foreach( {
             xADOrganizationalUnit $_
             {
                 Ensure = 'Present'
@@ -125,7 +125,7 @@ configuration CreateADDC {
             }
         })
 
-        @(ConfigurationData.NonNodeData.ADUsers).foreach( {
+        @($ConfigurationData.NonNodeData.ADUsers).foreach( {
             xADUser "$($_.FirstName) $($_.LastName)"
             {
                 Ensure = 'Present'
