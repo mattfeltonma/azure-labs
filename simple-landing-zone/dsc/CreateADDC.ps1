@@ -151,7 +151,7 @@ configuration CreateADDC {
                 Ensure = 'Present'
                 GroupName = $_.GroupName
                 GroupScope = $_.GroupScope
-                GroupCategory = $_.GroupCategory
+                Category = $_.GroupCategory
                 Description = $_.Description
                 Members = $_.Members
                 Path = ('OU=Groups,DC={0},DC={1}' -f ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
