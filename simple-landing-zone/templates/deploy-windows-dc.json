@@ -128,6 +128,7 @@
         "vmApiVersion": "2020-06-01",
         "dataDiskType": "StandardSSD_LRS",
         "modulesUrl": "[uri(parameters('linkedTemplateLocation'), concat('dsc/createaddc.zip'))]",
+        "configurationUrl": "[uri(parameters('linkedTemplateLocation'), concat('dsc/domainsetup.psd1'))]",
         "configurationFunction": "CreateADDC.ps1\\CreateADDC",
         "location": "[resourceGroup().location]",
         "nicName": "[concat(parameters('vmName'),parameters('uniqueData'))]",
@@ -280,15 +281,13 @@
                                     "UserName": "[parameters('adminUsername')]",
                                     "Password": "PrivateSettingsRef:AdminPassword"
                                 }
-                            },
-                            "configurationArguments": {
- 
                             }
                         },
                         "protectedSettings": {
                             "Items": {
                                 "AdminPassword": "[parameters('adminPassword')]"
-                            }
+                            },
+                            "DataBlobUri": "[variables('configurationUrl')]"
                         }
                     }
                 }

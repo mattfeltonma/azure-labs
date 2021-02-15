@@ -1,24 +1,23 @@
-configuration CreateADDC
-{
-   param
-   (
+configuration CreateADDC {
+    param
+    (
         [Parameter(Mandatory)]
         [String]$DomainName,
 
         [Parameter(Mandatory)]
-        [String]$NetBiosName=$DomainName,
+        [String]$NetBiosName = $DomainName,
         
         [Parameter(Mandatory)]
         [System.Management.Automation.PSCredential]$Admincreds,
 
-        [Int]$RetryCount=20,
-        [Int]$RetryIntervalSec=30
+        [Int]$RetryCount = 20,
+        [Int]$RetryIntervalSec = 30
     )
 
     Import-DscResource -ModuleName xActiveDirectory, xStorage, xNetworking, PSDesiredStateConfiguration, xPendingReboot
     [System.Management.Automation.PSCredential ]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
-    $Interface=Get-NetAdapter|Where Name -Like "Ethernet*"|Select-Object -First 1
-    $InterfaceAlias=$($Interface.Name)
+    $Interface = Get-NetAdapter | Where Name -Like "Ethernet*" | Select-Object -First 1
+    $InterfaceAlias = $($Interface.Name)
 
     Node localhost
     {
@@ -35,11 +34,11 @@ configuration CreateADDC
 
         Script EnableDNSDiags
         {
-      	    SetScript = {
+            SetScript = {
                 Set-DnsServerDiagnostics -All $true
                 Write-Verbose -Verbose "Enabling DNS client diagnostics"
             }
-            GetScript =  { @{} }
+            GetScript = { @{} }
             TestScript = { $false }
             DependsOn = "[WindowsFeature]DNS"
         }
@@ -59,16 +58,16 @@ configuration CreateADDC
             DependsOn = "[WindowsFeature]DNS"
         }
 
-        xWaitforDisk Disk2
-        {
+        xWaitforDisk Disk2 {
             DiskNumber = 2
-            RetryIntervalSec =$RetryIntervalSec
+            RetryIntervalSec = $RetryIntervalSec
             RetryCount = $RetryCount
         }
 
-        xDisk ADDataDisk {
+        xDisk ADDataDisk 
+        {
             DiskNumber = 2
-            DriveLetter = "F"
+            2r =D"iveLetterF"
             DependsOn = "[xWaitForDisk]Disk2"
         }
 
@@ -105,10 +104,61 @@ configuration CreateADDC
             DependsOn = @("[WindowsFeature]ADDSInstall", "[xDisk]ADDataDisk")
         }
 
-        xPendingReboot RebootAfterPromotion{
-            Name = "RebootAfterPromotion"
+        xADOrganizationalUnit 'TopLevel'
+        {
+            Ensure = 'Present'
+            Name = $NetBiosName
+            Path = ('DC={0},DC={1}' -f ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
             DependsOn = "[xADDomain]FirstDS"
         }
 
-   }
-}
+        @(ConfigurationData.NonNodeData.OrganizationalUnits).foreach( {
+            xADOrganizationalUnit $_
+            {
+                Ensure = 'Present'
+                Name = $_
+                Path = ('OU={0},DC={1},DC={2}' -f $NetBiosName, ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
+                DependsOn = "[xADDomain]FirstDS"
+            }
+        })
+
+        @(ConfigurationData.NonNodeData.ADUsers).foreach( {
+            xADUser "$($_.FirstName) $($_.LastName)"
+            {
+                Ensure = 'Present'
+                DomainName = $DomainName
+                GivenName = $_.FirstName
+                SurName = $_.LastName
+                UserName = ('{0}.{1}' -f $_.FirstName, $_.LastName)
+                Department = $_.Department
+                JobTitle = $_.Title
+                Office = $_.Office
+                OfficePhone = $_.OfficePhone
+                Path = ("OU=Employees,DC={0},DC={1}" -f ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
+                EmployeeID = $_.EmployeeID
+                EmailAddress = $_.EmailAddress
+                Password = $DomainCreds
+                DependsOn = "[xADDomain]FirstDS"
+            }
+        })
+
+        @($ConfigurationData.NonNodeData.ADGroups).foreach( {
+            xADGroup "$($_.GroupName)"
+            {
+                Ensure = 'Present'
+                GroupName = $_.GroupName
+                GroupScope = $_.GroupScope
+                GroupCategory = $_.GroupCategory
+                Description = $_.Description
+                Members = $_.Members
+                Path = ("OU=Groups,DC={0},DC={1}" -f ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
+                DependsOn = "[xADDomain]FirstDS"
+            }
+        })
+
+        xPendingReboot RebootAfterPromotion
+        {
+            Name = "RebootAfterPromotion"
+            DependsOn = "[xADDomain]FirstDS"
+        }
+    }
