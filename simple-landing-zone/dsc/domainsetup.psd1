@@ -104,5 +104,51 @@
                 EmailAddress = 'barnie.gumble@journeyofthegeek.com'
             }
         )
+        AdGroups = @(
+            @{
+                GroupName = 'Finance'
+                GroupScope = 'Universal'
+                GroupCategory = 'Security'
+                Description = 'Finance Department'
+                Members = @(
+                    'CN='
+                    'marge.simpson'
+                    'edna.krabappel'
+                )
+            }
+            @{
+                GroupName = 'Central IT'
+                GroupScope = 'Universal'
+                GroupCategory = 'Security'
+                Description = 'Central IT Department'
+                Members = @(
+                    'bart.simpson'
+                    'ned.flanders'
+                    'milhouse.vanhouten'
+                    'moe.szyslak'
+                )
+            }
+            @{
+                GroupName = 'Information Security'
+                GroupScope = 'Universal'
+                GroupCategory = 'Security'
+                Description = 'Information Security Department'
+                Members = @(
+                    'maggie.simpson'
+                    'barnie.gumble'
+                )
+            }
+            @{
+                GroupName = 'Executives'
+                GroupScope = 'Universal'
+                GroupCategory = 'Security'
+                Description = 'Executives'
+                Members = @(
+                    'marge.simpson'
+                    'bart.simpson'
+                    'maggie.simpson'
+                )
+            }
+        )  
     }
 }

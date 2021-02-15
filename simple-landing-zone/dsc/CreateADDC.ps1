@@ -137,14 +137,28 @@ configuration CreateADDC {
                 JobTitle = $_.Title
                 Office = $_.Office
                 OfficePhone = $_.OfficePhone
-                Path = ('OU=Employees,DC={0},DC={1}' -f ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
+                Path = ('OU=Employees,OU={0},DC={1},DC={2}' -f $NetBiosName, ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
                 EmployeeID = $_.EmployeeID
                 EmailAddress = $_.EmailAddress
                 Password = $DomainCreds
                 DependsOn = "[xADDomain]FirstDS"
             }
         })
-        
+
+        @($ConfigurationData.NonNodeData.ADGroups).foreach( {
+            xADGroup "$($_.GroupName)"
+            {
+                Ensure = 'Present'
+                GroupName = $_.GroupName
+                GroupScope = $_.GroupScope
+                Category = $_.GroupCategory
+                Description = $_.Description
+                Members = $_.Members
+                Path = ('OU=Groups,OU={0},DC={1},DC={2}' -f $NetBiosName, ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
+                DependsOn = "[xADDomain]FirstDS"
+            }
+        })
+
         xPendingReboot RebootAfterPromotion
         {
             Name = "RebootAfterPromotion"
