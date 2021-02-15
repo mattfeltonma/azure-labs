@@ -132,7 +132,8 @@ configuration CreateADDC {
                 DomainName = $DomainName
                 GivenName = $_.FirstName
                 SurName = $_.LastName
-                UserName = ('{0}.{1}' -f $_.FirstName, $_.LastName)
+                UserName = $_.UserName
+                UserPrincipalName = '{0}@{1}' -f $_.UserName, $DomainName
                 Department = $_.Department
                 JobTitle = $_.Title
                 Office = $_.Office
@@ -141,6 +142,8 @@ configuration CreateADDC {
                 EmployeeID = $_.EmployeeID
                 EmailAddress = $_.EmailAddress
                 Password = $DomainCreds
+                ChangePasswordAtLogon = $false
+                PasswordNeverExpires = $true
                 DependsOn = "[xADDomain]FirstDS"
             }
         })
