@@ -111,7 +111,7 @@
                 GroupCategory = 'Security'
                 Description = 'Finance Department'
                 Members = @(
-                    'CN='
+                    'homer.simpson'
                     'marge.simpson'
                     'edna.krabappel'
                 )
