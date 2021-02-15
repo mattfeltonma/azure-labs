@@ -10,11 +10,14 @@ configuration CreateADDC {
         [Parameter(Mandatory)]
         [System.Management.Automation.PSCredential]$Admincreds,
 
+        [Parameter(Mandatory=$false)]
+        [string]$SystemTimeZone = "Eastern Standard Time",
+
         [Int]$RetryCount = 20,
         [Int]$RetryIntervalSec = 30
     )
 
-    Import-DscResource -ModuleName xActiveDirectory, xStorage, xNetworking, PSDesiredStateConfiguration, xPendingReboot
+    Import-DscResource -ModuleName xActiveDirectory, xStorage, xNetworking, PSDesiredStateConfiguration, xPendingReboot, xTimeZone, xSystemSecurity
     [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
     $Interface = Get-NetAdapter | Where-Object Name -Like "Ethernet*" | Select-Object -First 1
     $InterfaceAlias = $($Interface.Name)
@@ -24,6 +27,23 @@ configuration CreateADDC {
         LocalConfigurationManager
         {
             RebootNodeIfNeeded = $true
+        }
+
+        xTimeZone TimeZone
+        {
+            TimeZone = $SystemTimeZone
+        }
+
+        xSystemSecurity DisableIEEscAdmins
+        {
+            IsEnabled = $false
+            UserRole = "Administrators"
+        }
+
+        xSystemSecurity DisableIEEscUsers
+        {
+            IsEnabled = $false
+            UserRole = "Users"
         }
 
         WindowsFeature DNS
@@ -129,10 +149,12 @@ configuration CreateADDC {
             xADUser "$($_.FirstName) $($_.LastName)"
             {
                 Ensure = 'Present'
+                Description = $_.Description
                 DomainName = $DomainName
                 GivenName = $_.FirstName
                 SurName = $_.LastName
                 UserName = $_.UserName
+                DisplayName = '{0} {1}' -f $_.FirstName, $_.LastName
                 UserPrincipalName = '{0}@{1}' -f $_.UserName, $DomainName
                 Department = $_.Department
                 JobTitle = $_.Title
