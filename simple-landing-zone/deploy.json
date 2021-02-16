@@ -214,7 +214,7 @@
                     "sharedVnetResourceId": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedVnetResourceId.value]"
                     },
-                    "sharedVnetResourcGroup": {
+                    "sharedVnetResourceGroup": {
                         "value": "[variables('sharedSvcRgName')]"
                     },
                     "sharedVnetSubnetAdCidr": {
