@@ -780,6 +780,7 @@
                     "tier": "Standard"
                 },
                 "additionalProperties": {
+                    "Network.DNS.EnableProxy": "true",
                     "Network.DNS.Servers": "[parameters('dnsServerIp')]"
                 }
             }
