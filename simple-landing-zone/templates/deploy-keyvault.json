@@ -8,6 +8,12 @@
                 "description": "The object ID of the security principal who will be admin over the Key Vault"
             }
         },
+        "laWorkspaceResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the Log Analytics Workspace the logs and metrics will be sent to"
+            }       
+        },
         "softDeleteRetentionDays": {
             "type": "int",
             "metadata": {
@@ -37,6 +43,7 @@
         }
     },
     "variables": {
+        "diagnosticApiVersion": "2017-05-01-preview",
         "keyVaultApiVersion": "2019-09-01",
         "certPermissions": [
             "backup",
@@ -116,6 +123,34 @@
                 "softDeleteRetentionInDays": "[parameters('softDeleteRetentionDays')]",
                 "tenantid": "[parameters('tenantId')]"
             }
+        },
+        {
+            "name": "[concat(variables('keyVaultName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.KeyVault/vaults/providers/diagnosticSettings",
+            "apiVersion": "[variables('diagnosticApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[concat('Microsoft.KeyVault/vaults/',variables('keyVaultName'))]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[parameters('laWorkspaceResourceId')]",
+                "logs": [
+                    {
+                        "category": "AuditEvent",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
         }
     ],
     "outputs": {

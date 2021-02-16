@@ -774,6 +774,34 @@
                     }
                 ],
                 "applicationRuleCollections": [
+                    {
+                        "name": "AllowVmInternet",
+                        "properties": {
+                            "priority": 100,
+                            "action": {
+                                "type": "Allow"
+                            },
+                            "rules": [
+                                {
+                                    "name": "AllowVMInternet",
+                                    "description": "Allow VMs access to the Internet",
+                                    "sourceAddresses": [
+                                        "[parameters('sharedVnetCidr')]",
+                                        "[parameters('spokeVnetCidr')]"
+                                    ],
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": "443"
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "*"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
                 ],
                 "ipConfigurations": [
                     {
