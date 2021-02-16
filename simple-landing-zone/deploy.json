@@ -5,9 +5,15 @@
         "adDomainName": {
             "type": "string",
             "metadata": {
-                "description": "The name assigned to the Active Directory domain"
+                "description": "The DNS name assigned to the Active Directory domain"
             }
         },
+        "adNetBiosName": {
+            "type": "string",
+            "metadata": {
+                "description": "The NetBIOS name assigned to the Active Directory domain"
+            }
+        },        
         "location": {
             "type": "string",
             "metadata": {
@@ -119,6 +125,9 @@
                     },
                     "adDomainName": {
                         "value": "[parameters('adDomainName')]"
+                    },
+                    "adNetBiosName": {
+                        "value": "[parameters('adNetBiosName')]"
                     },
                     "adVmIp": {
                         "value": "[variables('sharedAdVmIp')]"

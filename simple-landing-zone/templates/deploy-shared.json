@@ -12,7 +12,13 @@
         "adDomainName": {
             "type": "string",
             "metadata": {
-                "description": "The domain name assigned to the Active Directory domain"
+                "description": "The DNS domain name assigned to the Active Directory domain"
+            }
+        },
+        "adNetBiosName": {
+            "type": "string",
+            "metadata": {
+                "description": "The NetBios domain name assigned to the Active Directory domain"
             },
             "maxLength": 14 
         },
@@ -714,6 +720,9 @@
                     },
                     "adDomainName": {
                         "value": "[parameters('adDomainName')]"
+                    },
+                    "adNetBiosName": {
+                        "value": "[parameters('adNetBiosName')]"
                     },
                     "dcIpAddress": {
                         "value": "[parameters('adVmIp')]"
