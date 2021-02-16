@@ -807,7 +807,7 @@
         },
         "sharedVnetName": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+            "value": "[variables('sharedVnetName')]"
         },
         "sharedVnetResourceId": {
             "type": "string",
