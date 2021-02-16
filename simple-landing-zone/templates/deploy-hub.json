@@ -447,7 +447,7 @@
                         "allowVirtualNetworkAccess": "true",
                         "allowForwardedTraffic": "true",
                         "allowGatewayTransit": "false",
-                        "useRemoteGateways": "true",
+                        "useRemoteGateways": "false",
                         "remoteVirtualNetwork": {
                             "id": "[parameters('sharedVnetResourceId')]"
                         }
@@ -482,6 +482,7 @@
                                 "allowVirtualNetworkAccess": "true",
                                 "allowForwardedTraffic": "true",
                                 "allowGatewayTransit": "false",
+                                "useRemoteGateways": "false",
                                 "remoteVirtualNetwork": {
                                     "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
                                 }
