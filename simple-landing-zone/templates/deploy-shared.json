@@ -738,7 +738,7 @@
                     "subnetName": {
                         "value": "[variables('sharedAdSubnetName')]"
                     },
-                    "tagValues": {
+                    "tags": {
                         "value": "[parameters('tags')]"
                     },
                     "uniqueData": {
