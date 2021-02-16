@@ -164,11 +164,17 @@
             "name": "[variables('keyVaultDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdminObjectId')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
