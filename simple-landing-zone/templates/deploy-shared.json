@@ -20,7 +20,7 @@
             "metadata": {
                 "description": "The NetBios domain name assigned to the Active Directory domain"
             },
-            "maxLength": 14 
+            "maxLength": 14
         },
         "adVmIp": {
             "type": "string",
@@ -32,6 +32,12 @@
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the Bastion subnet in the hub"
+            }
+        },
+        "keyVaultAdminObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the security principal who will be admin over the Key Vault"
             }
         },
         "networkWatcherRg": {
@@ -97,6 +103,10 @@
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
         "infraNsgFlowLogDeploymentName": "deploy-infralowlog",
         "infraNsgName": "[concat('nsg-infra', parameters('uniqueData'))]",
+        "keyVaultDeploymentName": "deploy-keyvault",
+        "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-keyvault.json')]",
+        "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
+        "keyVaultPlLinkName": "[concat(variables('keyVaultDnsZoneName'), '-link')]",
         "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
         "location": "[resourceGroup().location]",
         "logAnalyticsRetention": 30,
@@ -148,6 +158,29 @@
                     "defaultAction": "Deny"
                 },
                 "supportsHttpsTrafficOnly": true
+            }
+        },
+        {
+            "name": "[variables('keyVaultDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
             }
         },
         {
@@ -528,6 +561,12 @@
         {
             "type": "Microsoft.Network/privateDnsZones",
             "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[variables('keyVaultDnsZoneName')]",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
             "name": "[variables('blobStorageDnsZoneName')]",
             "location": "global"
         },
@@ -684,7 +723,7 @@
                     "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
                 }
             }
-        },      
+        },
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
             "apiVersion": "[variables('dnsApiVersion')]",
@@ -700,13 +739,29 @@
                     "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
                 }
             }
-        }/*,
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[concat(variables('keyVaultDnsZoneName'), '/', variables('keyVaultPlLinkName'))]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones',variables('keyVaultDnsZoneName'))]",
+                "Microsoft.Network/privateDnsZones/privatelink.agentsvc.azure-automation.net/virtualNetworkLinks/privatelink.agentsvc.azure-automation.net-link"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+                }
+            }
+        },
         {
             "name": "[variables('adVmDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "Microsoft.Network/privateDnsZones/privatelink.agentsvc.azure-automation.net/virtualNetworkLinks/privatelink.agentsvc.azure-automation.net-link",
+                "[concat('Microsoft.Network/privateDnsZones/', variables('keyVaultDnsZoneName'), '/virtualNetworkLinks/', variables('keyVaultPlLinkName'))]",
                 "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
             ],
             "properties": {
@@ -758,9 +813,16 @@
                 }
             }
         }
-        */
     ],
     "outputs": {
+        "KeyVaultName": {
+            "type": "string",
+            "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+        },
+        "KeyVaultResourceId": {
+            "type": "string",
+            "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+        },
         "laWorkspaceId": {
             "type": "string",
             "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
@@ -772,7 +834,7 @@
         "laWorkspaceName": {
             "type": "string",
             "value": "[variables('laWorkspaceName')]"
-        },        
+        },
         "laWorkspaceResourceId": {
             "type": "string",
             "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
@@ -787,11 +849,11 @@
         },
         "sharedAdNsgResourceId": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]"            
+            "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]"
         },
         "sharedInfraNsgResourceId": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]"            
+            "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]"
         },
         "sharedRouteTableName": {
             "type": "string",
@@ -799,11 +861,11 @@
         },
         "sharedSvcRouteTableName": {
             "type": "string",
-            "value": "[variables('sharedSvcRouteTableName')]"            
+            "value": "[variables('sharedSvcRouteTableName')]"
         },
         "sharedSvcRouteTableResourceId": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Network/routeTables', variables('sharedSvcRouteTableName'))]"          
+            "value": "[resourceId('Microsoft.Network/routeTables', variables('sharedSvcRouteTableName'))]"
         },
         "sharedVnetName": {
             "type": "string",

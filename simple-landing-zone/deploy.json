@@ -20,6 +20,12 @@
                 "description": "The location to deploy the resources"
             }
         },
+        "keyVaultAdminObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the security principal who will be admin over the Key Vault"
+            }
+        },
         "networkWatcherResourceGroup": {
             "type": "string",
             "metadata": {
@@ -135,6 +141,9 @@
                     "hubBastionSubnetCidr": {
                         "value": "[variables('hubBastionSubnetCidr')]"
                     },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
+                    },
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
                     },
@@ -192,6 +201,12 @@
                     },
                     "hubVnetCidr": {
                         "value": "[variables('hubVnetCidr')]"
+                    },
+                    "keyVaultName": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "keyVaultResourceId": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.keyVaultResourceId.value]"
                     },
                     "laWorkspaceName": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.laWorkspaceName.value]"
