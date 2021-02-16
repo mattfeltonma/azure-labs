@@ -700,7 +700,7 @@
                     "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
                 }
             }
-        },
+        }/*,
         {
             "name": "[variables('adVmDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
@@ -758,6 +758,7 @@
                 }
             }
         }
+        */
     ],
     "outputs": {
         "laWorkspaceId": {

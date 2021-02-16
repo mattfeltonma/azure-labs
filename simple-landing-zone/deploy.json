@@ -211,6 +211,9 @@
                     "sharedVnetCidr": {
                         "value": "[variables('sharedVnetCidr')]"
                     },
+                    "sharedVnetName": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedVnetName.value]"
+                    },                    
                     "sharedVnetResourceId": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedVnetResourceId.value]"
                     },
