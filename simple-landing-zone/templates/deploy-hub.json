@@ -501,7 +501,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('firewallPublicIpName'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
-                "[resourceId('Microsoft.Resources/deployments',variables('sharedPeeringDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('sharedPeeringDeploymentName'))]"
             ],
             "zones": "[variables('firewallAz')]",
             "properties": {
