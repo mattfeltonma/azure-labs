@@ -109,7 +109,6 @@
         "vnetStandardDdosProtection": false
     },
     "resources": [
-        /* Create Log Analytics Workspace */
         {
             "name": "[variables('laWorkspaceName')]",
             "type": "Microsoft.OperationalInsights/workspaces",
@@ -125,7 +124,6 @@
                 "retentionInDays": "[variables('logAnalyticsRetention')]"
             }
         },
-        /* Create Storage account for NSG Flow Logs */
         {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "[variables('storageApiVersion')]",
@@ -146,7 +144,6 @@
                 "supportsHttpsTrafficOnly": true
             }
         },
-        /* Create NSG for Infra subnet */
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('infraNsgName')]",
@@ -157,7 +154,6 @@
                 "securityRules": []
             }
         },
-        /* Create NSG for AD Subnets */
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('adNsgName')]",
@@ -381,7 +377,6 @@
                 ]
             }
         },
-        /* Enable NSG flow log for AD NSG */
         {
             "name": "[variables('adNsgFlowLogDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
@@ -420,7 +415,6 @@
                 }
             }
         },
-        /* Enable NSG flow log for Infra NSG */
         {
             "name": "[variables('infraNsgFlowLogDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
@@ -460,7 +454,6 @@
                 }
             }
         },
-        /* Create Route Table for Shared Services subnets */
         {
             "name": "[variables('sharedSvcRouteTableName')]",
             "type": "Microsoft.Network/routeTables",
@@ -478,7 +471,6 @@
             "resources": [
             ]
         },
-        /* Create Virtual Network */
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('sharedVnetName')]",
@@ -527,7 +519,6 @@
             "resources": [
             ]
         },
-        /* Create Private DNS Zones */
         {
             "type": "Microsoft.Network/privateDnsZones",
             "apiVersion": "[variables('dnsApiVersion')]",
@@ -576,7 +567,6 @@
             "name": "privatelink.agentsvc.azure-automation.net",
             "location": "global"
         },
-        /* Create Private DNS Zone Links */
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
             "apiVersion": "[variables('dnsApiVersion')]",
@@ -705,7 +695,6 @@
                 }
             }
         },
-        /* Deploy Domain Controller */
         {
             "name": "[variables('adVmDeploymentName')]",
             "type": "Microsoft.Resources/deployments",

@@ -5,7 +5,7 @@ configuration CreateADDC {
         [String]$DomainName,
 
         [Parameter(Mandatory)]
-        [String]$NetBiosName = $DomainName,
+        [String]$NetBiosName,
         
         [Parameter(Mandatory)]
         [System.Management.Automation.PSCredential]$Admincreds,
