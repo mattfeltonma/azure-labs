@@ -53,7 +53,7 @@
     "variables": {
         "uniqueData": "[substring(parameters('uniqueGuid'),0,8)]",
         "resourcesApiVersion": "2020-06-01",
-        "deploymentTemplatesUri": "[concat(deployment().properties.templateLink.uri,'templates/')]",
+        "deploymentTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/'))]",
         "hubBastionSubnetCidr": "10.0.1.0/27",
         "hubCentralSvcSubnetCidr": "10.0.3.0/24",
         "hubDeploymentName": "deploy-hub",

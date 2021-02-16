@@ -103,7 +103,7 @@
         "dataNsgName": "[concat('nsg-data', parameters('uniqueData'))]",
         "hubPeeringDeploymentName": "deploy-peering",
         "location": "[resourceGroup().location]",
-        "nsgDeploymentUri": "[concat(deployment().properties.templateLink.uri, 'deploy-nsg-flow-log.json')]",
+        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-nsg-flow-log.json')]",
         "peeringHubToSpokeName": "peerhubtospoke",
         "peeringSpokeToHubName": "peerspoketohub",
         "spokeAppSubnetName": "snet-app",

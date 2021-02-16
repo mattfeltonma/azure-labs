@@ -95,7 +95,7 @@
         "location": "[resourceGroup().location]",
         "logAnalyticsRetention": 30,
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
-        "nsgDeploymentUri": "[concat(deployment().properties.templateLink.uri, 'deploy-nsg-flow-log.json')]",
+        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-nsg-flow-log.json')]",
         "queueStorageDnsZoneName": "privatelink.queue.core.windows.net",
         "queueStoragePlLinkName": "[concat(variables('queueStorageDnsZoneName'), '-link')]",
         "sharedAdSubnetName": "snet-ad",
@@ -104,7 +104,7 @@
         "sharedVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
         "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
-        "vmDeploymentUri": "[concat(deployment().properties.templateLink.uri, 'deploy-windows-dc.json')]",
+        "vmDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-windows-dc.json')]",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
     },
