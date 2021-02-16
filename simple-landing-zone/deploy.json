@@ -344,7 +344,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('deploymentTemplatesUri')]",
+                    "uri": "[concat(variables('deploymentTemplatesUri'),'deploy-spoke.json')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
