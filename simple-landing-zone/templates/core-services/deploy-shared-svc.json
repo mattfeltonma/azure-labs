@@ -827,13 +827,13 @@
                     "contentVersion": "1.0.0.0"
                 }
             }
-        }/*,
+        },
         {
             "name": "[variables('updateVnetDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('adVmDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('adVmDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -849,9 +849,6 @@
                             "apiVersion": "[variables('networkApiVersion')]",
                             "location": "[variables('location')]",
                             "tags": "[parameters('tags')]",
-                            "dependsOn": [
-                                "[concat('Microsoft.Resources/deployments/', variables('adVmDeploymentName'))]"
-                            ],
                             "properties": {
                                 "addressSpace": {
                                     "addressPrefixes": [
