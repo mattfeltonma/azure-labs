@@ -81,7 +81,7 @@
             "metadata": {
                 "description": "The subscription ID where the Shared Services resources exist"
             },
-            "defaultValue": "[subscription().id]"
+            "defaultValue": "[subscription().subscriptionId]"
         },
         "sharedSvcVnetSubnetAdCidr": {
             "type": "string",
