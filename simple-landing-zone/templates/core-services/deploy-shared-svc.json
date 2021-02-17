@@ -21,16 +21,16 @@
                 "description": "The IP assigned to the Active Directory domain controller virtual machine"
             }
         },
-        "transitBastionSubnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the Bastion subnet in the hub"
-            }
-        },
         "keyVaultAdminObjectId": {
             "type": "string",
             "metadata": {
                 "description": "The object ID of the security principal who will be admin over the Key Vault"
+            }
+        },
+        "memberServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP assigned to the Active Directory member server virtual machine"
             }
         },
         "networkWatcherRg": {
@@ -56,6 +56,12 @@
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for other infrastructure services such as backup or PKI"
+            }
+        },
+        "transitBastionSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Bastion subnet in the transit virtual network"
             }
         },
         "tags": {
@@ -93,12 +99,14 @@
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
+        "adMemberVmDeploymentName": "deploy-admember",
+        "adMemberVmName": "vmserver01",
         "adNsgFlowLogDeploymentName": "deploy-adflowlog",
         "adNsgName": "[concat('nsg-ad', parameters('uniqueData'))]",
-        "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
-        "blobStoragePlLinkName": "[concat(variables('blobStorageDnsZoneName'), '-link')]",
         "adVmDeploymentName": "deploy-ad",
         "adVmName": "vmdc01",
+        "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
+        "blobStoragePlLinkName": "[concat(variables('blobStorageDnsZoneName'), '-link')]",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
         "infraNsgFlowLogDeploymentName": "deploy-infralowlog",
@@ -120,6 +128,7 @@
         "sharedSvcVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
         "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
+        "updateVnetDeploymentName": "deploy-update-vnet",
         "vmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-dc.json')]",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
@@ -808,6 +817,132 @@
                     },
                     "vmName": {
                         "value": "[variables('adVmName')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('sharedSvcVnetName')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('vmDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('updateVnetDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('adVmDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworks",
+                            "name": "[variables('sharedSvcVnetName')]",
+                            "apiVersion": "[variables('networkApiVersion')]",
+                            "location": "[variables('location')]",
+                            "tags": "[parameters('tags')]",
+                            "dependsOn": [
+                                "[concat('Microsoft.Resources/deployments/', variables('adVmDeploymentName'))]"
+                            ],
+                            "properties": {
+                                "addressSpace": {
+                                    "addressPrefixes": [
+                                        "[parameters('sharedSvcVnetCidr')]"
+                                    ]
+                                },
+                                "subnets": [
+                                    {
+                                        "name": "[variables('sharedSvcAdSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('sharedSvcVnetSubnetAdCidr')]",
+                                            "routeTable": {
+                                                "id": "[resourceId('Microsoft.Network/routeTables',variables('sharedSvcRouteTableName'))]"
+                                            },
+                                            "networkSecurityGroup": {
+                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "[variables('sharedSvcInfraSvcSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('sharedSvcVnetSubnetInfraCidr')]",
+                                            "routeTable": {
+                                                "id": "[resourceId('Microsoft.Network/routeTables',variables('sharedSvcRouteTableName'))]"
+                                            },
+                                            "networkSecurityGroup": {
+                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
+                                "dhcpOptions": {
+                                    "dnsServers": [
+                                        "[parameters('adVmIp')]"
+                                    ]
+                                }
+                            },
+                            "resources": [
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('adMemberVmDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('updateVnetDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "adDomainName": {
+                        "value": "[parameters('adDomainName')]"
+                    },
+                    "adNetBiosName": {
+                        "value": "[parameters('adNetBiosName')]"
+                    },
+                    "serverIpAddress": {
+                        "value": "[parameters('memberServerIp')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
+                    },
+                    "subnetName": {
+                        "value": "[variables('sharedSvcInfraSvcSubnetName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('adMemberVmName')]"
                     },
                     "vnetName": {
                         "value": "[variables('sharedSvcVnetName')]"

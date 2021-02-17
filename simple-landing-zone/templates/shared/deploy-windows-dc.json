@@ -36,8 +36,7 @@
             "type": "string",
             "metadata": {
                 "description": "The NetBIOS name of the Active Directory domain"
-            },
-            "defaultValue": "[parameters('adDomainName')]"
+            }
         },
         "dataDiskSize": {
             "type": "int",

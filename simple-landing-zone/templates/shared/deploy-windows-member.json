@@ -2,73 +2,16 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "uniqueData": {
-            "type": "string",
-            "metadata": {
-                "description": "Data used to append to resources to ensure uniqueness"
-            },
-            "defaultValue": "[substring(newGuid(),0,8)]"
-        },
-        "vmName": {
-            "type": "string",
-            "metadata": {
-                "description": "VM Name"
-            }
-        },
-        "vnetSubscriptionId": {
-            "type": "string",
-            "defaultValue": "[subscription().subscriptionId]",
-            "metadata": {
-                "description": "The subscription of the Virtual Network the VM will use"
-            }
-        },
-        "vnetResourceGroup": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().name]",
-            "metadata": {
-                "description": "The resource group of the Virtual Network the VM will use"
-            }
-        },
-        "vnetName": {
-            "type": "string",
-            "metadata": {
-                "description": "The Virtual Network the VM is to be placed in"
-            }
-        },
-        "subnetName": {
-            "type": "string",
-            "metadata": {
-                "description": "The subnet within the Virtual Network the network interface for the VM is to be placed in"
-            }
-        },
-        "virtualMachineSize": {
-            "type": "string",
-            "metadata": {
-                "description": "VM Size"
-            }
-        },
-        "adminUsername": {
-            "type": "string",
-            "metadata": {
-                "description": "Name of the administrator account created on the VM"
-            }
-        },
         "adminPassword": {
             "type": "securestring",
             "metadata": {
                 "description": "The password for the administrator account created on the VM"
             }
         },
-        "myWorkspaceId": {
+        "adminUsername": {
             "type": "string",
             "metadata": {
-                "description": "The Log and Analytics workspace ID that the Microsoft Monitoring Agent will deliver metrics and logs to"
-            }
-        },
-        "myWorkspaceKey": {
-            "type": "string",
-            "metadata": {
-                "description": "The Log and Analytics workspace secret"
+                "description": "Name of the administrator account created on the VM"
             }
         },
         "availabilityZone": {
@@ -83,53 +26,127 @@
                 3
             ]
         },
-        "tagValues": {
+        "adDomainName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the Active Directory domain"
+            }
+        },
+        "adNetBiosName": {
+            "type": "string",
+            "metadata": {
+                "description": "The NetBIOS name of the Active Directory domain"
+            }
+        },
+        "dataDiskSize": {
+            "type": "int",
+            "metadata": {
+                "description": "The size of the data disk attached to the virtual machine"
+            },
+            "defaultValue": 100
+        },         
+        "ServerIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "The static IP address assigned to the server's network interface"
+            }
+        },
+        "linkedTemplateLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The location of linked templates and scripts"
+            },
+            "defaultValue": "[deployment().properties.templateLink.uri]"
+        },  
+        "myWorkspaceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The Log and Analytics workspace ID that the Microsoft Monitoring Agent will deliver metrics and logs to"
+            }
+        },
+        "myWorkspaceKey": {
+            "type": "string",
+            "metadata": {
+                "description": "The Log and Analytics workspace secret"
+            }
+        },
+        "subnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The subnet within the Virtual Network the network interface for the VM is to be placed in"
+            }
+        },
+        "tags": {
             "type": "object",
             "metadata": {
                 "description": "The tags that will be associated to the VM"
             }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "virtualMachineSize": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Size"
+            }
+        },
+        "vmName": {
+            "type": "string",
+            "metadata": {
+                "description": "VM Name"
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The Virtual Network the VM is to be placed in"
+            }
+        },
+        "vnetResourceGroup": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().name]",
+            "metadata": {
+                "description": "The resource group of the Virtual Network the VM will use"
+            }
+        },
+        "vnetSubscriptionId": {
+            "type": "string",
+            "defaultValue": "[subscription().subscriptionId]",
+            "metadata": {
+                "description": "The subscription of the Virtual Network the VM will use"
+            }
         }
     },
     "variables": {
-        "networkApiVersion": "2019-11-01",
-        "vmApiVersion": "2019-07-01",
-        "storageApiVersion": "2019-06-01",
+        "networkApiVersion": "2020-07-01",
+        "vmApiVersion": "2020-06-01",
+        "dataDiskType": "StandardSSD_LRS",
+        "modulesUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../dsc/memberserver/createadmember.zip'))]",
+        "configurationFunction": "CreateADMember.ps1\\CreateADMember",
         "location": "[resourceGroup().location]",
-        "diagAcctName": "[concat('st',parameters('uniqueData'))]",
         "nicName": "[concat(parameters('vmName'),parameters('uniqueData'))]",
+        "osDiskType": "StandardSSD_LRS",
         "subnetRef": "[resourceId(parameters('vnetSubscriptionId'),parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('subnetName'))]"
     },
     "resources": [
-        /* Create diagnostics storage account */
-        {
-            "name": "[variables('diagAcctName')]",
-            "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "[variables('storageApiVersion')]",
-            "sku": {
-                "name": "Standard_LRS"
-            },
-            "kind": "StorageV2",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tagValues')]",
-            "properties": {
-                "accessTier": "Hot",
-                "supportsHttpsTrafficOnly": true
-            },
-            "resources": [
-            ]
-        },
-        /* Create network interface */
         {
             "name": "[variables('nicName')]",
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
-            "tags": "[parameters('tagValues')]",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
                         "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('serverIpAddress')]",
                             "subnet": {
                                 "id": "[variables('subnetRef')]"
                             }
@@ -138,37 +155,26 @@
                 ]
             }
         },
-        /* Create VM */
         {
             "name": "[parameters('vmName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "[variables('vmApiVersion')]",
             "location": "[variables('location')]",
-            "tags": "[parameters('tagValues')]",
+            "tags": "[parameters('tags')]",
             "zones": [
                 "[parameters('availabilityZone')]"
             ],
             "dependsOn": [
-                "[concat('Microsoft.Storage/storageAccounts/', variables('diagAcctName'))]",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
             ],
             "properties": {
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true
+                    }
+                },
                 "hardwareProfile": {
                     "vmSize": "[parameters('virtualMachineSize')]"
-                },
-                "storageProfile": {
-                    "osDisk": {
-                        "createOption": "fromImage",
-                        "managedDisk": {
-                            "storageAccountType": "StandardSSD_LRS"
-                        }
-                    },
-                    "imageReference": {
-                        "publisher": "MicrosoftWindowsServer",
-                        "offer": "WindowsServer",
-                        "sku": "2019-Datacenter",
-                        "version": "latest"
-                    }
                 },
                 "networkProfile": {
                     "networkInterfaces": [
@@ -186,14 +192,33 @@
                         "provisionVmAgent": true
                     }
                 },
-                "diagnosticsProfile": {
-                    "bootDiagnostics": {
-                        "enabled": true,
-                        "storageUri": "[concat('https://', variables('diagAcctName'), '.blob.core.windows.net/')]"
+                "storageProfile": {
+                    "dataDisks": [
+                        {
+                            "name": "[concat(parameters('vmName'),'_data-disk1')]",
+                            "caching": "None",
+                            "diskSizeGB": "[parameters('dataDiskSize')]",
+                            "lun": 0,
+                            "createOption": "Empty",
+                            "managedDisk": {
+                                "storageAccountType": "[variables('dataDiskType')]"
+                            }
+                        }
+                    ],
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[variables('osDiskType')]"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2019-Datacenter",
+                        "version": "latest"
                     }
                 }
             },
-            /* Install Microsoft Monitoring Agent extension */
             "resources": [
                 {
                     "type": "extensions",
@@ -230,14 +255,40 @@
                         "typeHandlerVersion": "1.4",
                         "autoUpgradeMinorVersion": true
                     }
+                },
+                {
+                    "type": "extensions",
+                    "name": "CreateMemberServer",
+                    "apiVersion": "[variables('vmApiVersion')]",
+                    "location": "[variables('location')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.Powershell",
+                        "type": "DSC",
+                        "typeHandlerVersion": "2.77",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                            "ModulesUrl":  "[variables('modulesUrl')]",
+                            "ConfigurationFunction": "[variables('configurationFunction')]",
+                            "Properties": {
+                                "DomainName": "[parameters('adDomainName')]",
+                                "NetBiosName": "[parameters('adNetBiosName')]",
+                                "AdminCreds": {
+                                    "UserName": "[parameters('adminUsername')]",
+                                    "Password": "PrivateSettingsRef:AdminPassword"
+                                }
+                            }
+                        },
+                        "protectedSettings": {
+                            "Items": {
+                                "AdminPassword": "[parameters('adminPassword')]"
+                            }
+                        }
+                    }
                 }
             ]
         }
-    ],
-    "outputs": {
-        "vmPrivateIpAddress": {
-            "type": "string",
-            "value": "[reference(variables('nicName')).ipConfigurations[0].properties.privateIPAddress]"
-        }
-    }
+    ]
 }

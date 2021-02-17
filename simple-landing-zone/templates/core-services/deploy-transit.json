@@ -8,36 +8,6 @@
                 "description": "The IP address used to set the DNS settings for the virtual network and Azure Firewall"
             }
         },
-        "transitBastionSubnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the Bastion subnet in the transit virtual network"
-            }
-        },
-        "transitCentralSvcSubnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the subnet used to store centralized private enpdoint services"
-            }
-        },
-        "transitFwSubnetPayCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the Azure Firewall payload subnet in the transit virtual network"
-            }
-        },
-        "transitGatewaySubnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the Gateway subnet in the transit virtual network"
-            }
-        },
-        "transitVnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the transit virtual network"
-            }
-        },
         "keyVaultName": {
             "type": "string",
             "metadata": {
@@ -117,6 +87,36 @@
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the AD subnet in the Shared Services virtual network"
+            }
+        },
+        "transitBastionSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Bastion subnet in the transit virtual network"
+            }
+        },
+        "transitCentralSvcSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the subnet used to store centralized private enpdoint services"
+            }
+        },
+        "transitFwSubnetPayCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Azure Firewall payload subnet in the transit virtual network"
+            }
+        },
+        "transitGatewaySubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Gateway subnet in the transit virtual network"
+            }
+        },
+        "transitVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the transit virtual network"
             }
         },
         "workloadVnetCidr": {
@@ -397,7 +397,6 @@
                 }
             }
         },
-        /* Create Virtual Network */
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('transitVnetName')]",

@@ -73,6 +73,7 @@
         "transitRgName": "[concat('rg-transit-',parameters('uniqueData'))]",
         "transitVnetCidr": "10.0.0.0/16",
         "sharedSvcRoutingDeploymentName": "deploy-shared-svc-routing",
+        "sharedSvcAdMemberIp": "10.1.1.4",
         "sharedSvcAdVmIp": "10.1.0.4",
         "sharedSvcDeploymentName": "deploy-shared",
         "sharedSvcRgName": "[concat('rg-shared-',parameters('uniqueData'))]",
@@ -131,6 +132,9 @@
                     },
                     "adNetBiosName": {
                         "value": "[parameters('adNetBiosName')]"
+                    },
+                    "memberServerIp": {
+                        "value": "[variables('sharedSvcAdMemberIp')]"
                     },
                     "adVmIp": {
                         "value": "[variables('sharedSvcAdVmIp')]"
@@ -229,7 +233,7 @@
                     "sharedSvcVnetName": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedSvcVnetName.value]"
                     },                    
-                    "sharedVnetResourceId": {
+                    "sharedSvcVnetResourceId": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedSvcVnetResourceId.value]"
                     },
                     "sharedSvcVnetResourceGroup": {
