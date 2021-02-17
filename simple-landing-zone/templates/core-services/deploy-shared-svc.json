@@ -833,7 +833,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('adVmDeploymentName'))]"
+                /*"[concat('Microsoft.Resources/deployments/', variables('adVmDeploymentName'))]"*/
             ],
             "properties": {
                 "mode": "Incremental",
