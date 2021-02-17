@@ -17,7 +17,7 @@ configuration CreateADDC {
         [Int]$RetryIntervalSec = 30
     )
 
-    Import-DscResource -ModuleName xActiveDirectory, xStorage, xNetworking, ComputerManagementDsc, PSDesiredStateConfiguration
+    Import-DscResource -ModuleName xActiveDirectory, xDnsServer, xStorage, xNetworking, ComputerManagementDsc, PSDesiredStateConfiguration
     [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
     $Interface = Get-NetAdapter | Where-Object Name -Like "Ethernet*" | Select-Object -First 1
     $InterfaceAlias = $($Interface.Name)
@@ -68,6 +68,14 @@ configuration CreateADDC {
         {
             Ensure = "Present"
             Name = "RSAT-DNS-Server"
+            DependsOn = "[WindowsFeature]DNS"
+        }
+
+        xDnsServerForwarder 'SetForwarders'
+        {
+            IsSingleInstance = 'Yes'
+            IPAddresses      = '168.63.129.16'
+            UseRootHint      = $false
             DependsOn = "[WindowsFeature]DNS"
         }
 
