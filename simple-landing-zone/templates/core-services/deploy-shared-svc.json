@@ -129,7 +129,8 @@
         "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
         "updateVnetDeploymentName": "deploy-update-vnet",
-        "vmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-dc.json')]",
+        "dcVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-dc.json')]",
+        "memberVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-member.json')]",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
     },
@@ -823,7 +824,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('vmDeploymentUri')]",
+                    "uri": "[variables('dcVmDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -946,7 +947,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('vmDeploymentUri')]",
+                    "uri": "[variables('memberVmDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
