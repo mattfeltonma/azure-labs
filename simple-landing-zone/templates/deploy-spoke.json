@@ -2,17 +2,16 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "uniqueData": {
+        "dnsServerIp": {
             "type": "string",
             "metadata": {
-                "description": "Data used to append to resources to ensure uniqueness"
-            },
-            "defaultValue": "[substring(newGuid(),0,8)]"
+                "description": "The IP address set for the DNS Server of the Virtual Network"
+            }
         },
         "firewallIp": {
             "type": "string",
             "metadata": {
-                "description": "The ip of the firewall that will be used for next hop in the routing table"
+                "description": "The IP address of the Azure Firewall in the Hub Virtual Network"
             }
         },
         "hubVnetName": {
@@ -86,6 +85,13 @@
             "defaultValue": {
                 "environment": "lab"
             }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
         }
     },
     "variables": {
@@ -97,6 +103,7 @@
         "dataNsgName": "[concat('nsg-data', parameters('uniqueData'))]",
         "hubPeeringDeploymentName": "deploy-peering",
         "location": "[resourceGroup().location]",
+        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-nsg-flow-log.json')]",
         "peeringHubToSpokeName": "peerhubtospoke",
         "peeringSpokeToHubName": "peerspoketohub",
         "spokeAppSubnetName": "snet-app",
@@ -170,7 +177,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "uri": "[variables('nsgDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -207,7 +214,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "uri": "[variables('nsgDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -244,7 +251,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "uri": "[variables('nsgDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -331,7 +338,7 @@
                 "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
                 "dhcpOptions": {
                     "dnsServers": [
-                        "[parameters('firewallIp')]"
+                        "[parameters('dnsServerIp')]"
                     ]
                 }
             },

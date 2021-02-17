@@ -2,19 +2,28 @@
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "tags": {
-            "type": "object",
+        "adDomainName": {
+            "type": "string",
             "metadata": {
-                "description": "The tags that wil be associated to the resources"
-            },
-            "defaultValue": {
-                "environment": "lab"
+                "description": "The DNS name assigned to the Active Directory domain"
             }
         },
+        "adNetBiosName": {
+            "type": "string",
+            "metadata": {
+                "description": "The NetBIOS name assigned to the Active Directory domain"
+            }
+        },        
         "location": {
             "type": "string",
             "metadata": {
                 "description": "The location to deploy the resources"
+            }
+        },
+        "keyVaultAdminObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the security principal who will be admin over the Key Vault"
             }
         },
         "networkWatcherResourceGroup": {
@@ -23,6 +32,15 @@
                 "description": "The resource group where Network Watcher resources exist"
             },
             "defaultValue": "NetworkWatcherRG"
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that wil be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
         },
         "vmAdminUsername": {
             "type": "string",
@@ -47,6 +65,7 @@
     "variables": {
         "uniqueData": "[substring(parameters('uniqueGuid'),0,8)]",
         "resourcesApiVersion": "2020-06-01",
+        "deploymentTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/'))]",
         "hubBastionSubnetCidr": "10.0.1.0/27",
         "hubCentralSvcSubnetCidr": "10.0.3.0/24",
         "hubDeploymentName": "deploy-hub",
@@ -54,11 +73,12 @@
         "hubGatewaySubnetCidr": "10.0.0.0/27",
         "hubRgName": "[concat('rg-hub-',variables('uniqueData'))]",
         "hubVnetCidr": "10.0.0.0/16",
+        "finalizeSharedDeploymentName": "deploy-finalize-shared",
+        "sharedAdVmIp": "10.1.0.4",
         "sharedSvcDeploymentName": "deploy-shared",
         "sharedSvcRgName": "[concat('rg-shared-',variables('uniqueData'))]",
         "sharedVnetCidr": "10.1.0.0/16",
         "sharedVnetSubnetAdCidr": "10.1.0.0/24",
-        "sharedVnetSubnetPrivCidr": "10.1.2.0/24",
         "sharedVnetSubnetInfraCidr": "10.1.1.0/24",
         "spokeDeploymentName": "deploy-spoke",
         "spokeRgName": "[concat('rg-spoke-',variables('uniqueData'))]",
@@ -96,12 +116,12 @@
             }
         },
         {
-            "name": "[variables('hubDeploymentName')]",
+            "name": "[variables('sharedSvcDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "resourceGroup": "[variables('hubRgName')]",
+            "resourceGroup": "[variables('sharedSvcRgName')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/resourceGroups',variables('hubRgName'))]"
+                "[resourceId('Microsoft.Resources/resourceGroups',variables('sharedSvcRgName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -109,8 +129,63 @@
                     "uniqueData": {
                         "value": "[variables('uniqueData')]"
                     },
+                    "adDomainName": {
+                        "value": "[parameters('adDomainName')]"
+                    },
+                    "adNetBiosName": {
+                        "value": "[parameters('adNetBiosName')]"
+                    },
+                    "adVmIp": {
+                        "value": "[variables('sharedAdVmIp')]"
+                    },
+                    "hubBastionSubnetCidr": {
+                        "value": "[variables('hubBastionSubnetCidr')]"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
+                    },
+                    "networkWatcherRg": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
+                    "sharedVnetCidr": {
+                        "value": "[variables('sharedVnetCidr')]"
+                    },
+                    "sharedVnetSubnetAdCidr": {
+                        "value": "[variables('sharedVnetSubnetAdCidr')]"
+                    },
+                    "sharedVnetSubnetInfraCidr": {
+                        "value": "[variables('sharedVnetSubnetInfraCidr')]"
+                    },
                     "tags": {
                         "value": "[parameters('tags')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[concat(variables('deploymentTemplatesUri'),'deploy-shared.json')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('hubDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "resourceGroup": "[variables('hubRgName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/resourceGroups',variables('hubRgName'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('sharedSvcDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "dnsServerIp": {
+                        "value": "[variables('sharedAdVmIp')]"
                     },
                     "hubBastionSubnetCidr": {
                         "value": "[variables('hubBastionSubnetCidr')]"
@@ -127,75 +202,93 @@
                     "hubVnetCidr": {
                         "value": "[variables('hubVnetCidr')]"
                     },
+                    "keyVaultName": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "keyVaultResourceId": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.keyVaultResourceId.value]"
+                    },
+                    "laWorkspaceName": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.laWorkspaceName.value]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.laWorkspaceResourceId.value]"
+                    },
+                    "logStorageAccountName": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.logStorageName.value]"
+                    },
+                    "logStorageAccountResourceId": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.logStorageResourceId.value]"
+                    },
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
                     },
                     "sharedVnetCidr": {
                         "value": "[variables('sharedVnetCidr')]"
                     },
+                    "sharedVnetName": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedVnetName.value]"
+                    },                    
+                    "sharedVnetResourceId": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedVnetResourceId.value]"
+                    },
+                    "sharedVnetResourceGroup": {
+                        "value": "[variables('sharedSvcRgName')]"
+                    },
                     "sharedVnetSubnetAdCidr": {
                         "value": "[variables('sharedVnetSubnetAdCidr')]"
                     },
-                    "sharedVnetSubnetPrivCidr": {
-                        "value": "[variables('sharedVnetSubnetPrivCidr')]"
-                    },
                     "spokeVnetCidr": {
                         "value": "[variables('spokeVnetCidr')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[variables('uniqueData')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-hub.json",
+                    "uri": "[concat(variables('deploymentTemplatesUri'),'deploy-hub.json')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
-            "name": "[variables('sharedSvcDeploymentName')]",
+            "name": "[variables('finalizeSharedDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "resourceGroup": "[variables('sharedSvcRgName')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/',variables('hubDeploymentName'))]",
-                "[resourceId('Microsoft.Resources/resourceGroups',variables('sharedSvcRgName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('SharedSvcDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "uniqueData": {
-                        "value": "[variables('uniqueData')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
+                    "dnsServerIp": {
+                        "value": "[variables('sharedAdVmIp')]"
                     },
                     "firewallIp": {
                         "value": "[reference(variables('hubDeploymentName')).outputs.firewallIp.value]"
                     },
-                    "hubBastionSubnetCidr": {
-                        "value": "[variables('hubBastionSubnetCidr')]"
+                    "sharedAdNsgResourceId": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedAdNsgResourceId.value]"
                     },
-                    "hubVnetName": {
-                        "value": "[reference(variables('hubDeploymentName')).outputs.hubVnetName.value]"
+                    "sharedInfraNsgResourceId": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedInfraNsgResourceId.value]"
                     },
-                    "hubVnetResourceGroupName": {
-                        "value": "[variables('hubRgName')]"
+                    "sharedSvcRouteTableName": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedSvcRouteTableName.value]"
                     },
-                    "laWorkspaceId": {
-                        "value": "[reference(variables('hubDeploymentName')).outputs.laWorkspaceId.value]"
-                    },
-                    "laWorkspaceKey": {
-                        "value": "[reference(variables('hubDeploymentName')).outputs.laWorkspaceKey.value]"
-                    },
-                    "laWorkspaceResourceId": {
-                        "value": "[reference(variables('hubDeploymentName')).outputs.laWorkspaceResourceId.value]"
-                    },
-                    "logStorageAccountResourceId": {
-                        "value": "[reference(variables('hubDeploymentName')).outputs.logStorageResourceId.value]"
-                    },
-                    "networkWatcherRg": {
-                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    "sharedSvcRouteTableResourceId": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedSvcRouteTableResourceId.value]"
                     },
                     "sharedVnetCidr": {
                         "value": "[variables('sharedVnetCidr')]"
+                    },
+                    "sharedVnetName": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedVnetName.value]"
                     },
                     "sharedVnetSubnetAdCidr": {
                         "value": "[variables('sharedVnetSubnetAdCidr')]"
@@ -203,18 +296,12 @@
                     "sharedVnetSubnetInfraCidr": {
                         "value": "[variables('sharedVnetSubnetInfraCidr')]"
                     },
-                    "sharedVnetSubnetPrivCidr": {
-                        "value": "[variables('sharedVnetSubnetPrivCidr')]"
-                    },
-                    "vmAdminPassword": {
-                        "value": "[parameters('vmAdminPassword')]"
-                    },
-                    "vmAdminUserName": {
-                        "value": "[parameters('vmAdminUsername')]"
+                    "tags": {
+                        "value": "[parameters('tags')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-shared.json",
+                    "uri": "[concat(variables('deploymentTemplatesUri'),'deploy-finalize-shared.json')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -225,18 +312,14 @@
             "apiVersion": "[variables('resourcesApiVersion')]",
             "resourceGroup": "[variables('spokeRgName')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('hubDeploymentName'))]",
-                "[concat('Microsoft.Resources/deployments/',variables('SharedSvcDeploymentName'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('finalizeSharedDeploymentName'))]",
                 "[resourceId('Microsoft.Resources/resourceGroups',variables('spokeRgName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "uniqueData": {
-                        "value": "[variables('uniqueData')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
+                    "dnsServerIp": {
+                        "value": "[variables('sharedAdVmIp')]"
                     },
                     "firewallIp": {
                         "value": "[reference(variables('hubDeploymentName')).outputs.firewallIp.value]"
@@ -248,10 +331,10 @@
                         "value": "[variables('hubRgName')]"
                     },
                     "laWorkspaceResourceId": {
-                        "value": "[reference(variables('hubDeploymentName')).outputs.laWorkspaceResourceId.value]"
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.laWorkspaceResourceId.value]"
                     },
                     "logStorageAccountResourceId": {
-                        "value": "[reference(variables('hubDeploymentName')).outputs.logStorageResourceId.value]"
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.logStorageResourceId.value]"
                     },
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
@@ -267,10 +350,16 @@
                     },
                     "spokeVnetSubnetSupportCidr": {
                         "value": "[variables('spokeVnetSubnetSupportCidr')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[variables('uniqueData')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-spoke.json",
+                    "uri": "[concat(variables('deploymentTemplatesUri'),'deploy-spoke.json')]",
                     "contentVersion": "1.0.0.0"
                 }
             }

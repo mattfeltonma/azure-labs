@@ -2,20 +2,10 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "uniqueData": {
+        "dnsServerIp": {
             "type": "string",
             "metadata": {
-                "description": "Data used to append to resources to ensure uniqueness"
-            },
-            "defaultValue": "[substring(newGuid(),0,8)]"
-        },
-        "tags": {
-            "type": "object",
-            "metadata": {
-                "description": "The tags that wil be associated to the resources"
-            },
-            "defaultValue": {
-                "environment": "lab"
+                "description": "The IP address used to set the DNS settings for the virtual network and Azure Firewall"
             }
         },
         "hubBastionSubnetCidr": {
@@ -48,6 +38,42 @@
                 "description": "The CIDR assigned to the hub virtual network"
             }
         },
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the central Azure Key Vault instance"
+            }
+        },
+        "keyVaultResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the central Azure Key Vault instance"
+            }
+        },        
+        "laWorkspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the central Log Analytics Workspace"
+            }
+        },
+        "laWorkspaceResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the central Log Analytics Workspace"
+            }
+        },
+        "logStorageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the storage account used for log storage"
+            }
+        },        
+        "logStorageAccountResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the storage account used for log storage"
+            }
+        },
         "networkWatcherRg": {
             "type": "string",
             "metadata": {
@@ -61,16 +87,36 @@
                 "description": "The CIDR assigned to the Shared Services virtual network"
             }
         },
+        "sharedVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Shared Services Virtual Network"
+            }
+        },
+        "sharedVnetResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the Shared Servies Virtual Network"
+            }
+        },       
+        "sharedVnetResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where the Shared Services Virtual Network exists"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "sharedVnetSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id where the Shared Services Virtual Network exists"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
+        },
         "sharedVnetSubnetAdCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the AD subnet in the Shared Services virtual network"
-            }
-        },
-        "sharedVnetSubnetPrivCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the privileged subnet in the Shared Services virtual network"
             }
         },
         "spokeVnetCidr": {
@@ -78,21 +124,33 @@
             "metadata": {
                 "description": "The CIDR assigned to the spoke virtual network.  This is used in the firewall rules."
             }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
         }
     },
     "variables": {
         "diagnosticApiVersion": "2017-05-01-preview",
-        "dnsApiVersion": "2018-09-01",
-        "laApiVersion": "2015-11-01-preview",
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
-        "storageApiVersion": "2019-06-01",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
         "bastionNsgName": "[concat('nsg-bst', parameters('uniqueData'))]",
         "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
         "bastionSubnetName": "AzureBastionSubnet",
         "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
-        "blobStoragePlLinkName": "[concat(variables('blobStorageDnsZoneName'), '-link')]",
         "centralSvcNsgName": "[concat('nsg-cent', parameters('uniqueData'))]",
         "centralSvcSubnetName": "snet-central",
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
@@ -100,11 +158,11 @@
         "deployCentralSvcNsgFlowLog": "deploy-centsvcnsgflowlog",
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployFileStPe": "deploy-storagefileprivateendpoint",
+        "deployKeyVaultPe": "deploy-keyvaultprivateendpoint",
         "deployLaPe": "deploy-laprivateendpoint",
         "deployTableStPe": "deploy-storagetableprivateendpoint",
         "deployQueueStPe": "deploy-storagequeueprivateendpoint",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
-        "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
         "firewallAz": [
             "1"
         ],
@@ -112,18 +170,21 @@
         "firewallPublicIpName": "[concat('pip-fw', parameters('uniqueData'))]",
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
+        "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "hubVnetName": "[concat('vnet-hub', parameters('uniqueData'))]",
-        "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
+        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-nsg-flow-log.json')]",
+        "laPeDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-la-private-endpoint.json')]",
         "location": "[resourceGroup().location]",
-        "logAnalyticsRetention": 30,
-        "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
+        "peeringHubToShared": "peerhubtoshared",
+        "peeringSharedToHub": "peersharedtohub",
+        "peDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-private-endpoint.json')]",
         "queueStorageDnsZoneName": "privatelink.queue.core.windows.net",
-        "queueStoragePlLinkName": "[concat(variables('queueStorageDnsZoneName'), '-link')]",
+        "sharedPeeringDeploymentName": "deploy-peering",
         "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
-        "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
         "vnetStandardDdosProtection": false
     },
     "resources": [
+        /* Create Public IPs  */
         {
             "name": "[variables('bastionPublicIpName')]",
             "type": "Microsoft.Network/publicIpAddresses",
@@ -150,41 +211,7 @@
                 "name": "Standard"
             }
         },
-        {
-            "name": "[variables('laWorkspaceName')]",
-            "type": "Microsoft.OperationalInsights/workspaces",
-            "apiVersion": "[variables('laApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "properties": {
-                "sku": {
-                    "name": "PerGB2018"
-                },
-                "publicNetworkAccessForIngestion": "Disabled",
-                "publicNetworkAccessForQuery": "Enabled",
-                "retentionInDays": "[variables('logAnalyticsRetention')]"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "[variables('storageApiVersion')]",
-            "name": "[variables('logStorageAccountName')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "kind": "StorageV2",
-            "sku": {
-                "name": "Standard_RAGRS"
-            },
-            "properties": {
-                "networkAcls": {
-                    "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
-                    "ipRules": [],
-                    "defaultAction": "Deny"
-                },
-                "supportsHttpsTrafficOnly": true
-            }
-        },
+        /* Create NSGs */
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('bastionNsgName')]",
@@ -296,15 +323,14 @@
                 "securityRules": []
             }
         },
+        /* Deploy NSG Flow Logs */
         {
             "name": "[variables('deployBastionNsgFlowLog')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]",
-                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"              
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -316,7 +342,7 @@
                         "value": "[variables('location')]"
                     },
                     "targetLaWorkspaceResourceId": {
-                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                        "value": "[parameters('laWorkspaceResourceId')]"
                     },
                     "targetNsgName": {
                         "value": "[variables('bastionNsgName')]"
@@ -325,11 +351,11 @@
                         "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('bastionNsgName'))]"
                     },
                     "targetStorageResourceId": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
+                        "value": "[parameters('logStorageAccountResourceId')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "uri": "[variables('nsgDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -341,9 +367,7 @@
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/',variables('deployBastionNsgFlowLog'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]",
-                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -355,7 +379,7 @@
                         "value": "[variables('location')]"
                     },
                     "targetLaWorkspaceResourceId": {
-                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                        "value": "[parameters('laWorkspaceResourceId')]"
                     },
                     "targetNsgName": {
                         "value": "[variables('centralSvcNsgName')]"
@@ -364,15 +388,16 @@
                         "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('centralSvcNsgName'))]"
                     },
                     "targetStorageResourceId": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
+                        "value": "[parameters('logStorageAccountResourceId')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-nsg-flow-log.json",
+                    "uri": "[variables('nsgDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
+        /* Create Virtual Network */
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('hubVnetName')]",
@@ -424,96 +449,64 @@
                 "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
             },
             "resources": [
+                {
+                    "name": "[variables('peeringHubToShared')]",
+                    "type": "virtualNetworkPeerings",
+                    "apiVersion": "[variables('networkApiVersion')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Network/virtualNetworks/', variables('hubVnetName'))]"
+                    ],
+                    "properties": {
+                        "allowVirtualNetworkAccess": "true",
+                        "allowForwardedTraffic": "true",
+                        "allowGatewayTransit": "false",
+                        "useRemoteGateways": "false",
+                        "remoteVirtualNetwork": {
+                            "id": "[parameters('sharedVnetResourceId')]"
+                        }
+                    }
+                }
             ]
         },
+        /* Create peering */
         {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('blobStorageDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('fileStorageDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('tableStorageDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('queueStorageDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('blobStorageDnsZoneName'), '/', variables('blobStoragePlLinkName'))]",
-            "location": "global",
+            "name": "[variables('sharedPeeringDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('sharedVnetSubscriptionId')]",
+            "resourceGroup": "[parameters('sharedVnetResourceGroup')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones',variables('blobStorageDnsZoneName'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
             ],
             "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('sharedVnetName'),'/',variables('peeringSharedToHub'))]",
+                            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                            "apiVersion": "[variables('networkApiVersion')]",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "allowVirtualNetworkAccess": "true",
+                                "allowForwardedTraffic": "true",
+                                "allowGatewayTransit": "false",
+                                "useRemoteGateways": "false",
+                                "remoteVirtualNetwork": {
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
+                                }
+                            }
+                        }
+                    ]
                 }
             }
         },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('fileStorageDnsZoneName'), '/', variables('fileStoragePlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones',variables('fileStorageDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/', variables('blobStorageDnsZoneName'), '/virtualNetworkLinks/', variables('blobStoragePlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('tableStorageDnsZoneName'), '/', variables('tableStoragePlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones',variables('tableStorageDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/', variables('fileStorageDnsZoneName'), '/virtualNetworkLinks/', variables('fileStoragePlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('queueStorageDnsZoneName'), '/', variables('queueStoragePlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones',variables('queueStorageDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/', variables('tableStorageDnsZoneName'), '/virtualNetworkLinks/', variables('tableStoragePlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
-                }
-            }
-        },
+        /* Create Azure Firewall instance */
         {
             "name": "[variables('firewallName')]",
             "type": "Microsoft.Network/azureFirewalls",
@@ -521,10 +514,9 @@
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/privateDnsZones/',variables('queueStorageDnsZoneName'),'/virtualNetworkLinks/', variables('queueStoragePlLinkName'))]",
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('firewallPublicIpName'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]",
-                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('sharedPeeringDeploymentName'))]"
             ],
             "zones": "[variables('firewallAz')]",
             "properties": {
@@ -779,37 +771,37 @@
                                 }
                             ]
                         }
-                    },
+                    }
+                ],
+                "applicationRuleCollections": [
                     {
-                        "name": "AllowPrivMgmt",
+                        "name": "AllowVmInternet",
                         "properties": {
-                            "priority": 102,
+                            "priority": 100,
                             "action": {
                                 "type": "Allow"
                             },
                             "rules": [
                                 {
-                                    "name": "AllowRdpSsh",
-                                    "description": "Allow Rdp and SSH",
-                                    "protocols": [
-                                        "TCP"
-                                    ],
+                                    "name": "AllowVMInternet",
+                                    "description": "Allow VMs access to the Internet",
                                     "sourceAddresses": [
-                                        "[parameters('sharedVnetSubnetPrivCidr')]"
-                                    ],
-                                    "destinationAddresses": [
+                                        "[parameters('sharedVnetCidr')]",
                                         "[parameters('spokeVnetCidr')]"
                                     ],
-                                    "destinationPorts": [
-                                        "3389",
-                                        "22"
+                                    "protocols": [
+                                        {
+                                            "protocolType": "Https",
+                                            "port": "443"
+                                        }
+                                    ],
+                                    "targetFqdns": [
+                                        "*"
                                     ]
                                 }
                             ]
                         }
                     }
-                ],
-                "applicationRuleCollections": [
                 ],
                 "ipConfigurations": [
                     {
@@ -830,7 +822,8 @@
                     "tier": "Standard"
                 },
                 "additionalProperties": {
-                    "Network.DNS.EnableProxy": "true"
+                    "Network.DNS.EnableProxy": "true",
+                    "Network.DNS.Servers": "[parameters('dnsServerIp')]"
                 }
             }
         },
@@ -845,7 +838,7 @@
             ],
             "properties": {
                 "name": "SendToWorkspace",
-                "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]",
+                "workspaceId": "[parameters('laWorkspaceResourceId')]",
                 "logs": [
                     {
                         "category": "AzureFirewallApplicationRule",
@@ -870,6 +863,7 @@
             "resources": [
             ]
         },
+        /* Deploy DNS Server Settings */
         {
             "name": "[variables('deployDnsServerSettings')]",
             "type": "Microsoft.Resources/deployments",
@@ -933,7 +927,7 @@
                                 "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
                                 "dhcpOptions": {
                                     "dnsServers": [
-                                        "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                                        "[parameters('dnsServerIp')]"
                                     ]
                                 }
                             },
@@ -944,6 +938,7 @@
                 }
             }
         },
+        /* Deploy Private Endpoints */
         {
             "name": "[variables('deployBlobStPe')]",
             "type": "Microsoft.Resources/deployments",
@@ -960,6 +955,12 @@
                     "privateEndpointLocation": {
                         "value": "[variables('location')]"
                     },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('sharedVnetResourceGroup')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[parameters('sharedVnetSubscriptionId')]"
+                    },
                     "privateEndpointSubnetName": {
                         "value": "[variables('centralSvcSubnetName')]"
                     },
@@ -970,17 +971,20 @@
                         "value": "[variables('hubVnetName')]"
                     },
                     "resourceIdentifier": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                        "value": "[parameters('logStorageAccountResourceId')]"
                     },
                     "resourceName": {
-                        "value": "[variables('logStorageAccountName')]"
+                        "value": "[parameters('logStorageAccountName')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-private-endpoint.json",
+                    "uri": "[variables('peDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -995,11 +999,17 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                   "privateDnsZoneName": {
+                    "privateDnsZoneName": {
                         "value": "[variables('fileStorageDnsZoneName')]"
                     },
                     "privateEndpointLocation": {
                         "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('sharedVnetResourceGroup')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[parameters('sharedVnetSubscriptionId')]"
                     },
                     "privateEndpointSubnetName": {
                         "value": "[variables('centralSvcSubnetName')]"
@@ -1011,17 +1021,17 @@
                         "value": "[variables('hubVnetName')]"
                     },
                     "resourceIdentifier": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                        "value": "[parameters('logStorageAccountResourceId')]"
                     },
                     "resourceName": {
-                        "value": "[variables('logStorageAccountName')]"
+                        "value": "[parameters('logStorageAccountName')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-private-endpoint.json",
+                    "uri": "[variables('peDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -1042,6 +1052,12 @@
                     "privateEndpointLocation": {
                         "value": "[variables('location')]"
                     },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('sharedVnetResourceGroup')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[parameters('sharedVnetSubscriptionId')]"
+                    },
                     "privateEndpointSubnetName": {
                         "value": "[variables('centralSvcSubnetName')]"
                     },
@@ -1052,17 +1068,17 @@
                         "value": "[variables('hubVnetName')]"
                     },
                     "resourceIdentifier": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                        "value": "[parameters('logStorageAccountResourceId')]"
                     },
                     "resourceName": {
-                        "value": "[variables('logStorageAccountName')]"
+                        "value": "[parameters('logStorageAccountName')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-private-endpoint.json",
+                    "uri": "[variables('peDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -1083,6 +1099,12 @@
                     "privateEndpointLocation": {
                         "value": "[variables('location')]"
                     },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('sharedVnetResourceGroup')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[parameters('sharedVnetSubscriptionId')]"
+                    },
                     "privateEndpointSubnetName": {
                         "value": "[variables('centralSvcSubnetName')]"
                     },
@@ -1093,21 +1115,69 @@
                         "value": "[variables('hubVnetName')]"
                     },
                     "resourceName": {
-                        "value": "[variables('logStorageAccountName')]"
+                        "value": "[parameters('logStorageAccountName')]"
                     },
                     "resourceIdentifier": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                        "value": "[parameters('logStorageAccountResourceId')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-private-endpoint.json",
+                    "uri": "[variables('peDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
+        {
+            "name": "[variables('deployKeyVaultPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployQueueStPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('keyVaultDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('sharedVnetResourceGroup')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[parameters('sharedVnetSubscriptionId')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('centralSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "vault"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('hubVnetName')]"
+                    },
+                    "resourceName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[parameters('keyVaultResourceId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        /* Deploy Log Analytics Private Endpoint */
         {
             "name": "[variables('deployLaPe')]",
             "type": "Microsoft.Resources/deployments",
@@ -1118,20 +1188,26 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "dnsVnetResourceGroup": {
+                        "value": "[parameters('sharedVnetResourceGroup')]"
+                    },
+                    "dnsVnetSubscriptionId": {
+                        "value": "[parameters('sharedVnetSubscriptionId')]"
+                    },
                     "laWorkspaceName": {
-                        "value": "[variables('laWorkspaceName')]"
+                        "value": "[parameters('laWorkspaceName')]"
                     },
                     "laWorkspaceResourceId": {
-                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                        "value": "[parameters('laWorkspaceResourceId')]"
                     },
                     "privateEndpointLocation": {
                         "value": "[variables('location')]"
                     },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('hubVnetName')]"
-                    },
                     "privateEndpointSubnetName": {
                         "value": "[variables('centralSvcSubnetName')]"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('hubVnetName')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -1141,11 +1217,12 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/resources/deploy-la-private-endpoint.json",
+                    "uri": "[variables('laPeDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
+        /* Deploy Bastion */
         {
             "name": "[variables('bastionName')]",
             "type": "Microsoft.Network/bastionHosts",
@@ -1187,22 +1264,6 @@
         "hubVnetResourceId": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('hubVnetName'))]"
-        },
-        "laWorkspaceResourceId": {
-            "type": "string",
-            "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
-        },
-        "laWorkspaceId": {
-            "type": "string",
-            "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
-        },
-        "laWorkspaceKey": {
-           "type": "string",
-            "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
-        },            
-        "logStorageResourceId": {
-            "type": "string",
-            "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
         }
     }
 }

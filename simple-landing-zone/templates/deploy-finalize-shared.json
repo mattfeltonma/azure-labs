@@ -1,0 +1,163 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "dnsServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address set for the DNS Server of the Virtual Network"
+            }
+        },
+        "firewallIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the Azure Firewall in the Hub Virtual Network"
+            }
+        },
+        "sharedAdNsgResourceId" : {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the Shared Services Active Directory Network Security Group"
+            }            
+        },
+        "sharedInfraNsgResourceId" : {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the Shared Services Infrastructure Network Security Group"
+            }            
+        },
+        "sharedSvcRouteTableName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the route table assigned to the Shared Services Virtual Network subnets"
+            }
+        },
+        "sharedSvcRouteTableResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the Shared Services Route Table"
+            }            
+        },
+        "sharedVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Shared Services virtual network"
+            }
+        },
+        "sharedVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Shared Services Virtual Network"
+            }
+        },
+        "sharedVnetSubnetAdCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR of the Active Directory subnet in the Shared Services Virtual Network"
+            }
+        },
+        "sharedVnetSubnetInfraCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR of the Infrastructure subnet in the Shared Services Virtual Network"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that wil be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        }
+    },
+    "variables": {
+        "networkApiVersion": "2020-04-01",
+        "location": "[resourceGroup().location]",
+        "sharedAdSubnetName": "snet-ad",
+        "sharedInfraSvcSubnetName": "snet-infra",
+        "vnetStandardDdosProtection": false
+    },
+    "resources": [
+        /* Add the route to the route table */
+        {
+            "name": "[parameters('sharedSvcRouteTableName')]",
+            "type": "Microsoft.Network/routeTables",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-default",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('firewallIp')]"
+                        }
+                    }
+                ],
+                "disableBgpRoutePropagation": "True"
+            },
+            "resources": [
+            ]
+        },
+        /* Modify the virtual network to add DNS server settings */
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('sharedVnetName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/routeTables', parameters('sharedSvcRouteTableName'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('sharedVnetCidr')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('sharedAdSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('sharedVnetSubnetAdCidr')]",
+                            "routeTable": {
+                                "id": "[parameters('sharedSvcRouteTableResourceId')]"
+                            },
+                            "networkSecurityGroup": {
+                                "id": "[parameters('sharedAdNsgResourceId')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('sharedInfraSvcSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('sharedVnetSubnetInfraCidr')]",
+                            "routeTable": {
+                                "id": "[parameters('sharedSvcRouteTableResourceId')]"
+                            },
+                            "networkSecurityGroup": {
+                                "id": "[parameters('sharedInfraNsgResourceId')]"
+                            }
+                        }
+                    }
+                ],
+                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
+                "dhcpOptions": {
+                    "dnsServers": [
+                        "[parameters('dnsServerIp')]"
+                    ]
+                }
+            },
+            "resources": [
+            ]
+        }
+    ],
+    "outputs": {
+    }
+}
