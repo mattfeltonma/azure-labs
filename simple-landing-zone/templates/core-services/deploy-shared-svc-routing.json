@@ -14,13 +14,13 @@
                 "description": "The IP address of the Azure Firewall in the Hub Virtual Network"
             }
         },
-        "sharedAdNsgResourceId" : {
+        "sharedSvcAdNsgResourceId" : {
             "type": "string",
             "metadata": {
                 "description": "The resource ID of the Shared Services Active Directory Network Security Group"
             }            
         },
-        "sharedInfraNsgResourceId" : {
+        "sharedSvcInfraNsgResourceId" : {
             "type": "string",
             "metadata": {
                 "description": "The resource ID of the Shared Services Infrastructure Network Security Group"
@@ -38,25 +38,25 @@
                 "description": "The resource ID of the Shared Services Route Table"
             }            
         },
-        "sharedVnetCidr": {
+        "sharedSvcVnetCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the Shared Services virtual network"
             }
         },
-        "sharedVnetName": {
+        "sharedSvcVnetName": {
             "type": "string",
             "metadata": {
                 "description": "The name of the Shared Services Virtual Network"
             }
         },
-        "sharedVnetSubnetAdCidr": {
+        "sharedSvcVnetSubnetAdCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR of the Active Directory subnet in the Shared Services Virtual Network"
             }
         },
-        "sharedVnetSubnetInfraCidr": {
+        "sharedSvcVnetSubnetInfraCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR of the Infrastructure subnet in the Shared Services Virtual Network"
@@ -75,12 +75,11 @@
     "variables": {
         "networkApiVersion": "2020-04-01",
         "location": "[resourceGroup().location]",
-        "sharedAdSubnetName": "snet-ad",
-        "sharedInfraSvcSubnetName": "snet-infra",
+        "sharedSvcAdSubnetName": "snet-ad",
+        "sharedSvcInfraSvcSubnetName": "snet-infra",
         "vnetStandardDdosProtection": false
     },
     "resources": [
-        /* Add the route to the route table */
         {
             "name": "[parameters('sharedSvcRouteTableName')]",
             "type": "Microsoft.Network/routeTables",
@@ -105,10 +104,9 @@
             "resources": [
             ]
         },
-        /* Modify the virtual network to add DNS server settings */
         {
             "type": "Microsoft.Network/virtualNetworks",
-            "name": "[parameters('sharedVnetName')]",
+            "name": "[parameters('sharedSvcVnetName')]",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
@@ -118,31 +116,31 @@
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
-                        "[parameters('sharedVnetCidr')]"
+                        "[parameters('sharedSvcVnetCidr')]"
                     ]
                 },
                 "subnets": [
                     {
-                        "name": "[variables('sharedAdSubnetName')]",
+                        "name": "[variables('sharedSvcAdSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('sharedVnetSubnetAdCidr')]",
+                            "addressPrefix": "[parameters('sharedSvcVnetSubnetAdCidr')]",
                             "routeTable": {
                                 "id": "[parameters('sharedSvcRouteTableResourceId')]"
                             },
                             "networkSecurityGroup": {
-                                "id": "[parameters('sharedAdNsgResourceId')]"
+                                "id": "[parameters('sharedSvcAdNsgResourceId')]"
                             }
                         }
                     },
                     {
-                        "name": "[variables('sharedInfraSvcSubnetName')]",
+                        "name": "[variables('sharedSvcInfraSvcSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('sharedVnetSubnetInfraCidr')]",
+                            "addressPrefix": "[parameters('sharedSvcVnetSubnetInfraCidr')]",
                             "routeTable": {
                                 "id": "[parameters('sharedSvcRouteTableResourceId')]"
                             },
                             "networkSecurityGroup": {
-                                "id": "[parameters('sharedInfraNsgResourceId')]"
+                                "id": "[parameters('sharedSvcInfraNsgResourceId')]"
                             }
                         }
                     }
