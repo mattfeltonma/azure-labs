@@ -275,6 +275,7 @@
                             "Properties": {
                                 "DomainName": "[parameters('adDomainName')]",
                                 "NetBiosName": "[parameters('adNetBiosName')]",
+                                "MachineName": "[parameters('vmName')]",
                                 "AdminCreds": {
                                     "UserName": "[parameters('adminUsername')]",
                                     "Password": "PrivateSettingsRef:AdminPassword"

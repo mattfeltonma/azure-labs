@@ -8,6 +8,9 @@ configuration CreateADMember {
         [String]$NetBiosName,
 
         [Parameter(Mandatory)]
+        [String]$MachineName,
+
+        [Parameter(Mandatory)]
         [System.Management.Automation.PSCredential]$Admincreds,
 
         [Parameter(Mandatory=$false)]
@@ -65,6 +68,7 @@ configuration CreateADMember {
 
         Computer JoinToDomain
         {
+            Name = $MachineName
             DomainName = $DomainName
             JoinOU = ('OU={0},OU={1},DC={2},DC={3}' -f 'Servers', $NetBiosName, ($DomainName -split '\.')[0], ($DomainName -split '\.')[1])
             Credential = $DomainCreds
