@@ -184,7 +184,6 @@
         "vnetStandardDdosProtection": false
     },
     "resources": [
-        /* Create Public IPs  */
         {
             "name": "[variables('bastionPublicIpName')]",
             "type": "Microsoft.Network/publicIpAddresses",
@@ -211,7 +210,6 @@
                 "name": "Standard"
             }
         },
-        /* Create NSGs */
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('bastionNsgName')]",
@@ -323,7 +321,6 @@
                 "securityRules": []
             }
         },
-        /* Deploy NSG Flow Logs */
         {
             "name": "[variables('deployBastionNsgFlowLog')]",
             "type": "Microsoft.Resources/deployments",
@@ -468,7 +465,6 @@
                 }
             ]
         },
-        /* Create peering */
         {
             "name": "[variables('sharedSvcPeeringDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
@@ -504,7 +500,6 @@
                 }
             }
         },
-        /* Create Azure Firewall instance */
         {
             "name": "[variables('firewallName')]",
             "type": "Microsoft.Network/azureFirewalls",
@@ -861,7 +856,6 @@
             "resources": [
             ]
         },
-        /* Deploy DNS Server Settings */
         {
             "name": "[variables('deployDnsServerSettings')]",
             "type": "Microsoft.Resources/deployments",
@@ -936,7 +930,6 @@
                 }
             }
         },
-        /* Deploy Private Endpoints */
         {
             "name": "[variables('deployBlobStPe')]",
             "type": "Microsoft.Resources/deployments",
@@ -1175,7 +1168,6 @@
                 }
             }
         },
-        /* Deploy Log Analytics Private Endpoint */
         {
             "name": "[variables('deployLaPe')]",
             "type": "Microsoft.Resources/deployments",
@@ -1220,7 +1212,6 @@
                 }
             }
         },
-        /* Deploy Bastion */
         {
             "name": "[variables('bastionName')]",
             "type": "Microsoft.Network/bastionHosts",
