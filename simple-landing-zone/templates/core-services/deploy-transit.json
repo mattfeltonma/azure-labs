@@ -1173,7 +1173,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployQueueStPe'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultPe'))]"
             ],
             "properties": {
                 "mode": "Incremental",
