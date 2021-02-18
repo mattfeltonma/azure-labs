@@ -148,7 +148,83 @@
                 "publicNetworkAccessForIngestion": "Disabled",
                 "publicNetworkAccessForQuery": "Enabled",
                 "retentionInDays": "[variables('logAnalyticsRetention')]"
-            }
+            },
+            "resources": [
+                {
+                    "name": "WindowsEventSystem",
+                    "type": "dataSources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsEvent",
+                    "properties": {
+                        "eventLogName": "System",
+                        "eventTypes": [
+                            {
+                                "eventType": "Error"
+                            },
+                            {
+                                "eventType": "Warning"
+                            },
+                            {
+                                "eventType": "Information"
+                            }
+                        ]
+                    }
+
+
+                },
+                {
+                    "name": "WindowsEventSystemApplication",
+                    "type": "dataSources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsEvent",
+                    "properties": {
+                        "eventLogName": "Application",
+                        "eventTypes": [
+                            {
+                                "eventType": "Error"
+                            },
+                            {
+                                "eventType": "Warning"
+                            },
+                            {
+                                "eventType": "Information"
+                            }
+                        ]
+                    },
+
+
+
+                },
+                {
+                    "name": "WindowsEventSystemDirectoryServices",
+                    "type": "dataSources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsEvent",
+                    "properties": {
+                        "eventLogName": "Directory Service",
+                        "eventTypes": [
+                            {
+                                "eventType": "Error"
+                            },
+                            {
+                                "eventType": "Warning"
+                            },
+                            {
+                                "eventType": "Information"
+                            }
+                        ]
+                    }
+                }
+            ]
         },
         {
             "type": "Microsoft.Storage/storageAccounts",
