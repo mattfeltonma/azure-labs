@@ -1,4 +1,4 @@
-# Azure Simple Landing Zone (Work in progress)
+# Azure Simple Landing Zone
 
 ## Overview
 This project creates an environment I'm branding a "simple landing zone". It is loosely based off the [Microsoft Enterprise-Scale Landing Zone](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/enterprise-scale/architecture) but is intended to be more simplistic. The project uses a combination of ARM templates and PowerShell DSC to deploy to create an "Enterprise-Scale like" environment for organizations to use for proof-of-concepts in Microsoft Azure.
