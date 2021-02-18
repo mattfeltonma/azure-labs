@@ -295,7 +295,7 @@
                         }
                     },
                     {
-                        "name": "AllowDataPlane",
+                        "name": "AllowOutboundDataPlane",
                         "properties": {
                             "description": "Allows Azure Bastion data plane traffic",
                             "protocol": "Tcp",
