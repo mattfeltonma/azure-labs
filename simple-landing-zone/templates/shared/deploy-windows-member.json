@@ -2,13 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "uniqueData": {
-            "type": "string",
-            "metadata": {
-                "description": "Data used to append to resources to ensure uniqueness"
-            },
-            "defaultValue": "[substring(newGuid(),0,8)]"
-        },
         "adminPassword": {
             "type": "securestring",
             "metadata": {
@@ -43,8 +36,7 @@
             "type": "string",
             "metadata": {
                 "description": "The NetBIOS name of the Active Directory domain"
-            },
-            "defaultValue": "[parameters('adDomainName')]"
+            }
         },
         "dataDiskSize": {
             "type": "int",
@@ -53,7 +45,7 @@
             },
             "defaultValue": 100
         },         
-        "dcIpAddress": {
+        "serverIpAddress": {
             "type": "string",
             "metadata": {
                 "description": "The static IP address assigned to the server's network interface"
@@ -89,6 +81,13 @@
             "metadata": {
                 "description": "The tags that will be associated to the VM"
             }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
         },
         "virtualMachineSize": {
             "type": "string",
@@ -127,9 +126,8 @@
         "networkApiVersion": "2020-07-01",
         "vmApiVersion": "2020-06-01",
         "dataDiskType": "StandardSSD_LRS",
-        "modulesUrl": "[uri(parameters('linkedTemplateLocation'), concat('../dsc/createaddc.zip'))]",
-        "configurationUrl": "[uri(parameters('linkedTemplateLocation'), concat('../dsc/domainsetup.psd1'))]",
-        "configurationFunction": "CreateADDC.ps1\\CreateADDC",
+        "modulesUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../dsc/memberserver/createadmember.zip'))]",
+        "configurationFunction": "CreateADMember.ps1\\CreateADMember",
         "location": "[resourceGroup().location]",
         "nicName": "[concat(parameters('vmName'),parameters('uniqueData'))]",
         "osDiskType": "StandardSSD_LRS",
@@ -148,7 +146,7 @@
                         "name": "ipconfig1",
                         "properties": {
                             "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[parameters('dcIpAddress')]",
+                            "privateIPAddress": "[parameters('serverIpAddress')]",
                             "subnet": {
                                 "id": "[variables('subnetRef')]"
                             }
@@ -260,7 +258,7 @@
                 },
                 {
                     "type": "extensions",
-                    "name": "CreateADForest",
+                    "name": "CreateMemberServer",
                     "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
                     "dependsOn": [
@@ -277,6 +275,7 @@
                             "Properties": {
                                 "DomainName": "[parameters('adDomainName')]",
                                 "NetBiosName": "[parameters('adNetBiosName')]",
+                                "MachineName": "[parameters('vmName')]",
                                 "AdminCreds": {
                                     "UserName": "[parameters('adminUsername')]",
                                     "Password": "PrivateSettingsRef:AdminPassword"
@@ -286,8 +285,7 @@
                         "protectedSettings": {
                             "Items": {
                                 "AdminPassword": "[parameters('adminPassword')]"
-                            },
-                            "DataBlobUri": "[variables('configurationUrl')]"
+                            }
                         }
                     }
                 }

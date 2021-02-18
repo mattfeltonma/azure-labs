@@ -2,13 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "uniqueData": {
-            "type": "string",
-            "metadata": {
-                "description": "Data used to append to resources to ensure uniqueness"
-            },
-            "defaultValue": "[substring(newGuid(),0,8)]"
-        },
         "adDomainName": {
             "type": "string",
             "metadata": {
@@ -28,16 +21,16 @@
                 "description": "The IP assigned to the Active Directory domain controller virtual machine"
             }
         },
-        "hubBastionSubnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the Bastion subnet in the hub"
-            }
-        },
         "keyVaultAdminObjectId": {
             "type": "string",
             "metadata": {
                 "description": "The object ID of the security principal who will be admin over the Key Vault"
+            }
+        },
+        "memberServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP assigned to the Active Directory member server virtual machine"
             }
         },
         "networkWatcherRg": {
@@ -47,22 +40,28 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
-        "sharedVnetCidr": {
+        "sharedSvcVnetCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the Shared Services virtual network"
             }
         },
-        "sharedVnetSubnetAdCidr": {
+        "sharedSvcVnetSubnetAdCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for Windows Active Directory domain controllers"
             }
         },
-        "sharedVnetSubnetInfraCidr": {
+        "sharedSvcVnetSubnetInfraCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for other infrastructure services such as backup or PKI"
+            }
+        },
+        "transitBastionSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Bastion subnet in the transit virtual network"
             }
         },
         "tags": {
@@ -73,6 +72,13 @@
             "defaultValue": {
                 "environment": "lab"
             }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
         },
         "vmAdminPassword": {
             "type": "securestring",
@@ -93,34 +99,38 @@
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
+        "adMemberVmDeploymentName": "deploy-admember",
+        "adMemberVmName": "vmserver01",
         "adNsgFlowLogDeploymentName": "deploy-adflowlog",
         "adNsgName": "[concat('nsg-ad', parameters('uniqueData'))]",
-        "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
-        "blobStoragePlLinkName": "[concat(variables('blobStorageDnsZoneName'), '-link')]",
         "adVmDeploymentName": "deploy-ad",
         "adVmName": "vmdc01",
+        "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
+        "blobStoragePlLinkName": "[concat(variables('blobStorageDnsZoneName'), '-link')]",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
         "infraNsgFlowLogDeploymentName": "deploy-infralowlog",
         "infraNsgName": "[concat('nsg-infra', parameters('uniqueData'))]",
         "keyVaultDeploymentName": "deploy-keyvault",
-        "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-keyvault.json')]",
+        "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-keyvault.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultPlLinkName": "[concat(variables('keyVaultDnsZoneName'), '-link')]",
         "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
         "location": "[resourceGroup().location]",
         "logAnalyticsRetention": 30,
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
-        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-nsg-flow-log.json')]",
+        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-nsg-flow-log.json')]",
         "queueStorageDnsZoneName": "privatelink.queue.core.windows.net",
         "queueStoragePlLinkName": "[concat(variables('queueStorageDnsZoneName'), '-link')]",
-        "sharedAdSubnetName": "snet-ad",
-        "sharedInfraSvcSubnetName": "snet-infra",
+        "sharedSvcAdSubnetName": "snet-ad",
+        "sharedSvcInfraSvcSubnetName": "snet-infra",
         "sharedSvcRouteTableName": "[concat('rt-shared', parameters('uniqueData'))]",
-        "sharedVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
+        "sharedSvcVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
         "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
-        "vmDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-windows-dc.json')]",
+        "updateVnetDeploymentName": "deploy-update-vnet",
+        "dcVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-dc.json')]",
+        "memberVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-member.json')]",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
     },
@@ -138,7 +148,83 @@
                 "publicNetworkAccessForIngestion": "Disabled",
                 "publicNetworkAccessForQuery": "Enabled",
                 "retentionInDays": "[variables('logAnalyticsRetention')]"
-            }
+            },
+            "resources": [
+                {
+                    "name": "WindowsEventSystem",
+                    "type": "dataSources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsEvent",
+                    "properties": {
+                        "eventLogName": "System",
+                        "eventTypes": [
+                            {
+                                "eventType": "Error"
+                            },
+                            {
+                                "eventType": "Warning"
+                            },
+                            {
+                                "eventType": "Information"
+                            }
+                        ]
+                    }
+
+
+                },
+                {
+                    "name": "WindowsEventSystemApplication",
+                    "type": "dataSources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsEvent",
+                    "properties": {
+                        "eventLogName": "Application",
+                        "eventTypes": [
+                            {
+                                "eventType": "Error"
+                            },
+                            {
+                                "eventType": "Warning"
+                            },
+                            {
+                                "eventType": "Information"
+                            }
+                        ]
+                    },
+
+
+
+                },
+                {
+                    "name": "WindowsEventSystemDirectoryServices",
+                    "type": "dataSources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsEvent",
+                    "properties": {
+                        "eventLogName": "Directory Service",
+                        "eventTypes": [
+                            {
+                                "eventType": "Error"
+                            },
+                            {
+                                "eventType": "Warning"
+                            },
+                            {
+                                "eventType": "Information"
+                            }
+                        ]
+                    }
+                }
+            ]
         },
         {
             "type": "Microsoft.Storage/storageAccounts",
@@ -397,7 +483,7 @@
                             "sourcePortRange": "*",
                             "destinationPortRange": "3389",
                             "sourceAddressPrefixes": [
-                                "[parameters('hubBastionSubnetCidr')]"
+                                "[parameters('transitBastionSubnetCidr')]"
                             ],
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
@@ -518,7 +604,7 @@
         },
         {
             "type": "Microsoft.Network/virtualNetworks",
-            "name": "[variables('sharedVnetName')]",
+            "name": "[variables('sharedSvcVnetName')]",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
@@ -530,14 +616,14 @@
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
-                        "[parameters('sharedVnetCidr')]"
+                        "[parameters('sharedSvcVnetCidr')]"
                     ]
                 },
                 "subnets": [
                     {
-                        "name": "[variables('sharedAdSubnetName')]",
+                        "name": "[variables('sharedSvcAdSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('sharedVnetSubnetAdCidr')]",
+                            "addressPrefix": "[parameters('sharedSvcVnetSubnetAdCidr')]",
                             "routeTable": {
                                 "id": "[resourceId('Microsoft.Network/routeTables',variables('sharedSvcRouteTableName'))]"
                             },
@@ -547,9 +633,9 @@
                         }
                     },
                     {
-                        "name": "[variables('sharedInfraSvcSubnetName')]",
+                        "name": "[variables('sharedSvcInfraSvcSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('sharedVnetSubnetInfraCidr')]",
+                            "addressPrefix": "[parameters('sharedSvcVnetSubnetInfraCidr')]",
                             "routeTable": {
                                 "id": "[resourceId('Microsoft.Network/routeTables',variables('sharedSvcRouteTableName'))]"
                             },
@@ -625,12 +711,12 @@
             "location": "global",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/privateDnsZones',variables('blobStorageDnsZoneName'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
             ],
             "properties": {
                 "registrationEnabled": false,
                 "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
                 }
             }
         },
@@ -646,7 +732,7 @@
             "properties": {
                 "registrationEnabled": false,
                 "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
                 }
             }
         },
@@ -662,7 +748,7 @@
             "properties": {
                 "registrationEnabled": false,
                 "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
                 }
             }
         },
@@ -678,7 +764,7 @@
             "properties": {
                 "registrationEnabled": false,
                 "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
                 }
             }
         },
@@ -694,7 +780,7 @@
             "properties": {
                 "registrationEnabled": false,
                 "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
                 }
             }
         },
@@ -710,7 +796,7 @@
             "properties": {
                 "registrationEnabled": false,
                 "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
                 }
             }
         },
@@ -726,7 +812,7 @@
             "properties": {
                 "registrationEnabled": false,
                 "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
                 }
             }
         },
@@ -742,7 +828,7 @@
             "properties": {
                 "registrationEnabled": false,
                 "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
                 }
             }
         },
@@ -758,7 +844,7 @@
             "properties": {
                 "registrationEnabled": false,
                 "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
                 }
             }
         },
@@ -795,7 +881,7 @@
                         "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
                     },
                     "subnetName": {
-                        "value": "[variables('sharedAdSubnetName')]"
+                        "value": "[variables('sharedSvcAdSubnetName')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -810,11 +896,134 @@
                         "value": "[variables('adVmName')]"
                     },
                     "vnetName": {
-                        "value": "[variables('sharedVnetName')]"
+                        "value": "[variables('sharedSvcVnetName')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('vmDeploymentUri')]",
+                    "uri": "[variables('dcVmDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('updateVnetDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('adVmDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworks",
+                            "name": "[variables('sharedSvcVnetName')]",
+                            "apiVersion": "[variables('networkApiVersion')]",
+                            "location": "[variables('location')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                                "addressSpace": {
+                                    "addressPrefixes": [
+                                        "[parameters('sharedSvcVnetCidr')]"
+                                    ]
+                                },
+                                "subnets": [
+                                    {
+                                        "name": "[variables('sharedSvcAdSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('sharedSvcVnetSubnetAdCidr')]",
+                                            "routeTable": {
+                                                "id": "[resourceId('Microsoft.Network/routeTables',variables('sharedSvcRouteTableName'))]"
+                                            },
+                                            "networkSecurityGroup": {
+                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "[variables('sharedSvcInfraSvcSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('sharedSvcVnetSubnetInfraCidr')]",
+                                            "routeTable": {
+                                                "id": "[resourceId('Microsoft.Network/routeTables',variables('sharedSvcRouteTableName'))]"
+                                            },
+                                            "networkSecurityGroup": {
+                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
+                                "dhcpOptions": {
+                                    "dnsServers": [
+                                        "[parameters('adVmIp')]"
+                                    ]
+                                }
+                            },
+                            "resources": [
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('adMemberVmDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('updateVnetDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "adDomainName": {
+                        "value": "[parameters('adDomainName')]"
+                    },
+                    "adNetBiosName": {
+                        "value": "[parameters('adNetBiosName')]"
+                    },
+                    "serverIpAddress": {
+                        "value": "[parameters('memberServerIp')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
+                    },
+                    "subnetName": {
+                        "value": "[variables('sharedSvcInfraSvcSubnetName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('adMemberVmName')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('sharedSvcVnetName')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('memberVmDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -853,17 +1062,13 @@
             "type": "string",
             "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
         },
-        "sharedAdNsgResourceId": {
+        "sharedSvcAdNsgResourceId": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]"
         },
-        "sharedInfraNsgResourceId": {
+        "sharedSvcInfraNsgResourceId": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]"
-        },
-        "sharedRouteTableName": {
-            "type": "string",
-            "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcRouteTableName'))]"
         },
         "sharedSvcRouteTableName": {
             "type": "string",
@@ -873,13 +1078,13 @@
             "type": "string",
             "value": "[resourceId('Microsoft.Network/routeTables', variables('sharedSvcRouteTableName'))]"
         },
-        "sharedVnetName": {
+        "sharedSvcVnetName": {
             "type": "string",
-            "value": "[variables('sharedVnetName')]"
+            "value": "[variables('sharedSvcVnetName')]"
         },
-        "sharedVnetResourceId": {
+        "sharedSvcVnetResourceId": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedVnetName'))]"
+            "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
         }
     }
 }

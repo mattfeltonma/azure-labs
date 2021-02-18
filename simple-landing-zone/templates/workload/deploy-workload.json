@@ -11,26 +11,26 @@
         "firewallIp": {
             "type": "string",
             "metadata": {
-                "description": "The IP address of the Azure Firewall in the Hub Virtual Network"
+                "description": "The IP address of the Azure Firewall in the transit Virtual Network"
             }
         },
-        "hubVnetName": {
+        "transitVnetName": {
             "type": "string",
             "metadata": {
-                "description": "The name of the hub virtual network"
+                "description": "The name of the transit virtual network"
             }
         },
-        "hubVnetResourceGroupName": {
+        "transitVnetResourceGroupName": {
             "type": "string",
             "metadata": {
-                "description": "The name of the resource group the hub virtual network exists in"
+                "description": "The name of the resource group the transit virtual network exists in"
             },
             "defaultValue": "[resourceGroup().name]"
         },
-        "hubVnetSubscriptionId": {
+        "transitVnetSubscriptionId": {
             "type": "string",
             "metadata": {
-                "description": "The subscription id of the subscription the hub is stored in"
+                "description": "The subscription id of the subscription the transit is stored in"
             },
             "defaultValue": "[subscription().subscriptionId]"
         },
@@ -53,25 +53,25 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
-        "spokeVnetCidr": {
+        "workloadVnetCidr": {
             "type": "string",
             "metadata": {
-                "description": "The CIDR assigned to the spoke virtual network"
+                "description": "The CIDR assigned to the workload virtual network"
             }
         },
-        "spokeVnetSubnetAppCidr": {
+        "workloadVnetSubnetAppCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for the application layer of the workload"
             }
         },
-        "spokeVnetSubnetDataCidr": {
+        "workloadVnetSubnetDataCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for the data layer of the workload"
             }
         },
-        "spokeVnetSubnetSupportCidr": {
+        "workloadVnetSubnetSupportCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for support services being served up via Private Endpoints"
@@ -101,16 +101,16 @@
         "appNsgName": "[concat('nsg-app', parameters('uniqueData'))]",
         "dataNsgFlowLogDeploymentName": "deploy-dataflowlog",
         "dataNsgName": "[concat('nsg-data', parameters('uniqueData'))]",
-        "hubPeeringDeploymentName": "deploy-peering",
+        "transitPeeringDeploymentName": "deploy-peering",
         "location": "[resourceGroup().location]",
-        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, 'deploy-nsg-flow-log.json')]",
-        "peeringHubToSpokeName": "peerhubtospoke",
-        "peeringSpokeToHubName": "peerspoketohub",
-        "spokeAppSubnetName": "snet-app",
-        "spokeDataSubnetName": "snet-data",
-        "spokeSupportSvcSubnetName": "snet-support",
-        "spokeRouteTableName": "[concat('rt-spoke', parameters('uniqueData'))]",
-        "spokeVnetName": "[concat('vnet-spoke', parameters('uniqueData'))]",
+        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-nsg-flow-log.json')]",
+        "peeringTransitToWorkloadName": "peertransittoworkload",
+        "peeringWorkloadToTransitName": "peerworkloadtotransit",
+        "workloadAppSubnetName": "snet-app",
+        "workloadDataSubnetName": "snet-data",
+        "workloadSupportSvcSubnetName": "snet-support",
+        "workloadRouteTableName": "[concat('rt-workload', parameters('uniqueData'))]",
+        "workloadVnetName": "[concat('vnet-workload', parameters('uniqueData'))]",
         "supportNsgFlowLogDeploymentName": "deploy-supportflowlog",
         "supportNsgName": "[concat('nsg-support', parameters('uniqueData'))]",
         "vnetStandardDdosProtection": false
@@ -257,7 +257,7 @@
             }
         },
         {
-            "name": "[variables('spokeRouteTableName')]",
+            "name": "[variables('workloadRouteTableName')]",
             "type": "Microsoft.Network/routeTables",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
@@ -283,7 +283,7 @@
         },
         {
             "type": "Microsoft.Network/virtualNetworks",
-            "name": "[variables('spokeVnetName')]",
+            "name": "[variables('workloadVnetName')]",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
@@ -291,21 +291,21 @@
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appNsgName'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('dataNsgName'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('supportNsgName'))]",
-                "[resourceId('Microsoft.Network/routeTables', variables('spokeRouteTableName'))]"
+                "[resourceId('Microsoft.Network/routeTables', variables('workloadRouteTableName'))]"
             ],
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
-                        "[parameters('spokeVnetCidr')]"
+                        "[parameters('workloadVnetCidr')]"
                     ]
                 },
                 "subnets": [
                     {
-                        "name": "[variables('spokeAppSubnetName')]",
+                        "name": "[variables('workloadAppSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('spokeVnetSubnetAppCidr')]",
+                            "addressPrefix": "[parameters('workloadVnetSubnetAppCidr')]",
                             "routeTable": {
-                                "id": "[resourceId('Microsoft.Network/routeTables',variables('spokeRouteTableName'))]"
+                                "id": "[resourceId('Microsoft.Network/routeTables',variables('workloadRouteTableName'))]"
                             },
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appNsgName'))]"
@@ -313,11 +313,11 @@
                         }
                     },
                     {
-                        "name": "[variables('spokeDataSubnetName')]",
+                        "name": "[variables('workloadDataSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('spokeVnetSubnetDataCidr')]",
+                            "addressPrefix": "[parameters('workloadVnetSubnetDataCidr')]",
                             "routeTable": {
-                                "id": "[resourceId('Microsoft.Network/routeTables',variables('spokeRouteTableName'))]"
+                                "id": "[resourceId('Microsoft.Network/routeTables',variables('workloadRouteTableName'))]"
                             },
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('dataNsgName'))]"
@@ -325,9 +325,9 @@
                         }
                     },
                     {
-                        "name": "[variables('spokeSupportSvcSubnetName')]",
+                        "name": "[variables('workloadSupportSvcSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('spokeVnetSubnetSupportCidr')]",
+                            "addressPrefix": "[parameters('workloadVnetSubnetSupportCidr')]",
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('supportNsgName'))]"
                             },
@@ -344,12 +344,12 @@
             },
             "resources": [
                 {
-                    "name": "[variables('peeringSpokeToHubName')]",
+                    "name": "[variables('peeringworkloadTotransitName')]",
                     "type": "virtualNetworkPeerings",
                     "apiVersion": "[variables('networkApiVersion')]",
                     "location": "[resourceGroup().location]",
                     "dependsOn": [
-                        "[concat('Microsoft.Network/virtualNetworks/', variables('spokeVnetName'))]"
+                        "[concat('Microsoft.Network/virtualNetworks/', variables('workloadVnetName'))]"
                     ],
                     "properties": {
                         "allowVirtualNetworkAccess": "true",
@@ -357,20 +357,20 @@
                         "allowGatewayTransit": "false",
                         "useRemoteGateways": "false",
                         "remoteVirtualNetwork": {
-                            "id": "[resourceId(parameters('hubVnetSubscriptionId'),parameters('hubVnetResourceGroupName'),'Microsoft.Network/virtualNetworks',parameters('hubVnetName'))]"
+                            "id": "[resourceId(parameters('transitVnetSubscriptionId'),parameters('transitVnetResourceGroupName'),'Microsoft.Network/virtualNetworks',parameters('transitVnetName'))]"
                         }
                     }
                 }
             ]
         },
         {
-            "name": "[variables('hubPeeringDeploymentName')]",
+            "name": "[variables('transitPeeringDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "subscriptionId": "[parameters('hubVnetSubscriptionId')]",
-            "resourceGroup": "[parameters('hubVnetResourceGroupName')]",
+            "subscriptionId": "[parameters('transitVnetSubscriptionId')]",
+            "resourceGroup": "[parameters('transitVnetResourceGroupName')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVnetName'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('workloadVnetName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -381,7 +381,7 @@
                     "variables": {},
                     "resources": [
                         {
-                            "name": "[concat(parameters('hubVnetName'),'/',variables('peeringHubToSpokeName'))]",
+                            "name": "[concat(parameters('transitVnetName'),'/',variables('peeringtransitToworkloadName'))]",
                             "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
                             "apiVersion": "[variables('networkApiVersion')]",
                             "location": "[resourceGroup().location]",
@@ -390,7 +390,7 @@
                                 "allowForwardedTraffic": "true",
                                 "allowGatewayTransit": "false",
                                 "remoteVirtualNetwork": {
-                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('spokeVnetName'))]"
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('workloadVnetName'))]"
                                 }
                             }
                         }
