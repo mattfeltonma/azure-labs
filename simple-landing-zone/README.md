@@ -24,7 +24,7 @@ The project includes the following features:
 * Private Endpoints for Shared Services resources deployed in transit virtual network
 * Each subnet in a virtual network includes an associated Network Security Group (where supported)
 * Azure Firewall and Network Security Group associated with Active Directory subnet are configured with required Active Directory network flows
-* Log Analytics Workspace where all resources send logs and metrics to
+* Central Log Analytics Workspace configured to collect logs from all Azure resources including Application, System, and Directory Services Event Logs from Azure Virtual Machines
 * Storage Account where all Network Security Groups deliver NSG Flow Logs to
 * Traffic Analytics configured for all Network Security Groups
 * Key Vault instance configured for central secrets storage
@@ -49,7 +49,7 @@ The project includes the following features:
 
 2. Execute the template. Use the object id you collected in the prerequisites for the keyVaultAdminObjectId parameter.
 
-    `az deployment sub create --name lz1 --template-uri "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/deploy.json" --parameters adDomainName=mydomain.com adNetBiosName=mydomain location=eastus2 keyVaultAdminObjectId=ffffffff-ffff-ffff-ffff-ffffffffffff vmAdminUsername=masteruser`
+    `az deployment sub create --name slz --template-uri "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/deploy.json" --parameters adDomainName=mydomain.com adNetBiosName=mydomain location=eastus2 keyVaultAdminObjectId=ffffffff-ffff-ffff-ffff-ffffffffffff vmAdminUsername=masteruser`
 
 3. You will be prompted to enter a secure string for the vmAdminPassword. Provide the value and press enter.
 
