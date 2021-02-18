@@ -250,6 +250,23 @@
                         }
                     },
                     {
+                        "name": "AllowDataPlane",
+                        "properties": {
+                            "description": "Allows Azure Bastion data plane traffic",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRanges": [
+                                "8080",
+                                "5701"
+                            ],
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 102,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
                         "name": "AllowHealthProbes",
                         "properties": {
                             "description": "Allows health probes from Azure Load Balancer",
@@ -259,7 +276,7 @@
                             "sourceAddressPrefix": "AzureLoadBalancer",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 102,
+                            "priority": 103,
                             "direction": "Inbound"
                         }
                     },
@@ -278,6 +295,23 @@
                         }
                     },
                     {
+                        "name": "AllowDataPlane",
+                        "properties": {
+                            "description": "Allows Azure Bastion data plane traffic",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRanges": [
+                                "8080",
+                                "5701"
+                            ],
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "AzureCloud",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
                         "name": "AllowOutboundAzureCloud",
                         "properties": {
                             "description": "Allows Bastion hosts to communicate with management components",
@@ -287,7 +321,21 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "AzureCloud",
                             "access": "Allow",
-                            "priority": 100,
+                            "priority": 101,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "AllowOutboundInternet",
+                        "properties": {
+                            "description": "Allows Bastion to validate certificates",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 102,
                             "direction": "Outbound"
                         }
                     },
@@ -304,7 +352,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "VirtualNetwork",
                             "access": "Allow",
-                            "priority": 101,
+                            "priority": 103,
                             "direction": "Outbound"
                         }
                     }
