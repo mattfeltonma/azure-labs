@@ -96,6 +96,7 @@
     "variables": {
         "dnsApiVersion": "2018-09-01",
         "laApiVersion": "2015-11-01-preview",
+        "opsManApiVersion": "2015-11-01-preview",
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
@@ -518,7 +519,7 @@
                 },
                 {
                     "name": "VMInsights-NetworkAdapter-BytesReceived-sec",
-                   "type": "datasources",
+                    "type": "datasources",
                     "apiVersion": "[variables('laApiVersion')]",
                     "dependsOn": [
                         "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
@@ -534,7 +535,7 @@
                 {
 
                     "name": "VMInsights-NetworkAdapter-BytesSent-sec",
-                   "type": "datasources",
+                    "type": "datasources",
                     "apiVersion": "[variables('laApiVersion')]",
                     "dependsOn": [
                         "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
@@ -550,7 +551,7 @@
                 {
 
                     "name": "VMInsights-Processor-Pct-Processor-Time-Total",
-                   "type": "datasources",
+                    "type": "datasources",
                     "apiVersion": "[variables('laApiVersion')]",
                     "dependsOn": [
                         "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
@@ -564,6 +565,24 @@
                     }
                 }
             ]
+        },
+        {
+            "name": "[concat('ServiceMap', '(', variables('laWorkspaceName'),')')]",
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "[variables('opsManApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+            ],
+            "location": "[variables('location')]",
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[concat('ServiceMap', '(', variables('laWorkspaceName'),')')]",
+                "product": "[concat('OMSGallery/', 'ServiceMap')]",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
         },
         {
             "type": "Microsoft.Storage/storageAccounts",
