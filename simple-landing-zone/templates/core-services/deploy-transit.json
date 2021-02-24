@@ -19,7 +19,7 @@
             "metadata": {
                 "description": "The resource ID of the central Azure Key Vault instance"
             }
-        },        
+        },
         "laWorkspaceName": {
             "type": "string",
             "metadata": {
@@ -37,7 +37,7 @@
             "metadata": {
                 "description": "The name of the storage account used for log storage"
             }
-        },        
+        },
         "logStorageAccountResourceId": {
             "type": "string",
             "metadata": {
@@ -68,7 +68,7 @@
             "metadata": {
                 "description": "The resource ID of the Shared Servies Virtual Network"
             }
-        },       
+        },
         "sharedSvcVnetResourceGroup": {
             "type": "string",
             "metadata": {
@@ -834,6 +834,10 @@
                                         {
                                             "protocolType": "Https",
                                             "port": "443"
+                                        },
+                                        {
+                                            "protocolType": "Http",
+                                            "port": 80
                                         }
                                     ],
                                     "targetFqdns": [
