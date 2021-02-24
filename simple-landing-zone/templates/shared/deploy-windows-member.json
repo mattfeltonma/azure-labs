@@ -221,6 +221,21 @@
             },
             "resources": [
                 {
+                    "type": "Microsoft.Compute/virtualMachines/extensions",
+                    "name": "DependencyAgentWindows",
+                    "apiVersion": "[variables('vmApiVersion')]",
+                    "location": "[variables('location')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+                        "type": "DependencyAgentWindow",
+                        "typeHandlerVersion": "9.5",
+                        "autoUpgradeMinorVersion": true
+                    }
+                },
+                {
                     "type": "extensions",
                     "name": "OMSExtension",
                     "apiVersion": "[variables('vmApiVersion')]",
