@@ -238,7 +238,7 @@
                 },
                 {
                     "type": "extensions",
-                    "name": "OMSExtension",
+                    "name": "MMAExtension",
                     "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
                     "dependsOn": [
@@ -250,7 +250,8 @@
                         "typeHandlerVersion": "1.0",
                         "autoUpgradeMinorVersion": true,
                         "settings": {
-                            "workspaceId": "[parameters('myWorkspaceId')]"
+                            "workspaceId": "[parameters('myWorkspaceId')]",
+                            "stopOnMultipleConnections": true
                         },
                         "protectedSettings": {
                             "workspaceKey": "[parameters('myWorkspaceKey')]"
