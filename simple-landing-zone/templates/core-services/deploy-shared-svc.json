@@ -96,6 +96,7 @@
     "variables": {
         "dnsApiVersion": "2018-09-01",
         "laApiVersion": "2015-11-01-preview",
+        "opsManApiVersion": "2015-11-01-preview",
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
@@ -172,8 +173,6 @@
                             }
                         ]
                     }
-
-
                 },
                 {
                     "name": "WindowsEventSystemApplication",
@@ -196,10 +195,7 @@
                                 "eventType": "Information"
                             }
                         ]
-                    },
-
-
-
+                    }
                 },
                 {
                     "name": "WindowsEventSystemDirectoryServices",
@@ -223,8 +219,388 @@
                             }
                         ]
                     }
+                },
+                {
+                    "name": "DataSource_LinuxPerformanceCollection",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "LinuxPerformanceCollection",
+                    "properties": {
+                        "state": "Enabled"
+                    }
+                },
+                {
+                    "name": "VMInsights-Logical-Disk-Linux",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "LinuxPerformanceObject",
+                    "properties": {
+                        "objectName": "Logical Disk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "performanceCounters": [
+                            {
+                                "counterName": "% Used Space"
+                            },
+                            {
+                                "counterName": "Disk Read Bytes/sec"
+                            },
+                            {
+                                "counterName": "Disk Reads/sec"
+                            },
+                            {
+                                "counterName": "Disk Transfers/sec"
+                            },
+                            {
+                                "counterName": "Disk Write Bytes/sec"
+                            },
+                            {
+                                "counterName": "Disk Writes/sec"
+                            },
+                            {
+                                "counterName": "Free Megabytes"
+                            },
+                            {
+                                "counterName": "Logical Disk Bytes/sec"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "VMInsights-Memory-Linux",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "LinuxPerformanceObject",
+                    "properties": {
+                        "objectName": "Memory",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "performanceCounters": [
+                            {
+                                "counterName": "Available MBytes Memory"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "VMInsights-Network",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "LinuxPerformanceObject",
+                    "properties": {
+                        "objectName": "Network",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "performanceCounters": [
+                            {
+                                "counterName": "Total Bytes Received"
+                            },
+                            {
+                                "counterName": "Total Bytes Transmitted"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "VMInsights-Processor-Pct-Processor-Time-Linux",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "LinuxPerformanceObject",
+                    "properties": {
+                        "objectName": "Processor",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "performanceCounters": [
+                            {
+                                "counterName": "% Processor Time"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "VMInsights-LogicalDisk-Pct-Free-Space",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "LogicalDisk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "% Free Space"
+                    }
+                },
+                {
+                    "name": "VMInsights-LogicalDisk-Avg-DiskSecRead",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "LogicalDisk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Avg. Disk sec/Read"
+                    }
+                },
+                {
+                    "name": "VMInsights-LogicalDisk-Avg-DiskSecTransfer",
+                    "kind": "WindowsPerformanceCounter",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "properties": {
+                        "objectName": "LogicalDisk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Avg. Disk sec/Transfer"
+                    }
+                },
+                {
+                    "name": "VMInsights-LogicalDisk-Avg-DiskSecWrite",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "LogicalDisk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Avg. Disk sec/Write"
+                    }
+                },
+                {
+                    "name": "VMInsights-LogicalDisk-Disk-BytesSec",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "LogicalDisk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Disk Bytes/sec"
+                    }
+                },
+                {
+
+                    "name": "VMInsights-LogicalDisk-Disk-ReadBytesSec",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "LogicalDisk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Disk Read Bytes/sec"
+                    }
+                },
+                {
+                    "name": "VMInsights-LogicalDisk-Disk-ReadsSec",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "LogicalDisk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Disk Reads/sec"
+                    }
+                },
+                {
+
+                    "name": "VMInsights-LogicalDisk-Disk-TransfersSec",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "LogicalDisk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Disk Transfers/sec"
+                    }
+                },
+                {
+
+                    "name": "VMInsights-LogicalDisk-Disk-WriteBytesSec",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "LogicalDisk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Disk Write Bytes/sec"
+                    }
+                },
+                {
+
+                    "name": "VMInsights-LogicalDisk-Disk-WritesSec",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "LogicalDisk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Disk Writes/sec"
+                    }
+                },
+                {
+
+                    "name": "VMInsights-LogicalDisk-FreeMegabytes",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "LogicalDisk",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Free Megabytes"
+                    }
+                },
+                {
+                    "name": "VMInsights-Memory-AvailableMBytes",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "Memory",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Available MBytes"
+                    }
+                },
+                {
+                    "name": "VMInsights-NetworkAdapter-BytesReceived-sec",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "Network Adapter",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Bytes Received/sec"
+                    }
+                },
+                {
+
+                    "name": "VMInsights-NetworkAdapter-BytesSent-sec",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "Network Adapter",
+                        "instanceName": "*",
+                        "intervalSeconds": 60,
+                        "counterName": "Bytes Sent/sec"
+                    }
+                },
+                {
+
+                    "name": "VMInsights-Processor-Pct-Processor-Time-Total",
+                    "type": "datasources",
+                    "apiVersion": "[variables('laApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    ],
+                    "kind": "WindowsPerformanceCounter",
+                    "properties": {
+                        "objectName": "Processor",
+                        "instanceName": "_Total",
+                        "intervalSeconds": 60,
+                        "counterName": "% Processor Time"
+                    }
                 }
             ]
+        },
+        {
+            "name": "[concat('ServiceMap', '(', variables('laWorkspaceName'),')')]",
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "[variables('opsManApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+            ],
+            "location": "[variables('location')]",
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[concat('ServiceMap', '(', variables('laWorkspaceName'),')')]",
+                "product": "[concat('OMSGallery/', 'ServiceMap')]",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
+        },
+        {
+            "name": "[concat('VMInsights', '(', variables('laWorkspaceName'),')')]",
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "[variables('opsManApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.OperationsManagement/solutions/',concat('ServiceMap', '(', variables('laWorkspaceName'),')'))]"
+            ],
+            "location": "[variables('location')]",
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[concat('VMInsights', '(', variables('laWorkspaceName'),')')]",
+                "product": "[concat('OMSGallery/', 'VMInsights')]",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
         },
         {
             "type": "Microsoft.Storage/storageAccounts",
@@ -251,7 +627,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+                "[concat('Microsoft.OperationsManagement/solutions/',concat('VMInsights', '(', variables('laWorkspaceName'),')'))]"
             ],
             "properties": {
                 "mode": "Incremental",
