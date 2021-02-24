@@ -230,7 +230,7 @@
                     ],
                     "properties": {
                         "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
-                        "type": "DependencyAgentWindow",
+                        "type": "DependencyAgentWindows",
                         "typeHandlerVersion": "9.5",
                         "autoUpgradeMinorVersion": true
                     }
