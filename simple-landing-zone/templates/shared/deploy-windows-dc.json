@@ -222,7 +222,7 @@
             },
             "resources": [
                 {
-                    "type": "Microsoft.Compute/virtualMachines/extensions",
+                    "type": "extensions",
                     "name": "DependencyAgentWindows",
                     "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
