@@ -585,6 +585,24 @@
             }
         },
         {
+            "name": "[concat('VMInsights', '(', variables('laWorkspaceName'),')')]",
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "[variables('opsManApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.OperationsManagement/solutions/',concat('ServiceMap', '(', variables('laWorkspaceName'),')'))]"
+            ],
+            "location": "[variables('location')]",
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[concat('VMInsights', '(', variables('laWorkspaceName'),')')]",
+                "product": "[concat('OMSGallery/', 'VMInsights')]",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
+        },
+        {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "[variables('storageApiVersion')]",
             "name": "[variables('logStorageAccountName')]",
@@ -609,7 +627,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+                "[concat('Microsoft.OperationsManagement/solutions/',concat('VMInsights', '(', variables('laWorkspaceName'),')'))]"
             ],
             "properties": {
                 "mode": "Incremental",
