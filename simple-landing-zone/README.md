@@ -49,7 +49,7 @@ The project includes the following features:
 
 2. Execute the template. Use the object id you collected in the prerequisites for the keyVaultAdminObjectId parameter.
 
-    `az deployment sub create --name slz --template-uri "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/deploy.json" --parameters adDomainName=mydomain.com adNetBiosName=mydomain location=eastus2 keyVaultAdminObjectId=ffffffff-ffff-ffff-ffff-ffffffffffff vmAdminUsername=masteruser`
+    `az deployment sub create --name slz --location EastUS2 --template-uri "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/deploy.json" --parameters adDomainName=mydomain.com adNetBiosName=mydomain location=eastus2 keyVaultAdminObjectId=ffffffff-ffff-ffff-ffff-ffffffffffff vmAdminUsername=masteruser`
 
 3. You will be prompted to enter a secure string for the vmAdminPassword. Provide the value and press enter.
 
