@@ -27,6 +27,7 @@ The project includes the following features:
 * Central Log Analytics Workspace configured to collect logs from all Azure resources including Application, System, and Directory Services Event Logs from Azure Virtual Machines
 * Storage Account where all Network Security Groups deliver NSG Flow Logs to
 * Traffic Analytics configured for all Network Security Groups
+* VM Insights and Service Map configured for Virtual Machines
 * Key Vault instance configured for central secrets storage
 * Transit resources, shared services resources, and spoke resources deployed in different resource groups
 
@@ -53,4 +54,4 @@ The project includes the following features:
 
 3. You will be prompted to enter a secure string for the vmAdminPassword. Provide the value and press enter.
 
-The template will take around 1 hour to fully deploy. After the environment is deployed you can access the virtual machines using the Azure Bastion instance.
+The template will take around 1 hour to fully deploy. After the environment is deployed you can access the virtual machines using the Azure Bastion instance. Note that it can take up to 30 minutes for logs and metrics to appear in the Log Analytics Workspace.
