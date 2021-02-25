@@ -50,8 +50,8 @@ The project includes the following features:
 
 2. Execute the template. Use the object id you collected in the prerequisites for the keyVaultAdminObjectId parameter.
 
-    `az deployment sub create --name slz --template-uri "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/deploy.json" --parameters adDomainName=mydomain.com adNetBiosName=mydomain location=eastus2 keyVaultAdminObjectId=ffffffff-ffff-ffff-ffff-ffffffffffff vmAdminUsername=masteruser
+    `az deployment sub create --name slz --location EastUS2 --template-uri "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/deploy.json" --parameters adDomainName=mydomain.com adNetBiosName=mydomain location=eastus2 keyVaultAdminObjectId=ffffffff-ffff-ffff-ffff-ffffffffffff vmAdminUsername=masteruser`
 
 3. You will be prompted to enter a secure string for the vmAdminPassword. Provide the value and press enter.
 
-The template will take around 1 hour to fully deploy. After the environment is deployed you can access the virtual machines using the Azure Bastion instance. Note that it will take about 30 minutes for log and metric information to populate in the Log Analytics Workspace.
+The template will take around 1 hour to fully deploy. After the environment is deployed you can access the virtual machines using the Azure Bastion instance. Note that it can take up to 30 minutes for logs and metrics to appear in the Log Analytics Workspace.
