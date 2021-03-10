@@ -135,7 +135,7 @@
                                             "keys": [
                                                 "Get",
                                                 "UnwrapKey",
-                                                "Wrap"
+                                                "WrapKey"
                                             ]
                                         }
                                     }
