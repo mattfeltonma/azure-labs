@@ -146,7 +146,7 @@
         "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
         "updateVnetDeploymentName": "deploy-update-vnet",
         "userNameSecretDeploymentName": "deploy-usernamesecret",
-        "userPasswordSecretDeploymentName": "deploy-usernamesecret",   
+        "userPasswordSecretDeploymentName": "deploy-userpasswordsecret",   
         "memberVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-member.json')]",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
