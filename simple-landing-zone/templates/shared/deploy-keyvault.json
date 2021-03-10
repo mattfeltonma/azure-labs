@@ -185,7 +185,7 @@
         },
         "keyVaultKeyUri": {
             "type": "string",
-            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', variables('keyVaultName'), variables('keyVaultKeyName')),variables('keyVaultApiVersion'), 'full').kid]"
+            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', variables('keyVaultName'), parameters('diskEncryptionSetKeyName')),variables('keyVaultApiVersion'), 'full').kid]"
         }
     }
 }
