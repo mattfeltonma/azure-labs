@@ -680,8 +680,8 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "keyVaultResourceId": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+                    "keyVaultName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
                     },
                     "location": {
                         "value": "[variables('location')]"
@@ -712,8 +712,8 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "keyVaultResourceId": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+                    "keyVaultName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
                     },
                     "location": {
                         "value": "[variables('location')]"
@@ -748,7 +748,7 @@
                         "value": "[variables('sharedSvcDiskEncSetName')]"
                     },
                     "keyUrl": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultKeyUri.value]"
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
                     },
                     "location": {
                         "value": "[variables('location')]"
