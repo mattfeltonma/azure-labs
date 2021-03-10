@@ -112,15 +112,18 @@
         "adMemberVm2DeploymentName": "deploy-admember2",
         "adMemberVm1Name": "vmserver01",
         "adMemberVm2Name": "vmserver02",
+        "userNameSecretDeploymentName": "deploy-usernamesecret",
+        "userPasswordSecretDeploymentName": "deploy-usernamesecret",   
         "adNsgFlowLogDeploymentName": "deploy-adflowlog",
         "adNsgName": "[concat('nsg-ad', parameters('uniqueData'))]",
         "adVmDeploymentName": "deploy-ad",
         "adVmName": "vmdc01",
         "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
         "blobStoragePlLinkName": "[concat(variables('blobStorageDnsZoneName'), '-link')]",
+        "dcVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-dc.json')]",
         "diskEncSetPermission": "ssdiskencsetpolicy",
-        "domainAdminUserNameSecretName": "domainadminusername",
-        "domainAdminPasswordSecretName": "domainadminpassword",
+        "userNameSecretName": "domainadminusername",
+        "userPasswordSecertName": "domainadminpassword",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
         "infraNsgFlowLogDeploymentName": "deploy-infralowlog",
@@ -136,6 +139,7 @@
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-nsg-flow-log.json')]",
         "queueStorageDnsZoneName": "privatelink.queue.core.windows.net",
         "queueStoragePlLinkName": "[concat(variables('queueStorageDnsZoneName'), '-link')]",
+        "secretDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-secret.json')]",
         "sharedSvcDiskEncSetName": "ssdiskenc",
         "sharedSvcAdSubnetName": "snet-ad",
         "sharedSvcInfraSvcSubnetName": "snet-infra",
@@ -144,7 +148,6 @@
         "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
         "updateVnetDeploymentName": "deploy-update-vnet",
-        "dcVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-dc.json')]",
         "memberVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-member.json')]",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
@@ -669,29 +672,67 @@
             }
         },
         {
-            "name": "[concat(reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value,'/',variables('domainAdminUserNameSecretName'))]",
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
+            "name": "[variables('usernameSecretDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
             ],
             "properties": {
-                "value": "[parameters('vmAdminUsername')]"
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultResourceId": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('usernameSecretName')]"
+                    },
+                    "secretValue": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('secretDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
             }
         },
         {
-            "name": "[concat(reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value,'/',variables('domainAdminPasswordSecretName'))]",
-            "type": "Microsoft.KeyVault/vaults/secrets",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
+            "name": "[variables('userPasswordSecretDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
             ],
             "properties": {
-                "value": "[parameters('vmAdminPassword')]"
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultResourceId": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('userPasswordSecertName')]"
+                    },
+                    "secretValue": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('secretDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
             }
         },
         {
