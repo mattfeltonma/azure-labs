@@ -2,6 +2,13 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "diskEncryptionSetKeyName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the key that will be used for disk encryption set"   
+            },
+            "defaultValue": "diskenckey"
+        },
         "keyVaultAdminObjectId": {
             "type": "string",
             "metadata": {
@@ -61,6 +68,7 @@
             "update"
         ],
         "keyVaultName": "[concat('kvcentral', parameters('uniqueData'))]",
+        "keyVaultKeyName": "[concat('descentral', parameters('uniqueData'))]",
         "keyPermissions": [
             "list",
             "encrypt",
@@ -151,16 +159,34 @@
             },
             "resources": [
             ]
+        },
+        {
+            "name": "[concat(variables('keyVaultKeyName'),'/',parameters('diskEncryptionSetKeyName'))]",
+            "type": "Microsoft.KeyVault/vaults/keys",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+            ],
+            "properties": {
+                "kty": "RSA",
+                "keySize": "4096"
+            }
         }
     ],
     "outputs": {
-        "KeyVaultName": {
+        "keyVaultName": {
             "type": "string",
             "value": "[variables('keyVaultName')]"
         },
-        "KeyVaultResourceId": {
+        "keyVaultResourceId": {
             "type": "string",
             "value": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+        },
+        "keyVaultKeyUri": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', variables('keyVaultName'), variables('keyVaultKeyName')),variables('keyVaultApiVersion'), 'full').kid]"
         }
     }
 }
