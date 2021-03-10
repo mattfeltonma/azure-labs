@@ -80,7 +80,7 @@
                     "keyUrl": "[parameters('keyUrl')]"
                 }
             }
-        },
+        }/*,
         {
             "name": "[variables('accessPolicyDeployment')]",
             "type": "Microsoft.Resources/deployments",
@@ -121,7 +121,7 @@
                     ]
                 }
             }
-        }
+        }*/
     ],
     "outputs": {
         "managedIdentityId": {
