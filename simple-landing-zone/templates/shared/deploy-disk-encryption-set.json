@@ -99,7 +99,7 @@
                     "variables": {},
                     "resources": [
                         {
-                            "name": "[concat(parameters('keyVaultName'),'/',parameters('diskEncryptionSetName'))]",
+                            "name": "[concat(parameters('keyVaultName'),'/add')]",
                             "type": "Microsoft.KeyVault/vaults/accessPolicies",
                             "apiVersion": "[variables('keyVaultApiVersion')]",
                             "properties": {
