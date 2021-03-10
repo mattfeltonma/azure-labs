@@ -133,9 +133,9 @@
                                         "objectId": "[parameters('objectId')]",
                                         "permissions": {
                                             "keys": [
-                                                "get",
-                                                "unwrap",
-                                                "wrap"
+                                                "Get",
+                                                "UnwrapKey",
+                                                "Wrap"
                                             ]
                                         }
                                     }
