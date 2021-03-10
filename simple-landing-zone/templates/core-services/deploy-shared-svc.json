@@ -750,6 +750,9 @@
                     "keyUrl": {
                         "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultKeyUri.value]"
                     },
+                    "keyVaultName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    }, 
                     "location": {
                         "value": "[variables('location')]"
                     },
