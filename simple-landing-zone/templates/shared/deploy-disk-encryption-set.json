@@ -14,6 +14,27 @@
                 "description": "The URL of the key to be used with the disk encryption set"
             }
         },
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Azure Key Vault instance"
+            },
+            "defaultValue": "[ resourceGroup().name]"
+        },
+        "keyVaultResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group the Azure Key Vault is associated with"
+            },
+            "defaultValue": "[ resourceGroup().name]"
+        },
+        "keyVaultSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The id of the subscription the Azure Key Vault is associated with"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
+        },
         "location": {
             "type": "string",
             "metadata": {
@@ -35,7 +56,11 @@
     },
     "variables": {
         "diskEncSetApiVersion": "2020-09-30",
-        "keyVaultApiVersion": "2019-09-01"
+        "keyVaultApiVersion": "2019-09-01",
+        "resourcesApiVersion": "2020-06-01",
+        "accessPolicyDeployment": "deploy-accesspolicy",
+        "diskEncSetSubId": "[subscription().subscriptionId]",
+        "diskEncSetResGroupName": "[resourceGroup().name]"
     },
     "resources": [
         {
@@ -58,23 +83,44 @@
             }
         },
         {
-            "name": "[concat(parameters('sourceKeyVault'),'/',parameters('diskEncryptionSetName'))]",
-            "type": "Microsoft.KeyVault/vaults/accessPolicies",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "name": "[variables('accessPolicyDeployment')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('keyVaultSubscriptionId')]",
+            "resourceGroup": "[parameters('keyVaultResourceGroup')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/diskEncryptionSets', parameters('diskEncryptionSetName'))]"
+            ],
             "properties": {
-                "accessPolicies": [
-                    {
-                        "tenantId": "[subscription().tenantId]",
-                        "objectId": "[reference(parameters('diskEncryptionSetName'),variables('diskEncSetApiVersion'),'full').identity.principalId]",
-                        "permissions": {
-                            "keys": [
-                                "get",
-                                "unwrap",
-                                "wrap"
-                            ]
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('keyVaultName'),'/',parameters('diskEncryptionSetName'))]",
+                            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+                            "apiVersion": "[variables('keyVaultApiVersion')]",
+                            "properties": {
+                                "accessPolicies": [
+                                    {
+                                        "tenantId": "[subscription().tenantId]",
+                                        "objectId": "[reference(resourceId(variables('diskEncSetSubId'),variables('diskEncSetResGroupName'),variables('diskEncSetApiVersion')),'full').identity.principalId]",
+                                        "permissions": {
+                                            "keys": [
+                                                "get",
+                                                "unwrap",
+                                                "wrap"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
                         }
-                    }
-                ]
+                    ]
+                }
             }
         }
     ],
