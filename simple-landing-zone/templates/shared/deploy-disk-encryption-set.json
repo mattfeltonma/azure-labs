@@ -96,18 +96,6 @@
                     "scope": "inner"
                 },
                 "parameters": {
-                    "diskEncSetApiVersion":{
-                        "value": "[variables('diskEncSetApiVersion')]"
-                    },
-                    "diskEncSetName": {
-                        "value":"[parameters('diskEncryptionSetName')]"
-                    },
-                    "diskEncSetResGroupName": {
-                        "value":"[variables('diskEncSetResGroupName')]"
-                    },
-                    "diskEncSetSubId": {
-                        "value":"[variables('diskEncSetSubId')]"
-                    },
                     "keyVaultApiVersion": {
                         "value":"[variables('keyVaultApiVersion')]"
                     },
@@ -122,18 +110,6 @@
                     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
                     "parameters": {
-                        "diskEncSetApiVersion": {
-                            "type": "string"
-                        },
-                        "diskEncSetName": {
-                            "type": "string"
-                        },
-                        "diskEncSetResGroupName": {
-                            "type": "string"
-                        },
-                        "diskEncSetSubId": {
-                            "type": "string"
-                        },
                         "keyVaultApiVersion": {
                             "type": "string"
                         },
