@@ -68,7 +68,6 @@
             "update"
         ],
         "keyVaultName": "[concat('kvcentral', parameters('uniqueData'))]",
-        "keyVaultKeyName": "[concat('descentral', parameters('uniqueData'))]",
         "keyPermissions": [
             "list",
             "encrypt",
@@ -161,7 +160,7 @@
             ]
         },
         {
-            "name": "[concat(variables('keyVaultKeyName'),'/',parameters('diskEncryptionSetKeyName'))]",
+            "name": "[concat(variables('keyVaultName'),'/',parameters('diskEncryptionSetKeyName'))]",
             "type": "Microsoft.KeyVault/vaults/keys",
             "apiVersion": "[variables('keyVaultApiVersion')]",
             "location": "[variables('location')]",
