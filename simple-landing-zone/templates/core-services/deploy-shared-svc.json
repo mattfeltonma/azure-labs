@@ -674,7 +674,6 @@
             "name": "[variables('usernameSecretDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "location": "[variables('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
             ],
@@ -707,7 +706,6 @@
             "name": "[variables('userPasswordSecretDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "location": "[variables('location')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
             ],
