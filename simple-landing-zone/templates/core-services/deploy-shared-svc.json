@@ -100,9 +100,7 @@
         }
     },
     "variables": {
-        "diskEncSetApiVersion": "2020-09-30",
         "dnsApiVersion": "2018-09-01",
-        "keyVaultApiVersion": "2019-09-01",
         "laApiVersion": "2015-11-01-preview",
         "opsManApiVersion": "2015-11-01-preview",
         "networkApiVersion": "2020-04-01",
@@ -112,8 +110,6 @@
         "adMemberVm2DeploymentName": "deploy-admember2",
         "adMemberVm1Name": "vmserver01",
         "adMemberVm2Name": "vmserver02",
-        "userNameSecretDeploymentName": "deploy-usernamesecret",
-        "userPasswordSecretDeploymentName": "deploy-usernamesecret",   
         "adNsgFlowLogDeploymentName": "deploy-adflowlog",
         "adNsgName": "[concat('nsg-ad', parameters('uniqueData'))]",
         "adVmDeploymentName": "deploy-ad",
@@ -121,7 +117,8 @@
         "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
         "blobStoragePlLinkName": "[concat(variables('blobStorageDnsZoneName'), '-link')]",
         "dcVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-dc.json')]",
-        "diskEncSetPermission": "ssdiskencsetpolicy",
+        "diskEncSetDeploymentName": "deploy-diskencset",
+        "diskEncSetDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-disk-encryption-set.json')]",
         "userNameSecretName": "domainadminusername",
         "userPasswordSecertName": "domainadminpassword",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
@@ -148,6 +145,8 @@
         "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
         "updateVnetDeploymentName": "deploy-update-vnet",
+        "userNameSecretDeploymentName": "deploy-usernamesecret",
+        "userPasswordSecretDeploymentName": "deploy-usernamesecret",   
         "memberVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-member.json')]",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
@@ -736,45 +735,35 @@
             }
         },
         {
-            "name": "[variables('sharedSvcDiskEncSetName')]",
-            "type": "Microsoft.Compute/diskEncryptionSets",
-            "apiVersion": "[variables('diskEncSetApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
+            "name": "[variables('diskEncSetDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
             ],
-            "identity": {
-                "type": "SystemAssigned"
-            },
             "properties": {
-                "encryptionType": "EncryptionAtRestWithCustomerKey",
-                "activeKey": {
-                    "sourceVault": {
-                        "id": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+                "mode": "Incremental",
+                "parameters": {
+                    "diskEncryptionSetName": {
+                        "value": "[variables('sharedSvcDiskEncSetName')]"
                     },
-                    "keyUrl": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultKeyUri.value]"
-                }
-            }
-        },
-        {
-            "name": "[concat(reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value,'/',variables('diskEncSetPermission'))]",
-            "type": "Microsoft.KeyVault/vaults/accessPolicies",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "properties": {
-                "accessPolicies": [
-                    {
-                        "tenantId": "[subscription().tenantId]",
-                        "objectId": "[reference(variables('sharedSvcDiskEncSetName'),variables('diskEncSetApiVersion'),'full').identity.principalId]",
-                        "permissions": {
-                            "keys": [
-                                "get",
-                                "unwrap",
-                                "wrap"
-                            ]
-                        }
+                    "keyUrl": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultKeyUri.value]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "sourceKeyVault": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
                     }
-                ]
+                },
+                "templateLink": {
+                    "uri": "[variables('diskEncSetDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
             }
         },
         {

@@ -1,0 +1,83 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "diskEncryptionSetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the disk encryption set"
+            }
+        },
+        "keyUrl": {
+            "type": "string",
+            "metadata": {
+                "description": "The URL of the key to be used with the disk encryption set"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location of the disk encryption set"
+            }
+        },
+        "sourceKeyVault": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Key Vault containing the key to be used with the disk encryption set"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the secret"
+            }
+        }
+    },
+    "variables": {
+        "diskEncSetApiVersion": "2020-09-30",
+        "keyVaultApiVersion": "2019-09-01"
+    },
+    "resources": [
+        {
+            "name": "[parameters('diskEncryptionSetName')]",
+            "type": "Microsoft.Compute/diskEncryptionSets",
+            "apiVersion": "[variables('diskEncSetApiVersion')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "encryptionType": "EncryptionAtRestWithCustomerKey",
+                "activeKey": {
+                    "sourceVault": {
+                        "id": "[parameters('sourceKeyVault')]"
+                    },
+                    "keyUrl": "[parameters('keyUrl')]"
+                }
+            }
+        },
+        {
+            "name": "[concat(parameters('sourceKeyVault'),'/',parameters('diskEncryptionSetName'))]",
+            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "tenantId": "[subscription().tenantId]",
+                        "objectId": "[reference(parameters('diskEncryptionSetName'),variables('diskEncSetApiVersion'),'full').identity.principalId]",
+                        "permissions": {
+                            "keys": [
+                                "get",
+                                "unwrap",
+                                "wrap"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {
+    }
+}
