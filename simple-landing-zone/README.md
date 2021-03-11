@@ -8,8 +8,8 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 ## Key Design Principles
 
 **Provide a centralized authentication service for virtual machine access**
-* * Windows Active Directory domain complete with sample users and groups
-* * Virtual Machines joined to Windows Active Directory domain
+* Windows Active Directory domain complete with sample users and groups
+* Virtual Machines joined to Windows Active Directory domain
 
 **Restrict access to Azure resources from the Internet**
 * Hub and spoke architecture for central management of north-south traffic
