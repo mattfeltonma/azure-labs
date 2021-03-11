@@ -619,6 +619,24 @@
             }
         },
         {
+            "name": "[concat('KeyVaultAnalytics', '(', variables('laWorkspaceName'),')')]",
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "[variables('opsManApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.OperationsManagement/solutions/',concat('VMInsights', '(', variables('laWorkspaceName'),')'))]"
+            ],
+            "location": "[variables('location')]",
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[concat('KeyVaultAnalytics', '(', variables('laWorkspaceName'),')')]",
+                "product": "[concat('OMSGallery/', 'KeyVaultAnalytics')]",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
+        },
+        {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "[variables('storageApiVersion')]",
             "name": "[variables('logStorageAccountName')]",
