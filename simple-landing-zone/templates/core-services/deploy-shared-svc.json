@@ -1369,7 +1369,7 @@
                         "value": "[parameters('adVmIp')]"
                     },
                     "diskEncSetResourceId": {
-                        "value": "[reference(variables('sharedSvcDiskEncSetName')).outputs.diskEncryptionSetResourceId.value]"
+                        "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
                     },
                     "myWorkspaceId": {
                         "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
