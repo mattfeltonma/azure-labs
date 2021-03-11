@@ -121,7 +121,7 @@
                     "bypass": "AzureServices",
                     "virtualNetworkRules": [],
                     "ipRules": [],
-                    "defaultAction": "Allow"
+                    "defaultAction": "Deny"
                 },
                 "sku": {
                     "family": "A",
