@@ -45,6 +45,12 @@
             },
             "defaultValue": 100
         },
+        "diskEncryptionSet": {
+            "type": "string",
+            "metadata": {
+                "description": "The disk encryption set to associate the managed disks to"
+            }      
+        }, 
         "dcIpAddress": {
             "type": "string",
             "metadata": {
@@ -202,14 +208,16 @@
                             "lun": 0,
                             "createOption": "Empty",
                             "managedDisk": {
-                                "storageAccountType": "[variables('dataDiskType')]"
+                                "storageAccountType": "[variables('dataDiskType')]",
+                                "diskEncryptionSet": "[parameters('diskEncryptionSet')]"
                             }
                         }
                     ],
                     "osDisk": {
                         "createOption": "fromImage",
                         "managedDisk": {
-                            "storageAccountType": "[variables('osDiskType')]"
+                            "storageAccountType": "[variables('osDiskType')]",
+                            "diskEncryptionSet": "[parameters('diskEncryptionSet')]"
                         }
                     },
                     "imageReference": {

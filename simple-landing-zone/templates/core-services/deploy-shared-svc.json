@@ -1368,6 +1368,9 @@
                     "dcIpAddress": {
                         "value": "[parameters('adVmIp')]"
                     },
+                    "diskEncSetResourceId": {
+                        "value": "[reference(variables('sharedSvcDiskEncSetName')).outputs.diskEncryptionSetResourceId.value]"
+                    },
                     "myWorkspaceId": {
                         "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
                     },
@@ -1488,6 +1491,9 @@
                     "adNetBiosName": {
                         "value": "[parameters('adNetBiosName')]"
                     },
+                    "diskEncSetResourceId": {
+                        "value": "[reference(variables('sharedSvcDiskEncSetName')).outputs.diskEncryptionSetResourceId.value]"
+                    },
                     "serverIpAddress": {
                         "value": "[parameters('memberServer1Ip')]"
                     },
@@ -1543,6 +1549,9 @@
                     },
                     "adNetBiosName": {
                         "value": "[parameters('adNetBiosName')]"
+                    },
+                    "diskEncSetResourceId": {
+                        "value": "[reference(variables('sharedSvcDiskEncSetName')).outputs.diskEncryptionSetResourceId.value]"
                     },
                     "serverIpAddress": {
                         "value": "[parameters('memberServer2Ip')]"

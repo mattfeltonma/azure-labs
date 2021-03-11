@@ -148,9 +148,9 @@
         }
     ],
     "outputs": {
-        "managedIdentityId": {
+        "diskEncryptionSetResourceId":  {
             "type": "string",
-            "value": "[reference(resourceId(variables('diskEncSetSubId'),variables('diskEncSetResGroupName'),'Microsoft.Compute/diskEncryptionSets',parameters('diskEncryptionSetName')),variables('diskEncSetApiVersion'),'full').identity.principalId]"
+            "value": "[resourceId('Microsoft.Compute/diskEncryptionSets',parameters('diskEncryptionSetName'))]"
         }
     }
 }
