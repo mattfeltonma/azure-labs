@@ -1492,7 +1492,7 @@
                         "value": "[parameters('adNetBiosName')]"
                     },
                     "diskEncSetResourceId": {
-                        "value": "[reference(variables('sharedSvcDiskEncSetName')).outputs.diskEncryptionSetResourceId.value]"
+                        "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
                     },
                     "serverIpAddress": {
                         "value": "[parameters('memberServer1Ip')]"
@@ -1551,7 +1551,7 @@
                         "value": "[parameters('adNetBiosName')]"
                     },
                     "diskEncSetResourceId": {
-                        "value": "[reference(variables('sharedSvcDiskEncSetName')).outputs.diskEncryptionSetResourceId.value]"
+                        "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
                     },
                     "serverIpAddress": {
                         "value": "[parameters('memberServer2Ip')]"
