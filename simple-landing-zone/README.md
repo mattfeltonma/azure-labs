@@ -7,32 +7,32 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 
 ## Key Design Principles
 
-* Provide a centralized authentication service for virtual machine access
+* **Provide a centralized authentication service for virtual machine access**
 * * Windows Active Directory domain complete with sample users and groups
 * * Virtual Machines joined to Windows Active Directory domain
-* Restrict access to Azure resources from the Internet
+* **Restrict access to Azure resources from the Internet**
 * * Hub and spoke architecture for central management of north-south traffic
 * * Traffic to and from the Internet is mediated by an instance of Azure Firewall
 * * Azure PaaS services like Azure Storage and Azure Monitor utilize Azure Private Endpoints
 * * Azure Bastion used for RDP and SSH access to Virtual Machines
-* Microsegmentation of resources
+* **Microsegmentation of resources**
 * * Hub and spoke architecture for central management of east-west traffic
 * * Traffic between spokes is mediated by an instance of Azure Firewall
 * * Network Security Groups are enabled for subnets within a Virtual Network (where supported)
 * * Sample spoke deployed supporting three tiered architecture with additional subnet pre-allocated for PaaS services enabled for Private Endpoints
-* Encryption-at-rest
+* **Encryption-at-rest**
 * * Virtual Machines are encrypted with SSE w/ Managed Disk and CMK
-* Central secrets storage
+* **Central secrets storage**
 * * Domain username and password are stored in Azure Key Vault
 * * CMK used for Virtual Machine encryption stored in Azure Key Vault
-* Centralization of logs and metrics
+* **Centralization of logs and metrics**
 * * Logs and metrics centralized in instance of Log Analytics
 * * Diagnostic logging enabled for PaaS resources 
 * * Microsoft Monitoring Agent, VM Insights deployed to virtual machines to improve visiblity to performance and security
 * * Network Security Groups configured to centralize flow logs in storage account
 * * Traffic Analytics monitoring solution enabled for NSG flow logs
 * * Key Vault Analytics monitoring solution enabled for visibility into Key Vault access
-* Additional Features
+* **Additional Features**
 * * Two domain-joined Windows Server Virtual Machines to use for testing
 
 ## Prerequisites
