@@ -27,10 +27,16 @@
                 "description": "The object ID of the security principal who will be admin over the Key Vault"
             }
         },
-        "memberServerIp": {
+        "memberServer1Ip": {
             "type": "string",
             "metadata": {
-                "description": "The IP assigned to the Active Directory member server virtual machine"
+                "description": "The IP assigned to the Active Directory the first member server virtual machine"
+            }
+        },
+        "memberServer2Ip": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP assigned to the Active Directory the second member server virtual machine"
             }
         },
         "networkWatcherRg": {
@@ -100,14 +106,21 @@
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
-        "adMemberVmDeploymentName": "deploy-admember",
-        "adMemberVmName": "vmserver01",
+        "adMemberVm1DeploymentName": "deploy-admember1",
+        "adMemberVm2DeploymentName": "deploy-admember2",
+        "adMemberVm1Name": "vmserver01",
+        "adMemberVm2Name": "vmserver02",
         "adNsgFlowLogDeploymentName": "deploy-adflowlog",
         "adNsgName": "[concat('nsg-ad', parameters('uniqueData'))]",
         "adVmDeploymentName": "deploy-ad",
         "adVmName": "vmdc01",
         "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
         "blobStoragePlLinkName": "[concat(variables('blobStorageDnsZoneName'), '-link')]",
+        "dcVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-dc.json')]",
+        "diskEncSetDeploymentName": "deploy-diskencset",
+        "diskEncSetDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-disk-encryption-set.json')]",
+        "userNameSecretName": "domainadminusername",
+        "userPasswordSecertName": "domainadminpassword",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
         "infraNsgFlowLogDeploymentName": "deploy-infralowlog",
@@ -123,6 +136,8 @@
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-nsg-flow-log.json')]",
         "queueStorageDnsZoneName": "privatelink.queue.core.windows.net",
         "queueStoragePlLinkName": "[concat(variables('queueStorageDnsZoneName'), '-link')]",
+        "secretDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-secret.json')]",
+        "sharedSvcDiskEncSetName": "ssdiskenc",
         "sharedSvcAdSubnetName": "snet-ad",
         "sharedSvcInfraSvcSubnetName": "snet-infra",
         "sharedSvcRouteTableName": "[concat('rt-shared', parameters('uniqueData'))]",
@@ -130,7 +145,8 @@
         "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
         "updateVnetDeploymentName": "deploy-update-vnet",
-        "dcVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-dc.json')]",
+        "userNameSecretDeploymentName": "deploy-usernamesecret",
+        "userPasswordSecretDeploymentName": "deploy-userpasswordsecret",   
         "memberVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-member.json')]",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
@@ -603,6 +619,24 @@
             }
         },
         {
+            "name": "[concat('KeyVaultAnalytics', '(', variables('laWorkspaceName'),')')]",
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "[variables('opsManApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.OperationsManagement/solutions/',concat('VMInsights', '(', variables('laWorkspaceName'),')'))]"
+            ],
+            "location": "[variables('location')]",
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+            },
+            "plan": {
+                "name": "[concat('KeyVaultAnalytics', '(', variables('laWorkspaceName'),')')]",
+                "product": "[concat('OMSGallery/', 'KeyVaultAnalytics')]",
+                "promotionCode": "",
+                "publisher": "Microsoft"
+            }
+        },
+        {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "[variables('storageApiVersion')]",
             "name": "[variables('logStorageAccountName')]",
@@ -632,6 +666,9 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "diskEncryptionSetKeyName": {
+                        "value": "[variables('sharedSvcDiskEncSetName')]"
+                    },
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdminObjectId')]"
                     },
@@ -647,6 +684,105 @@
                 },
                 "templateLink": {
                     "uri": "[variables('keyVaultDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('usernameSecretDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('usernameSecretName')]"
+                    },
+                    "secretValue": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('secretDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('userPasswordSecretDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('userPasswordSecertName')]"
+                    },
+                    "secretValue": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('secretDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('diskEncSetDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "diskEncryptionSetName": {
+                        "value": "[variables('sharedSvcDiskEncSetName')]"
+                    },
+                    "keyUrl": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultKeyUri.value]"
+                    },
+                    "keyVaultName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    }, 
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "sourceKeyVault": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('diskEncSetDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -1250,6 +1386,9 @@
                     "dcIpAddress": {
                         "value": "[parameters('adVmIp')]"
                     },
+                    "diskEncryptionSet": {
+                        "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
+                    },
                     "myWorkspaceId": {
                         "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
                     },
@@ -1349,7 +1488,7 @@
             }
         },
         {
-            "name": "[variables('adMemberVmDeploymentName')]",
+            "name": "[variables('adMemberVm1DeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
@@ -1370,8 +1509,11 @@
                     "adNetBiosName": {
                         "value": "[parameters('adNetBiosName')]"
                     },
+                    "diskEncryptionSet": {
+                        "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
+                    },
                     "serverIpAddress": {
-                        "value": "[parameters('memberServerIp')]"
+                        "value": "[parameters('memberServer1Ip')]"
                     },
                     "myWorkspaceId": {
                         "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
@@ -1392,7 +1534,66 @@
                         "value": "[variables('vmSku')]"
                     },
                     "vmName": {
-                        "value": "[variables('adMemberVmName')]"
+                        "value": "[variables('adMemberVm1Name')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('sharedSvcVnetName')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('memberVmDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('adMemberVm2DeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('updateVnetDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "adDomainName": {
+                        "value": "[parameters('adDomainName')]"
+                    },
+                    "adNetBiosName": {
+                        "value": "[parameters('adNetBiosName')]"
+                    },
+                    "diskEncryptionSet": {
+                        "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
+                    },
+                    "serverIpAddress": {
+                        "value": "[parameters('memberServer2Ip')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
+                    },
+                    "subnetName": {
+                        "value": "[variables('sharedSvcInfraSvcSubnetName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('adMemberVm2Name')]"
                     },
                     "vnetName": {
                         "value": "[variables('sharedSvcVnetName')]"
