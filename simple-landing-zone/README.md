@@ -1,35 +1,39 @@
 # Azure Simple Landing Zone
 
 ## Overview
-This project creates an environment I'm branding a "simple landing zone". It is loosely based off the [Microsoft Enterprise-Scale Landing Zone](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/enterprise-scale/architecture) but is intended to be more simplistic. The project uses a combination of ARM templates and PowerShell DSC to deploy to create an "Enterprise-Scale like" environment for organizations to use for proof-of-concepts in Microsoft Azure.
+This project creates an environment I'm branding a "simple landing zone". It is loosely based off the [Microsoft Enterprise-Scale Landing Zone](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/enterprise-scale/architecture) but is intended to be more simplistic and for the purposes of proof-of-concepts and experimentation. The project uses a combination of ARM templates and PowerShell DSC to deploy to create a security-driven "Enterprise-Scale like" environment for organizations to use for proof-of-concepts in Microsoft Azure.
 
 ![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/simple-landing-zone/images/simple-landing-zone.png)
 
-Key design principles include:
+## Key Design Principles
 
 * Provide a centralized authentication service for virtual machine access
+* * Windows Active Directory domain complete with sample users and groups
+* * Virtual Machines joined to Windows Active Directory domain
 * Restrict access to Azure resources from the Internet
-* Mediate north/south (Internet to Azure) and east/west (spoke to spoke) traffic
+* * Hub and spoke architecture for central management of north-south traffic
+* * Traffic to and from the Internet is mediated by an instance of Azure Firewall
+* * Azure PaaS services like Azure Storage and Azure Monitor utilize Azure Private Endpoints
+* * Azure Bastion used for RDP and SSH access to Virtual Machines
 * Microsegmentation of resources
-* Centrally log security and operationals logs and metrics
+* * Hub and spoke architecture for central management of east-west traffic
+* * Traffic between spokes is mediated by an instance of Azure Firewall
+* * Network Security Groups are enabled for subnets within a Virtual Network (where supported)
+* * Sample spoke deployed supporting three tiered architecture with additional subnet pre-allocated for PaaS services enabled for Private Endpoints
+* Encryption-at-rest
+* * Virtual Machines are encrypted with SSE w/ Managed Disk and CMK
 * Central secrets storage
-* Build for separation of duties
-
-The project includes the following features:
-* Active Directory domain provisioned with sample users and groups
-* Azure PaaS services are deployed using Private Endpoints
-* Azure Bastion for remote access to virtual machines
-* Azure Firewall instance mediates north/south and east/west traffic
-* Hub and spoke architecture used to control traffic
-* Private Endpoints for Shared Services resources deployed in transit virtual network
-* Each subnet in a virtual network includes an associated Network Security Group (where supported)
-* Azure Firewall and Network Security Group associated with Active Directory subnet are configured with required Active Directory network flows
-* Central Log Analytics Workspace configured to collect logs from all Azure resources including Application, System, and Directory Services Event Logs from Azure Virtual Machines
-* Storage Account where all Network Security Groups deliver NSG Flow Logs to
-* Traffic Analytics configured for all Network Security Groups
-* VM Insights and Service Map configured for Virtual Machines
-* Key Vault instance configured for central secrets storage
-* Transit resources, shared services resources, and spoke resources deployed in different resource groups
+* * Domain username and password are stored in Azure Key Vault
+* * CMK used for Virtual Machine encryption stored in Azure Key Vault
+* Centralization of logs and metrics
+* * Logs and metrics centralized in instance of Log Analytics
+* * Diagnostic logging enabled for PaaS resources 
+* * Microsoft Monitoring Agent, VM Insights deployed to virtual machines to improve visiblity to performance and security
+* * Network Security Groups configured to centralize flow logs in storage account
+* * Traffic Analytics monitoring solution enabled for NSG flow logs
+* * Key Vault Analytics monitoring solution enabled for visibility into Key Vault access
+* Additional Features
+* * Two domain-joined Windows Server Virtual Machines to use for testing
 
 ## Prerequisites
 1. [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
