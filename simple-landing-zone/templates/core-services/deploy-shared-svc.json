@@ -1386,7 +1386,7 @@
                     "dcIpAddress": {
                         "value": "[parameters('adVmIp')]"
                     },
-                    "diskEncSetResourceId": {
+                    "diskEncryptionSet": {
                         "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
                     },
                     "myWorkspaceId": {
@@ -1509,7 +1509,7 @@
                     "adNetBiosName": {
                         "value": "[parameters('adNetBiosName')]"
                     },
-                    "diskEncSetResourceId": {
+                    "diskEncryptionSet": {
                         "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
                     },
                     "serverIpAddress": {
@@ -1568,7 +1568,7 @@
                     "adNetBiosName": {
                         "value": "[parameters('adNetBiosName')]"
                     },
-                    "diskEncSetResourceId": {
+                    "diskEncryptionSet": {
                         "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
                     },
                     "serverIpAddress": {
