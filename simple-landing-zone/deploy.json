@@ -64,6 +64,7 @@
     },
     "variables": {
         "resourcesApiVersion": "2020-06-01",
+        "cloudAddressSpace": "10.0.0.0/8",
         "coreServicesTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core-services/'))]",
         "transitBastionSubnetCidr": "10.0.1.0/27",
         "transitCentralSvcSubnetCidr": "10.0.3.0/24",
@@ -192,6 +193,9 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "cloudAddressSpace": {
+                        "value": "[variables('cloudAddressSpace')]"
+                    },
                     "dnsServerIp": {
                         "value": "[variables('sharedSvcAdVmIp')]"
                     },
