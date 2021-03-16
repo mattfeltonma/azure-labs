@@ -605,7 +605,20 @@
             "properties": {
                 "firewallPolicy": {
                     "id": "[reference(variables('deployFirewallPolicy')).outputs.firewallPolicyId.value]"
-                }
+                },
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('transitVnetName'), variables('fwPayloadSubnetName'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('firewallPublicIpName'))]"
+                            }
+                        }
+                    }
+                ]
             }
         },
         {
