@@ -605,15 +605,6 @@
             "properties": {
                 "firewallPolicy": {
                     "id": "[reference(variables('deployFirewallPolicy')).outputs.firewallPolicyId.value]"
-                },
-                "threatIntelMode": "Alert",
-                "sku": {
-                    "name": "AZFW_VNet",
-                    "tier": "Standard"
-                },
-                "additionalProperties": {
-                    "Network.DNS.EnableProxy": "true",
-                    "Network.DNS.Servers": "[parameters('dnsServerIp')]"
                 }
             }
         },
@@ -1016,8 +1007,8 @@
             "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployLaPe'))]"
             ],
             "tags": "[parameters('tags')]",
             "properties": {
