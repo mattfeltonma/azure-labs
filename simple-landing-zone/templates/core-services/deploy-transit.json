@@ -2,6 +2,12 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "cloudAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block that will be dedicated to this Azure environment"
+            }
+        },
         "dnsServerIp": {
             "type": "string",
             "metadata": {
@@ -158,6 +164,7 @@
         "deployCentralSvcNsgFlowLog": "deploy-centsvcnsgflowlog",
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployFileStPe": "deploy-storagefileprivateendpoint",
+        "deployFirewallPolicy": "deploy-firewallpolicy",
         "deployKeyVaultPe": "deploy-keyvaultprivateendpoint",
         "deployLaPe": "deploy-laprivateendpoint",
         "deployTableStPe": "deploy-storagetableprivateendpoint",
@@ -167,6 +174,7 @@
             "1"
         ],
         "firewallName": "[concat('fw', parameters('uniqueData'))]",
+        "firewallDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-lz-firewall-policy.json')]",
         "firewallPublicIpName": "[concat('pip-fw', parameters('uniqueData'))]",
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
@@ -208,6 +216,39 @@
             },
             "sku": {
                 "name": "Standard"
+            }
+        },
+        {
+            "name": "[variables('deployFirewallPolicy')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adSubnet": {
+                        "value": "[parameters('sharedSvcVnetSubnetAdCidr')]"
+                    },
+                    "cloudAddressSpace": {
+                        "value": "[parameters('cloudAddressSpace')]"
+                    },
+                    "dnsSettings": {
+                        "value": [
+                            "[parameters('dnsServerIp')]"
+                        ]
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('firewallDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
             }
         },
         {
@@ -557,297 +598,14 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('firewallPublicIpName'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]",
+                "[resourceId('Microsoft.Resources/deployments', variables('deployFirewallPolicy'))]",
                 "[concat('Microsoft.Resources/deployments/',variables('sharedSvcPeeringDeploymentName'))]"
             ],
             "zones": "[variables('firewallAz')]",
             "properties": {
-                "networkRuleCollections": [
-                    {
-                        "name": "AllowVmRequired",
-                        "properties": {
-                            "priority": 100,
-                            "action": {
-                                "type": "Allow"
-                            },
-                            "rules": [
-                                {
-                                    "name": "AllowKMSActivation",
-                                    "description": "Allows VM acess to KMS servers",
-                                    "protocols": [
-                                        "TCP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('sharedSvcVnetCidr')]",
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationFqdns": [
-                                        "kms.core.windows.net"
-                                    ],
-                                    "destinationPorts": [
-                                        "1688"
-                                    ]
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "name": "AllowAdClient",
-                        "properties": {
-                            "priority": 101,
-                            "action": {
-                                "type": "Allow"
-                            },
-                            "rules": [
-                                {
-                                    "name": "AllowADWS",
-                                    "description": "Allow AD Web Services",
-                                    "protocols": [
-                                        "TCP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "9389"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowADGlbCat",
-                                    "description": "Allow AD Global Catalogs",
-                                    "protocols": [
-                                        "TCP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "3268-3269"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowLdap",
-                                    "description": "Client - Allow AD LDAP",
-                                    "protocols": [
-                                        "TCP",
-                                        "UDP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "389"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowLdapSsl",
-                                    "description": "Allow AD SSL",
-                                    "protocols": [
-                                        "TCP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "636"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowRpcMapper",
-                                    "description": "Allow RPC Mapper",
-                                    "protocols": [
-                                        "TCP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "135"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowRpcDynamic",
-                                    "description": "Allow RPC dynamic ports",
-                                    "protocols": [
-                                        "TCP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "49152-65535"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowSmb",
-                                    "description": "Allow Smb",
-                                    "protocols": [
-                                        "TCP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "445"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowDns",
-                                    "description": "Allow DNS",
-                                    "protocols": [
-                                        "TCP",
-                                        "UDP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "53"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowKerberos",
-                                    "description": "Allow Kerberos",
-                                    "protocols": [
-                                        "TCP",
-                                        "UDP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "88"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowNtp",
-                                    "description": "Allow Ntp",
-                                    "protocols": [
-                                        "UDP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "123"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowKerbChgSet",
-                                    "description": "Allow Kerberos Password Set/Change",
-                                    "protocols": [
-                                        "TCP",
-                                        "UDP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "464"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowNetbiosUdp",
-                                    "description": "Allow NETBIOS UDP",
-                                    "protocols": [
-                                        "UDP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "137-138"
-                                    ]
-                                },
-                                {
-                                    "name": "AllowNetbiosTcp",
-                                    "description": "Allow NETBIOS TCP",
-                                    "protocols": [
-                                        "TCP"
-                                    ],
-                                    "sourceAddresses": [
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "destinationAddresses": [
-                                        "[parameters('sharedSvcVnetSubnetAdCidr')]"
-                                    ],
-                                    "destinationPorts": [
-                                        "139"
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                ],
-                "applicationRuleCollections": [
-                    {
-                        "name": "AllowVmInternet",
-                        "properties": {
-                            "priority": 100,
-                            "action": {
-                                "type": "Allow"
-                            },
-                            "rules": [
-                                {
-                                    "name": "AllowVMInternet",
-                                    "description": "Allow VMs access to the Internet",
-                                    "sourceAddresses": [
-                                        "[parameters('sharedSvcVnetCidr')]",
-                                        "[parameters('workloadVnetCidr')]"
-                                    ],
-                                    "protocols": [
-                                        {
-                                            "protocolType": "Https",
-                                            "port": "443"
-                                        },
-                                        {
-                                            "protocolType": "Http",
-                                            "port": 80
-                                        }
-                                    ],
-                                    "targetFqdns": [
-                                        "*"
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                ],
+                "firewallPolicy": {
+                    "id": "[reference(variables('deployFirewallPolicy')).outputs.firewallPolicyId.value]"
+                },
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
@@ -860,16 +618,7 @@
                             }
                         }
                     }
-                ],
-                "threatIntelMode": "Alert",
-                "sku": {
-                    "name": "AZFW_VNet",
-                    "tier": "Standard"
-                },
-                "additionalProperties": {
-                    "Network.DNS.EnableProxy": "true",
-                    "Network.DNS.Servers": "[parameters('dnsServerIp')]"
-                }
+                ]
             }
         },
         {
@@ -1271,8 +1020,8 @@
             "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployLaPe'))]"
             ],
             "tags": "[parameters('tags')]",
             "properties": {
