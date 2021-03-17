@@ -68,10 +68,10 @@ The template will take around 1 hour to fully deploy. After the environment is d
 
 ## Change Log
 * 3/11/2021
-* * Added support for SSE for Managed Disks with CMK
-* * Configured username and password set by user to be stored as secrets in Key Vault
-* * Added Key Vault Analytics solution
+  * Added support for SSE for Managed Disks with CMK
+  * Configured username and password set by user to be stored as secrets in Key Vault
+  * Added Key Vault Analytics solution
 
 * 3/16/2021
-* * Corrected occasional error where Log Analytics Private Endpoint would not provision due to VNet lock from Bastion
-* * Converted Azure Firewall rules to Firewall Policy to support eventual testing with Azure Firewall Premium SKU
+  * Corrected occasional error where Log Analytics Private Endpoint would not provision due to VNet lock from Bastion
+  * Converted Azure Firewall rules to Firewall Policy to support eventual testing with Azure Firewall Premium SKU
