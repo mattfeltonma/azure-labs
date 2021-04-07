@@ -108,8 +108,7 @@
         "storageApiVersion": "2019-06-01",
         "adMemberVm1DeploymentName": "deploy-admember1",
         "adMemberVm2DeploymentName": "deploy-admember2",
-        "adMemberVm1Name": "vmserver01",
-        "adMemberVm2Name": "vmserver02",
+        "adMemberVm1Name": "vmwserver01",
         "adNsgFlowLogDeploymentName": "deploy-adflowlog",
         "adNsgName": "[concat('nsg-ad', parameters('uniqueData'))]",
         "adVmDeploymentName": "deploy-ad",
@@ -130,6 +129,7 @@
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultPlLinkName": "[concat(variables('keyVaultDnsZoneName'), '-link')]",
         "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
+        "linuxVmName": "vmlserver01",
         "location": "[resourceGroup().location]",
         "logAnalyticsRetention": 30,
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
@@ -1562,12 +1562,6 @@
                     "adminUserName": {
                         "value": "[parameters('vmAdminUsername')]"
                     },
-                    "adDomainName": {
-                        "value": "[parameters('adDomainName')]"
-                    },
-                    "adNetBiosName": {
-                        "value": "[parameters('adNetBiosName')]"
-                    },
                     "diskEncryptionSet": {
                         "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
                     },
@@ -1593,7 +1587,7 @@
                         "value": "[variables('vmSku')]"
                     },
                     "vmName": {
-                        "value": "[variables('adMemberVm2Name')]"
+                        "value": "[variables('linuxVmName')]"
                     },
                     "vnetName": {
                         "value": "[variables('sharedSvcVnetName')]"
