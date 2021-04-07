@@ -281,16 +281,16 @@
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
                     ],
                     "properties": {
-                        "publisher": "Microsoft.Compute",
-                        "type": "CustomScriptExtension",
-                        "typeHandlerVersion": "1.9",
+                        "publisher": "Microsoft.Azure.Extensions",
+                        "type": "CustomScript",
+                        "typeHandlerVersion": "2.1",
                         "autoUpgradeMinorVersion": true,
                         "settings": {
-                            "fileUris": [
-                                "[variables('scriptUrl')]"
-                            ]
                         },
                         "protectedSettings": {
+                            "fileUris": [
+                                "[variables('scriptUrl')]"
+                            ],
                             "commandToExecute": "[concat('sh ', variables('scriptName'))]"
                         }   
                     }
