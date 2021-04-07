@@ -14,3 +14,5 @@ Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI
 
 # Install Azure PowerShell
 Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
+
+Stop-Transcript
