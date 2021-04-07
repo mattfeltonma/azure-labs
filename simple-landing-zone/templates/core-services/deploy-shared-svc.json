@@ -107,7 +107,6 @@
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
         "adMemberVm1DeploymentName": "deploy-admember1",
-        "adMemberVm2DeploymentName": "deploy-linuxserver1",
         "adMemberVm1Name": "vmwserver01",
         "adNsgFlowLogDeploymentName": "deploy-adflowlog",
         "adNsgName": "[concat('nsg-ad', parameters('uniqueData'))]",
@@ -129,7 +128,8 @@
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultPlLinkName": "[concat(variables('keyVaultDnsZoneName'), '-link')]",
         "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
-        "linuxVmName": "vmlserver01",
+        "linuxVm1DeploymentName": "deploy-linuxserver1",        
+        "linuxVm1Name": "vmlserver01",
         "location": "[resourceGroup().location]",
         "logAnalyticsRetention": 30,
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
@@ -1547,7 +1547,7 @@
             }
         },
         {
-            "name": "[variables('adMemberVm2DeploymentName')]",
+            "name": "[variables('linuxVm1DeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
@@ -1587,7 +1587,7 @@
                         "value": "[variables('vmSku')]"
                     },
                     "vmName": {
-                        "value": "[variables('linuxVmName')]"
+                        "value": "[variables('linuxVm1Name')]"
                     },
                     "vnetName": {
                         "value": "[variables('sharedSvcVnetName')]"
