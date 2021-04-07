@@ -1,3 +1,6 @@
+# Install RSAT Tools
+Install-WindowsFeature -IncludeAllSubFeature RSAT
+
 # Download SMSS
 Start-Transcript -path "C:\MachinePrep\logs\log.txt"
 $url = "https://aka.ms/ssmsfullsetup"

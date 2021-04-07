@@ -66,20 +66,6 @@ configuration CreateADMember {
             DependsOn = "[xWaitForDisk]Disk2"
         }
 
-        WindowsFeature ADDSTools
-        {
-            Ensure = "Present"
-            Name = "RSAT-ADDS-Tools"
-            DependsOn = "[WindowsFeature]ADDSInstall"
-        }
-
-        WindowsFeature DnsTools
-        {
-            Ensure = "Present"
-            Name = "RSAT-DNS-Server"
-            DependsOn = "[WindowsFeature]DNS"
-        }
-
         Computer JoinToDomain
         {
             Name = $MachineName
@@ -94,4 +80,4 @@ configuration CreateADMember {
             DependsOn = "[Computer]JoinToDomain"
         }
     }
-} 
+}
