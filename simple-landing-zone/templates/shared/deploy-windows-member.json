@@ -325,6 +325,7 @@
                     "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
                     "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",   
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/CreateMemberServer')]"
                     ],
                     "properties": {
