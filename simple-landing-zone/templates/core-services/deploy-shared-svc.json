@@ -128,11 +128,13 @@
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultPlLinkName": "[concat(variables('keyVaultDnsZoneName'), '-link')]",
         "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
-        "linuxVm1DeploymentName": "deploy-linuxserver1",        
+        "linuxVm1DeploymentName": "deploy-linuxserver1",
+        "linuxVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-ubuntu-server.json')]",        
         "linuxVm1Name": "vmlserver01",
         "location": "[resourceGroup().location]",
         "logAnalyticsRetention": 30,
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
+        "memberVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-member.json')]",
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-nsg-flow-log.json')]",
         "queueStorageDnsZoneName": "privatelink.queue.core.windows.net",
         "queueStoragePlLinkName": "[concat(variables('queueStorageDnsZoneName'), '-link')]",
@@ -147,7 +149,6 @@
         "updateVnetDeploymentName": "deploy-update-vnet",
         "userNameSecretDeploymentName": "deploy-usernamesecret",
         "userPasswordSecretDeploymentName": "deploy-userpasswordsecret",   
-        "memberVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-member.json')]",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
     },
@@ -1594,7 +1595,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('memberVmDeploymentUri')]",
+                    "uri": "[variables('linuxVmDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
