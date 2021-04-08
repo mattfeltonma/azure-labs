@@ -163,7 +163,7 @@
                 "sku": {
                     "name": "PerGB2018"
                 },
-                "publicNetworkAccessForIngestion": "Disabled",
+                "publicNetworkAccessForIngestion": "Enabled",
                 "publicNetworkAccessForQuery": "Enabled",
                 "retentionInDays": "[variables('logAnalyticsRetention')]"
             },
