@@ -249,8 +249,7 @@
                         "typeHandlerVersion": "1.13",
                         "autoUpgradeMinorVersion": true,
                         "settings": {
-                            "workspaceId": "[parameters('myWorkspaceId')]",
-                            "stopOnMultipleConnections": true
+                            "workspaceId": "[parameters('myWorkspaceId')]"
                         },
                         "protectedSettings": {
                             "workspaceKey": "[parameters('myWorkspaceKey')]"
