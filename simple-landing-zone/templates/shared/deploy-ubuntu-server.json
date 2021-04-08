@@ -238,7 +238,7 @@
                 {
                     "type": "extensions",
                     "name": "OMSExtension",
-                    "apiVersion": "2018-10-01",
+                    "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
@@ -271,29 +271,6 @@
                         "type": "DependencyAgentLinux",
                         "typeHandlerVersion": "9.5",
                         "autoUpgradeMinorVersion": true
-                    }
-                },
-                {
-                    "type": "extensions",
-                    "name": "CustomScriptExtension",
-                    "apiVersion": "[variables('vmApiVersion')]",
-                    "location": "[variables('location')]",
-                    "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
-                    ],
-                    "properties": {
-                        "publisher": "Microsoft.Azure.Extensions",
-                        "type": "CustomScript",
-                        "typeHandlerVersion": "2.1",
-                        "autoUpgradeMinorVersion": true,
-                        "settings": {
-                        },
-                        "protectedSettings": {
-                            "fileUris": [
-                                "[variables('scriptUrl')]"
-                            ],
-                            "commandToExecute": "[concat('sh ', variables('scriptName'))]"
-                        }   
                     }
                 }
             ]
