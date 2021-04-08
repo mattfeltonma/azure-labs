@@ -234,46 +234,46 @@
                         "typeHandlerVersion": "1.4",
                         "autoUpgradeMinorVersion": true
                     }
-                },
-                {
-                    "type": "extensions",
-                    "name": "OMSExtension",
-                    "apiVersion": "[variables('vmApiVersion')]",
-                    "location": "[variables('location')]",
-                    "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/Microsoft.Azure.NetworkWatcher')]"
-                    ],
-                    "properties": {
-                        "publisher": "Microsoft.EnterpriseCloud.Monitoring",
-                        "type": "OmsAgentForLinux",
-                        "typeHandlerVersion": "1.4",
-                        "autoUpgradeMinorVersion": true,
-                        "settings": {
-                            "workspaceId": "[parameters('myWorkspaceId')]"
-                        },
-                        "protectedSettings": {
-                            "workspaceKey": "[parameters('myWorkspaceKey')]"
-                        }
-                    }
-                },
-                {
-                    "type": "extensions",
-                    "name": "DependencyAgentLinux",
-                    "apiVersion": "[variables('vmApiVersion')]",
-                    "location": "[variables('location')]",
-                    "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/OMSExtension')]"
-                    ],
-                    "properties": {
-                        "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
-                        "type": "DependencyAgentLinux",
-                        "typeHandlerVersion": "9.5",
-                        "autoUpgradeMinorVersion": true
-                    }
                 }
             ]
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmName'),'/OMSExtension')]",
+            "apiVersion": "[variables('vmApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                "type": "OmsAgentForLinux",
+                "typeHandlerVersion": "1.4",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "workspaceId": "[parameters('myWorkspaceId')]",
+                    "stopOnMultipleConnections": true
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[parameters('myWorkspaceKey')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmName'),'/DependencyAgentLinux')]",
+            "apiVersion": "[variables('vmApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/OMSExtension')]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+                "type": "DependencyAgentLinux",
+                "typeHandlerVersion": "9.5",
+                "autoUpgradeMinorVersion": true
+            }
         }
     ]
 }
+
