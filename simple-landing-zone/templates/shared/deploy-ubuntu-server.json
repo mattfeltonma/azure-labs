@@ -222,11 +222,27 @@
             "resources": [
                 {
                     "type": "extensions",
-                    "name": "OMSExtension",
+                    "name": "Microsoft.Azure.NetworkWatcher",
                     "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.Azure.NetworkWatcher",
+                        "type": "NetworkWatcherAgentLinux",
+                        "typeHandlerVersion": "1.4",
+                        "autoUpgradeMinorVersion": true
+                    }
+                },
+                {
+                    "type": "extensions",
+                    "name": "OMSExtension",
+                    "apiVersion": "2018-10-01",
+                    "location": "[variables('location')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/Microsoft.Azure.NetworkWatcher')]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.EnterpriseCloud.Monitoring",
@@ -234,8 +250,7 @@
                         "typeHandlerVersion": "1.4",
                         "autoUpgradeMinorVersion": true,
                         "settings": {
-                            "workspaceId": "[parameters('myWorkspaceId')]",
-                            "stopOnMultipleConnections": true
+                            "workspaceId": "[parameters('myWorkspaceId')]"
                         },
                         "protectedSettings": {
                             "workspaceKey": "[parameters('myWorkspaceKey')]"
@@ -255,21 +270,6 @@
                         "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
                         "type": "DependencyAgentLinux",
                         "typeHandlerVersion": "9.5",
-                        "autoUpgradeMinorVersion": true
-                    }
-                },
-                {
-                    "type": "extensions",
-                    "name": "Microsoft.Azure.NetworkWatcher",
-                    "apiVersion": "[variables('vmApiVersion')]",
-                    "location": "[variables('location')]",
-                    "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
-                    ],
-                    "properties": {
-                        "publisher": "Microsoft.Azure.NetworkWatcher",
-                        "type": "NetworkWatcherAgentLinux",
-                        "typeHandlerVersion": "1.4",
                         "autoUpgradeMinorVersion": true
                     }
                 },
