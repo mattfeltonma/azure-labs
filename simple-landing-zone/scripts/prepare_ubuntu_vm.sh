@@ -2,6 +2,7 @@
 
 # Install Azure CLI
 curl -sL https://aka.ms/InstallAzureCLIDeb -o azurecli.sh
+pwd
 sudo ./azurecli.sh
 
 # Install kubectl
