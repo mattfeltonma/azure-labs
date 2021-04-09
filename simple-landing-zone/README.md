@@ -67,11 +67,17 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 The template will take around 1 hour to fully deploy. After the environment is deployed you can access the virtual machines using the Azure Bastion instance. Note that it can take up to 30 minutes for logs and metrics to appear in the Log Analytics Workspace.
 
 ## Change Log
+* 4/8/2021
+  * Added provisioning script to install SQL Server Management Studio, Az CLI, Az PowerShell module, and Windows Remote Server Administration Tools
+  * Added Ubuntu VM and a provisioning script to install Az CLI and kubectl
+
+* 3/16/2021
+  * Corrected occasional error where Log Analytics Private Endpoint would not provision due to VNet lock from Bastion
+  * Converted Azure Firewall rules to Firewall Policy to support eventual testing with Azure Firewall Premium SKU
+
 * 3/11/2021
   * Added support for SSE for Managed Disks with CMK
   * Configured username and password set by user to be stored as secrets in Key Vault
   * Added Key Vault Analytics solution
 
-* 3/16/2021
-  * Corrected occasional error where Log Analytics Private Endpoint would not provision due to VNet lock from Bastion
-  * Converted Azure Firewall rules to Firewall Policy to support eventual testing with Azure Firewall Premium SKU
+
