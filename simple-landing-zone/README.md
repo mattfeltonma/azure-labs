@@ -9,7 +9,6 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 
 **Provide a centralized authentication service for virtual machine access**
 * Windows Active Directory domain complete with sample users and groups
-* Virtual Machines joined to Windows Active Directory domain
 
 **Restrict access to Azure resources from the Internet**
 * Hub and spoke architecture for central management of north-south traffic
@@ -39,7 +38,8 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 * Key Vault Analytics monitoring solution enabled for visibility into Key Vault access
 
 **Additional Features**
-* Two domain-joined Windows Server Virtual Machines to use for testing
+* Windows Server VM utility server joined to Active Directory domain with SQL Server Management Studio, Remote Server Administration Tools, Az CLI, and Az PowerShell modules installed
+* Ubuntu Server VM utility server with Az CLI and kubectl installed
 
 ## Prerequisites
 1. [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
