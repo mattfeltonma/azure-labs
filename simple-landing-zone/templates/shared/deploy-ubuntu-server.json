@@ -239,7 +239,7 @@
                             "fileUris": [
                                 "[variables('scriptUrl')]"
                             ],
-                            "commandToExecute": "[concat('sh ', variables('scriptName'))]"
+                            "commandToExecute": "[concat('sh ', variables('scriptName'), ' ', parameters('adminUsername'))]"
                         }
                     }
                 },
