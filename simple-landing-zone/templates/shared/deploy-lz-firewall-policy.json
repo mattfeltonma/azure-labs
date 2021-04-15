@@ -61,7 +61,7 @@
             },
             "resources": [
                 {
-                    "name": "DefaultNetworkRuleCollectionGroup",
+                    "name": "DefaultDnatRuleCollectionGroup",
                     "type": "ruleCollectionGroups",
                     "apiVersion": "[variables('networkApiVersion')]",
                     "location": "[variables('networkApiVersion')]",
@@ -70,6 +70,20 @@
                     ],
                     "properties": {
                         "priority": 100,
+                        "ruleCollections": [
+                        ]
+                    }
+                },
+                {
+                    "name": "DefaultNetworkRuleCollectionGroup",
+                    "type": "ruleCollectionGroups",
+                    "apiVersion": "[variables('networkApiVersion')]",
+                    "location": "[variables('networkApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]"
+                    ],
+                    "properties": {
+                        "priority": 200,
                         "ruleCollections": [
                             {
                                 "name": "AllowVmRequired",
@@ -388,7 +402,7 @@
                         "[concat('Microsoft.Network/firewallPolicies/', variables('lzFwPolicyName'), '/ruleCollectionGroups/', 'DefaultNetworkRuleCollectionGroup')]"
                     ],
                     "properties": {
-                        "priority": 200,
+                        "priority": 300,
                         "ruleCollections": [
                             {
                                 "name": "AllowVmInternet",
