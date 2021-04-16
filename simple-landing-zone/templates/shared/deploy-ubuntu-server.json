@@ -274,7 +274,7 @@
             "resources": [
                 {
                     "type": "extensions",
-                    "name": "CustomScriptExtension",
+                    "name": "preConfig",
                     "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
                     "dependsOn": [
@@ -302,7 +302,7 @@
                     "location": "[variables('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/CustomScriptExtension')]"
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/preConfig')]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.Azure.NetworkWatcher",
@@ -391,7 +391,7 @@
             }
         },
         {
-            "name": "[concat(parameters('vmName'),'/CustomScriptExtension')]",
+            "name": "[concat(parameters('vmName'),'/postConfig')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "apiVersion": "[variables('vmApiVersion')]",
             "location": "[variables('location')]",
