@@ -125,7 +125,7 @@
         "diskEncSetDeploymentName": "deploy-diskencset",
         "diskEncSetDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-disk-encryption-set.json')]",
         "userNameSecretName": "domainadminusername",
-        "userPasswordSecertName": "domainadminpassword",
+        "userPasswordSecretName": "domainadminpassword",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
         "infraNsgFlowLogDeploymentName": "deploy-infralowlog",
@@ -750,7 +750,7 @@
                         "value": "[variables('location')]"
                     },
                     "secretName": {
-                        "value": "[variables('userPasswordSecertName')]"
+                        "value": "[variables('userPasswordSecretName')]"
                     },
                     "secretValue": {
                         "value": "[parameters('vmAdminPassword')]"
@@ -1837,7 +1837,7 @@
                                     "fileUris": [
                                         "[variables('scriptUrl')]"
                                     ],
-                                    "commandToExecute": "[concat('sh ', variables('scriptName'))]"
+                                    "commandToExecute": "[concat('sh ', variables('scriptName'), ' ', variables('adVmName'), ' ', parameters('adDomainName'), ' ', variables('userPasswordSecretName'), ' ', variables('userNameSecretName'), ' ', reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value)]"
                                 }
                             }
                         }
