@@ -10,6 +10,25 @@ catch {
 }
 
 try {
+
+    # Install nuget package manager
+    Write-Host "Instaling nuget..."
+    Install-PackageProvider -Name Nuget -Force 
+
+    # Install Azure CLI
+    Write-Host "Downloading Azure CLI..."
+    Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; rm .\AzureCLI.msi
+
+    # Install Azure PowerShell
+    Write-Host "Installing Azure CLI..."
+    Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
+}
+
+catch {
+    "Unable to install Azure CLI"
+}
+
+try {
     # Download SMSS
     Write-Host "Downloading SMSS..."
     New-Item -ItemType directory -Path C:\MachinePrep\files
@@ -25,24 +44,6 @@ try {
 }
 catch {
     "Unable to install SMSS"
-}
-
-try {
-
-    # Install nuget package manager
-    Write-Host "Instaling nuget..."
-    Install-PackageProvider -Name Nuget -Force 
-
-    # Install Azure CLI
-    Write-Host "Downloading Azure CLI..."
-    Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; rm .\AzureCLI.msi
-
-    # Install Azure PowerShell
-    Write-Host "Installing Azure CLI..."
-    Install-Module -Name Az -Scope CurrentUser -Repository PSGallery -Force
-}
-catch {
-    "Unable to install Azure CLI"
 }
 
 Stop-Transcript 

@@ -1566,9 +1566,6 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "adDomainName": {
-                        "value": "[parameters('adDomainName')]"
-                    },
                     "adminPassword": {
                         "value": "[parameters('vmAdminPassword')]"
                     },
@@ -1578,20 +1575,14 @@
                     "diskEncryptionSet": {
                         "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
                     },
-                    "keyVaultName": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
-                    },
-                    "keyVaultResourceGroup": {
-                        "value": "[resourceGroup().name]"
-                    }, 
-                    "serverIpAddress": {
-                        "value": "[parameters('memberServer2Ip')]"
-                    },
                     "myWorkspaceId": {
                         "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
                     },
                     "myWorkspaceKey": {
                         "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
+                    },
+                    "serverIpAddress": {
+                        "value": "[parameters('memberServer2Ip')]"
                     },
                     "subnetName": {
                         "value": "[variables('sharedSvcInfraSvcSubnetName')]"
@@ -1601,12 +1592,6 @@
                     },
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
-                    },
-                    "userPasswordSecretName": {
-                        "value": "[variables('userPasswordSecretName')]"
-                    },
-                    "userNameSecretName": {
-                        "value": "[variables('userNameSecretName')]"
                     },
                     "virtualMachineSize": {
                         "value": "[variables('vmSku')]"
