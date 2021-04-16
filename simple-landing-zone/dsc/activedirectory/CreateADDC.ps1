@@ -1,4 +1,4 @@
-configuration CreateADDC {
+﻿configuration CreateADDC {
     param
     (
         [Parameter(Mandatory)]
@@ -153,7 +153,7 @@ configuration CreateADDC {
             DependsOn = "[xADDomain]FirstDS"
         }
 
-        xDnsServer DcPtrRecord
+        DnsRecordPtr DcPtrRecord
         {
             ZoneName = $ReverseZoneName
             IpAddress = $DcIpAddress
