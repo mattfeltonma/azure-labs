@@ -301,5 +301,11 @@
                 }
             ]
         }
-    ]
+    ],
+    "outputs": {
+        "managedIdentityPrincipalId": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.Compute/virtualMachines',parameters('vmName')),variables('vmApiVersion'),'full').identity.principalId]"
+        }
+    }
 }

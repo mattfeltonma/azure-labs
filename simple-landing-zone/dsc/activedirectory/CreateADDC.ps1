@@ -6,7 +6,16 @@ configuration CreateADDC {
 
         [Parameter(Mandatory)]
         [String]$NetBiosName,
-        
+
+        [Parameter(Mandatory)]
+        [String]$ReverseZoneName,
+
+        [Parameter(Mandatory)]
+        [String]$DcIpAddress,
+
+        [Parameter(Mandatory)]
+        [String]$MachineName,
+
         [Parameter(Mandatory)]
         [System.Management.Automation.PSCredential]$Admincreds,
 
@@ -134,6 +143,22 @@ configuration CreateADDC {
             LogPath = "F:\NTDS"
             SysvolPath = "F:\SYSVOL"
             DependsOn = @("[WindowsFeature]ADDSInstall", "[xDisk]ADDataDisk")
+        }
+
+        xDnsServerADZone ReverseZone
+        {
+            Name = $ReverseZoneName
+            DynamicUpdate = 'None'
+            ReplicationScope = 'Forest'
+            DependsOn = "[xADDomain]FirstDS"
+        }
+
+        xDnsServer DcPtrRecord
+        {
+            ZoneName = $ReverseZoneName
+            IpAddress = $DcIpAddress
+            Name = $MachineName + "." + $DomainName
+            DependsOn = "[xDnsServerADZone]ReverseZone"
         }
 
         xADOrganizationalUnit 'TopLevel'
