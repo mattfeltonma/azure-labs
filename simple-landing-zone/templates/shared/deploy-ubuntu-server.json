@@ -302,7 +302,7 @@
                     "location": "[variables('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
-                        "extensions/CustomScriptExtension"
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/CustomScriptExtension')]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.Azure.NetworkWatcher",
@@ -318,7 +318,7 @@
                     "location": "[variables('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
-                        "extensions/Microsoft.Azure.NetworkWatcher"
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), 'extensions/Microsoft.Azure.NetworkWatcher')]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.EnterpriseCloud.Monitoring",
