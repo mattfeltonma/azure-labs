@@ -1566,6 +1566,9 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "adDomainName": {
+                        "value": "[parameters('adDomainName')]"
+                    },
                     "adminPassword": {
                         "value": "[parameters('vmAdminPassword')]"
                     },
@@ -1575,6 +1578,12 @@
                     "diskEncryptionSet": {
                         "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
                     },
+                    "keyVaultName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "keyVaultResourceGroup": {
+                        "value": "[resourceGroup().name]"
+                    }, 
                     "serverIpAddress": {
                         "value": "[parameters('memberServer2Ip')]"
                     },
@@ -1592,6 +1601,12 @@
                     },
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
+                    },
+                    "userPasswordSecretName": {
+                        "value": "[variables('userPasswordSecretName')]"
+                    },
+                    "userNameSecretName": {
+                        "value": "[variables('userNameSecretName')]"
                     },
                     "virtualMachineSize": {
                         "value": "[variables('vmSku')]"
