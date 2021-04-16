@@ -167,7 +167,6 @@
         "resourcesApiVersion": "2020-06-01",
         "vmApiVersion": "2020-06-01",
         "dataDiskType": "StandardSSD_LRS",
-        "joinScriptName": "join_ubuntu_vm.sh",
         "location": "[resourceGroup().location]",
         "nicName": "[concat(parameters('vmName'),parameters('uniqueData'))]",
         "osDiskType": "StandardSSD_LRS",
@@ -274,35 +273,11 @@
             "resources": [
                 {
                     "type": "extensions",
-                    "name": "preConfig",
-                    "apiVersion": "[variables('vmApiVersion')]",
-                    "location": "[variables('location')]",
-                    "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
-                    ],
-                    "properties": {
-                        "publisher": "Microsoft.Azure.Extensions",
-                        "type": "CustomScript",
-                        "typeHandlerVersion": "2.1",
-                        "autoUpgradeMinorVersion": true,
-                        "settings": {
-                        },
-                        "protectedSettings": {
-                            "fileUris": [
-                                "[variables('scriptUrl')]"
-                            ],
-                            "commandToExecute": "[concat('sh ', variables('scriptName'), ' ', parameters('adminUsername'))]"
-                        }
-                    }
-                },
-                {
-                    "type": "extensions",
                     "name": "Microsoft.Azure.NetworkWatcher",
                     "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
                     "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/preConfig')]"
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.Azure.NetworkWatcher",
@@ -391,7 +366,7 @@
             }
         },
         {
-            "name": "[concat(parameters('vmName'),'/postConfig')]",
+            "name": "[concat(parameters('vmName'),'/CustomScriptExtension')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "apiVersion": "[variables('vmApiVersion')]",
             "location": "[variables('location')]",
@@ -410,9 +385,10 @@
                     "fileUris": [
                         "[variables('scriptUrl')]"
                     ],
-                    "commandToExecute": "[concat('sh ', variables('joinScriptName'), ' ', parameters('vmName'), ' ', parameters('adDomainName'), ' ', parameters('userPasswordSecretName'), ' ', parameters('userNameSecretName'), ' ', parameters('keyVaultName'))]"
+                    "commandToExecute": "[concat('sh ', variables('scriptName'), ' ', parameters('vmName'), ' ', parameters('adDomainName'), ' ', parameters('userPasswordSecretName'), ' ', parameters('userNameSecretName'), ' ', parameters('keyVaultName'))]"
                 }
             }
         }
+
     ]
 }

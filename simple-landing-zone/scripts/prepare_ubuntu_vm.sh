@@ -23,7 +23,59 @@ echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] 
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
 sudo apt-get -y install docker-ce docker-ce-cli containerd.io
-sudo usermod -aG docker $1
 
 # Install Expect
 sudo apt-get -y install expect
+
+# Add repos
+sudo tee -a /etc/apt/sources.list <<EOF
+deb
+http://us.archive.ubuntu.com/ubuntu/
+bionic universe
+deb
+http://us.archive.ubuntu.com/ubuntu/
+bionic-updates universe
+EOF
+
+# Set server hostname
+sudo hostnamectl set-hostname "${1}.${2}"
+
+# Install required packages
+sudo apt update
+sudo apt -y install realmd libnss-sss libpam-sss sssd sssd-tools adcli samba-common-bin oddjob oddjob-mkhomedir packagekit expect
+
+# Retrieve the domain admin credentials
+az login --identity --allow-no-subscriptions
+AD_PASSWORD=$(az keyvault secret show --name=$3 --vault-name=$5 --query="value" --output=tsv)
+AD_USERNAME=$(az keyvault secret show --name=$4 --vault-name=$5 --query="value" --output=tsv)
+
+# Setup Docker permissions
+sudo usermod -aG docker $AD_USERNAME
+
+# Join the Ubuntu server to the AD domain
+/usr/bin/expect << EOD
+spawn sudo realm join -U $AD_USERNAME $2
+expect "Password for ${AD_USERNAME}: "
+send "${AD_PASSWORD}\r"
+expect "* Resolving:"
+EOD
+
+# Enable home directory support
+sudo bash -c "cat > /usr/share/pam-configs/mkhomedir" <<EOF
+Name: activate mkhomedir
+Default: yes
+Priority: 900
+Session-Type: Additional
+Session:
+        required                        pam_mkhomedir.so umask=0022 skel=/etc/skel
+EOF
+
+sudo pam-auth-update --enable mkhomedir
+sudo systemctl restart sssd
+
+# Enable domain users to login
+sudo realm permit -g 'Domain Users'
+
+# Enable domain admins and central it to sudo
+sudo echo -e %central\ it@$2'\t' ALL=\(ALL\) '\t' ALL >> /etc/sudoers.d/domain_admins
+sudo echo -e %domain\ admins@$2'\t' ALL=\(ALL\) '\t' ALL >> /etc/sudoers.d/domain_admins
