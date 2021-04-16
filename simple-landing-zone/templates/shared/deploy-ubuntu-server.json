@@ -217,10 +217,10 @@
                         "sku": "18.04-LTS",
                         "version": "latest"
                     }
-                },
-                "identity": {
-                    "type": "SystemAssigned"
                 }
+            },
+            "identity": {
+                "type": "SystemAssigned"
             },
             "resources": [
                 {
