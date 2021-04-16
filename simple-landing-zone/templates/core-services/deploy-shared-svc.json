@@ -112,7 +112,6 @@
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
-        "vmApiVersion": "2020-06-01",
         "adMemberVm1DeploymentName": "deploy-admember1",
         "adMemberVm1Name": "vmwserver01",
         "adNsgFlowLogDeploymentName": "deploy-adflowlog",
@@ -130,13 +129,11 @@
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
         "infraNsgFlowLogDeploymentName": "deploy-infralowlog",
         "infraNsgName": "[concat('nsg-infra', parameters('uniqueData'))]",
-        "joinDomainLinuxVmDeploymentName": "deploy-join-linux",
         "keyVaultDeploymentName": "deploy-keyvault",
         "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-keyvault.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultPlLinkName": "[concat(variables('keyVaultDnsZoneName'), '-link')]",
         "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
-        "linkedTemplateLocation": "[deployment().properties.templateLink.uri]",
         "linuxVm1DeploymentName": "deploy-linuxserver1",
         "linuxVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-ubuntu-server.json')]",
         "linuxVm1Name": "vmlserver01",
@@ -147,8 +144,6 @@
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-nsg-flow-log.json')]",
         "queueStorageDnsZoneName": "privatelink.queue.core.windows.net",
         "queueStoragePlLinkName": "[concat(variables('queueStorageDnsZoneName'), '-link')]",
-        "scriptName": "join_ubuntu_vm.sh",
-        "scriptUrl": "[uri(variables('linkedTemplateLocation'), concat('../../scripts/', variables('scriptName')))]",
         "secretDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-secret.json')]",
         "sharedSvcDiskEncSetName": "ssdiskenc",
         "sharedSvcAdSubnetName": "snet-ad",
@@ -157,7 +152,6 @@
         "sharedSvcVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
         "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
-        "updateKeyVaultDeploymentName": "deploy-update-keyvault",
         "updateVnetDeploymentName": "deploy-update-vnet",
         "userNameSecretDeploymentName": "deploy-usernamesecret",
         "userPasswordSecretDeploymentName": "deploy-userpasswordsecret",
@@ -1613,237 +1607,6 @@
                     "uri": "[variables('linuxVmDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
-            }
-        },
-        {
-            "name": "[variables('updateKeyVaultDeploymentName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('linuxVm1DeploymentName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "expressionEvaluationOptions": {
-                    "scope": "inner"
-                },
-                "parameters": {
-                    "diskEncryptionSetKeyName": {
-                        "value": "[variables('sharedSvcDiskEncSetName')]"
-                    },
-                    "keyVaultAdminObjectId": {
-                        "value": "[parameters('keyVaultAdminObjectId')]"
-                    },
-                    "vmManagedIdentityResourceId": {
-                        "value": "[reference(variables('linuxVm1DeploymentName')).outputs.managedIdentityPrincipalId.value]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    }
-                },
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {
-                        "diskEncryptionSetKeyName": {
-                            "type": "string",
-                            "metadata": {
-                                "description": "The name of the key that will be used for disk encryption set"
-                            },
-                            "defaultValue": "diskenckey"
-                        },
-                        "keyVaultAdminObjectId": {
-                            "type": "string",
-                            "metadata": {
-                                "description": "The object ID of the security principal who will be admin over the Key Vault"
-                            }
-                        },
-                        "vmManagedIdentityResourceId": {
-                            "type": "string",
-                            "metadata": {
-                                "description": "The principal ID of the managed identity needing permissions on the Key Vault"
-                            }
-                        },
-                        "softDeleteRetentionDays": {
-                            "type": "int",
-                            "metadata": {
-                                "description": "The amount of days to retain after soft delete"
-                            },
-                            "defaultValue": 60
-                        },
-                        "tenantId": {
-                            "type": "string",
-                            "metadata": {
-                                "description": "The tenant id the Key Vault instance will be created in"
-                            },
-                            "defaultValue": "[subscription().tenantId]"
-                        },
-                        "tags": {
-                            "type": "object",
-                            "metadata": {
-                                "description": "The tags that will be associated to the VM"
-                            }
-                        },
-                        "uniqueData": {
-                            "type": "string",
-                            "metadata": {
-                                "description": "Data used to append to resources to ensure uniqueness"
-                            },
-                            "defaultValue": "[substring(newGuid(),0,8)]"
-                        }
-                    },
-                    "variables": {
-                        "keyVaultApiVersion": "2019-09-01",
-                        "certPermissions": [
-                            "backup",
-                            "create",
-                            "get",
-                            "getissuers",
-                            "import",
-                            "list",
-                            "listissuers",
-                            "managecontacts",
-                            "manageissuers",
-                            "recover",
-                            "restore",
-                            "setissuers",
-                            "update"
-                        ],
-                        "keyVaultName": "[concat('kvcentral', parameters('uniqueData'))]",
-                        "keyPermissions": [
-                            "list",
-                            "encrypt",
-                            "decrypt",
-                            "wrapKey",
-                            "unwrapKey",
-                            "sign",
-                            "verify",
-                            "get",
-                            "create",
-                            "update",
-                            "import",
-                            "backup",
-                            "restore",
-                            "recover"
-                        ],
-                        "keyVaultSku": "Standard",
-                        "location": "[resourceGroup().location]",
-                        "secretsPermissions": [
-                            "list",
-                            "get",
-                            "set",
-                            "backup",
-                            "restore",
-                            "recover"
-                        ]
-                    },
-                    "resources": [
-                        {
-                            "name": "[variables('keyVaultName')]",
-                            "type": "Microsoft.KeyVault/vaults",
-                            "apiVersion": "[variables('keyVaultApiVersion')]",
-                            "location": "[variables('location')]",
-                            "tags": "[parameters('tags')]",
-                            "properties": {
-                                "accessPolicies": [
-                                    {
-                                        "objectId": "[parameters('keyVaultAdminObjectId')]",
-                                        "tenantId": "[parameters('tenantId')]",
-                                        "permissions": {
-                                            "keys": "[variables('keyPermissions')]",
-                                            "secrets": "[variables('secretsPermissions')]",
-                                            "certificates": "[variables('certPermissions')]"
-                                        }
-                                    },
-                                    {
-                                        "objectId": "[parameters('vmManagedIdentityResourceId')]",
-                                        "tenantId": "[parameters('tenantId')]",
-                                        "permissions": {
-                                            "keys": "",
-                                            "secrets": [
-                                                "list",
-                                                "get"
-                                            ],
-                                            "certificates": ""
-                                        }
-                                    }
-                                ],
-                                "enabledForTemplateDeployment": true,
-                                "enableSoftDelete": true,
-                                "enablePurgeProtection": true,
-                                "networkAcls": {
-                                    "bypass": "AzureServices",
-                                    "virtualNetworkRules": [],
-                                    "ipRules": [],
-                                    "defaultAction": "Deny"
-                                },
-                                "sku": {
-                                    "family": "A",
-                                    "name": "[variables('keyVaultSku')]"
-                                },
-                                "softDeleteRetentionInDays": "[parameters('softDeleteRetentionDays')]",
-                                "tenantid": "[parameters('tenantId')]"
-                            }
-                        }
-                    ],
-                    "outputs": {
-                        "keyVaultName": {
-                            "type": "string",
-                            "value": "[variables('keyVaultName')]"
-                        },
-                        "keyVaultResourceId": {
-                            "type": "string",
-                            "value": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
-                        },
-                        "keyVaultKeyUri": {
-                            "type": "string",
-                            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', variables('keyVaultName'), parameters('diskEncryptionSetKeyName')),variables('keyVaultApiVersion'), 'full').properties.keyUriWithVersion]"
-                        }
-                    }
-                }
-
-            }
-        },
-        {
-            "name": "[variables('joinDomainLinuxVmDeploymentName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('updateKeyVaultDeploymentName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "resources": [
-                        {
-                            "name": "[concat(variables('linuxVm1Name'),'/CustomScriptExtension')]",
-                            "type": "Microsoft.Compute/virtualMachines/extensions",
-                            "apiVersion": "[variables('vmApiVersion')]",
-                            "location": "[variables('location')]",
-                            "tags": "[parameters('tags')]",
-                            "properties": {
-                                "publisher": "Microsoft.Azure.Extensions",
-                                "type": "CustomScript",
-                                "typeHandlerVersion": "2.1",
-                                "autoUpgradeMinorVersion": true,
-                                "settings": {
-                                },
-                                "protectedSettings": {
-                                    "fileUris": [
-                                        "[variables('scriptUrl')]"
-                                    ],
-                                    "commandToExecute": "[concat('sh ', variables('scriptName'), ' ', variables('adVmName'), ' ', parameters('adDomainName'), ' ', variables('userPasswordSecretName'), ' ', variables('userNameSecretName'), ' ', reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value)]"
-                                }
-                            }
-                        }
-                    ]
-                }
-
             }
         }
     ],

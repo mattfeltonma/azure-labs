@@ -2,6 +2,12 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "adDomainName": {
+            "type": "string",
+            "metadata": {
+                "description": "The fully qualified domain name of the Active Directory domain"
+            }
+        },
         "adminPassword": {
             "type": "securestring",
             "metadata": {
@@ -38,6 +44,26 @@
             "metadata": {
                 "description": "The disk encryption set to associate the managed disks to"
             }
+        },
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Azure Key Vault instance where the SSH key and domain credentials will be stored"
+            }
+        },
+        "keyVaultResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group where the Azure Key Vault instance is stored"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "keyVaultSubscription": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id of the subscription the Azure Key Vault instance is stored"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
         },
         "linkedTemplateLocation": {
             "type": "string",
@@ -76,12 +102,30 @@
                 "description": "The tags that will be associated to the VM"
             }
         },
+        "tenantId": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the VM"
+            }
+        },
         "uniqueData": {
             "type": "string",
             "metadata": {
                 "description": "Data used to append to resources to ensure uniqueness"
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "userPasswordSecretName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the secret containing the domain admin password"
+            }
+        },
+        "userNameSecretName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the secret containing the domain admin username"
+            }
         },
         "virtualMachineSize": {
             "type": "string",
@@ -117,12 +161,16 @@
         }
     },
     "variables": {
+        "keyVaultApiVersion": "2019-09-01",
         "networkApiVersion": "2020-07-01",
+        "resourcesApiVersion": "2020-06-01",
         "vmApiVersion": "2020-06-01",
         "dataDiskType": "StandardSSD_LRS",
+        "joinScriptName": "join_ubuntu_vm.sh",
         "location": "[resourceGroup().location]",
         "nicName": "[concat(parameters('vmName'),parameters('uniqueData'))]",
         "osDiskType": "StandardSSD_LRS",
+        "updateKeyVaultDeploymentName": "deploy-update-keyvault",
         "scriptName": "prepare_ubuntu_vm.sh",
         "scriptUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../scripts/', variables('scriptName')))]",
         "subnetRef": "[resourceId(parameters('vnetSubscriptionId'),parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('subnetName'))]"
@@ -300,12 +348,69 @@
                     }
                 }
             ]
+        },
+        {
+            "name": "[variables('updateKeyVaultDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "subscriptionId": "[parameters('keyVaultSubscription')]",
+            "resourceGroup": "[parameters('keyVaultResourceGroup')]",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines',parameters('vmName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('keyVaultName'),'/add')]",
+                            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+                            "apiVersion": "[variables('keyVaultApiVersion')]",
+                            "properties": {
+                                "accessPolicies": [
+                                    {
+                                        "objectId": "[reference(resourceId('Microsoft.Compute/virtualMachines',parameters('vmName')),variables('vmApiVersion'),'Full').identity.principalId]",
+                                        "tenantId": "[parameters('tenantId')]",
+                                        "permissions": {
+                                            "secrets": [
+                                                "list",
+                                                "get"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[concat(parameters('vmName'),'/CustomScriptExtension')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "[variables('vmApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('updateKeyVaultDeploymentName'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.1",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                },
+                "protectedSettings": {
+                    "fileUris": [
+                        "[variables('scriptUrl')]"
+                    ],
+                    "commandToExecute": "[concat('sh ', variables('joinScriptName'), ' ', parameters('vmName'), ' ', parameters('adDomainName'), ' ', parameters('userPasswordSecretName'), ' ', parameters('userNameSecretName'), ' ', parameters('keyVaultName'))]"
+                }
+            }
         }
-    ],
-    "outputs": {
-        "managedIdentityPrincipalId": {
-            "type": "string",
-            "value": "[reference(resourceId('Microsoft.Compute/virtualMachines',parameters('vmName')),variables('vmApiVersion'),'Full').identity.principalId]"
-        }
-    }
+
+    ]
 }
