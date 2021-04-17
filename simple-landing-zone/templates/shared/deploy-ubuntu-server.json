@@ -221,12 +221,37 @@
             },
             "resources": [
                 {
+                    "name": "[concat(parameters('vmName'),'/CustomScriptExtension')]",
+                    "type": "Microsoft.Compute/virtualMachines/extensions",
+                    "apiVersion": "[variables('vmApiVersion')]",
+                    "location": "[variables('location')]",
+                    "tags": "[parameters('tags')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.Azure.Extensions",
+                        "type": "CustomScript",
+                        "typeHandlerVersion": "2.1",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                        },
+                        "protectedSettings": {
+                            "fileUris": [
+                                "[variables('scriptUrl')]"
+                            ],
+                            "commandToExecute": "[concat('sh ', variables('scriptName'), ' ', parameters('adminUsername'))]"
+                        }
+                    }
+                },
+                {
                     "type": "extensions",
                     "name": "Microsoft.Azure.NetworkWatcher",
                     "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
                     "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/CustomScriptExtension')]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.Azure.NetworkWatcher",
@@ -275,31 +300,6 @@
                     }
                 }
             ]
-        },
-        {
-            "name": "[concat(parameters('vmName'),'/CustomScriptExtension')]",
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "apiVersion": "[variables('vmApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/DependencyAgentLinux')]"
-            ],
-            "properties": {
-                "publisher": "Microsoft.Azure.Extensions",
-                "type": "CustomScript",
-                "typeHandlerVersion": "2.1",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                },
-                "protectedSettings": {
-                    "fileUris": [
-                        "[variables('scriptUrl')]"
-                    ],
-                    "commandToExecute": "[concat('sh ', variables('scriptName'), ' ', parameters('adminUsername'))]"
-                }
-            }
         }
-
     ]
 }
