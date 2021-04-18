@@ -662,7 +662,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'),'/providers/diagnosticSettings/microsoft.insights/diag')]",
+                "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'),'/providers/microsoft.insights/diagnosticSettings/diag')]",
                 "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'))]"
             ],
             "properties": {
