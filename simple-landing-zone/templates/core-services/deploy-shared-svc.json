@@ -46,6 +46,12 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
+        "reverseDnsZoneName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the reverse DNS zone the domain controller will register to in order to support Ubuntu-integrated servers"
+            }
+        },
         "sharedSvcVnetCidr": {
             "type": "string",
             "metadata": {
@@ -118,7 +124,7 @@
         "diskEncSetDeploymentName": "deploy-diskencset",
         "diskEncSetDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-disk-encryption-set.json')]",
         "userNameSecretName": "domainadminusername",
-        "userPasswordSecertName": "domainadminpassword",
+        "userPasswordSecretName": "domainadminpassword",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
         "infraNsgFlowLogDeploymentName": "deploy-infralowlog",
@@ -129,7 +135,7 @@
         "keyVaultPlLinkName": "[concat(variables('keyVaultDnsZoneName'), '-link')]",
         "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
         "linuxVm1DeploymentName": "deploy-linuxserver1",
-        "linuxVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-ubuntu-server.json')]",        
+        "linuxVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-ubuntu-server.json')]",
         "linuxVm1Name": "vmlserver01",
         "location": "[resourceGroup().location]",
         "logAnalyticsRetention": 30,
@@ -148,7 +154,7 @@
         "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
         "updateVnetDeploymentName": "deploy-update-vnet",
         "userNameSecretDeploymentName": "deploy-usernamesecret",
-        "userPasswordSecretDeploymentName": "deploy-userpasswordsecret",   
+        "userPasswordSecretDeploymentName": "deploy-userpasswordsecret",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
     },
@@ -738,7 +744,7 @@
                         "value": "[variables('location')]"
                     },
                     "secretName": {
-                        "value": "[variables('userPasswordSecertName')]"
+                        "value": "[variables('userPasswordSecretName')]"
                     },
                     "secretValue": {
                         "value": "[parameters('vmAdminPassword')]"
@@ -771,7 +777,7 @@
                     },
                     "keyVaultName": {
                         "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
-                    }, 
+                    },
                     "location": {
                         "value": "[variables('location')]"
                     },
@@ -1396,6 +1402,9 @@
                     "myWorkspaceKey": {
                         "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
                     },
+                    "reverseDnsZoneName": {
+                        "value": "[parameters('reverseDnsZoneName')]"
+                    },
                     "subnetName": {
                         "value": "[variables('sharedSvcAdSubnetName')]"
                     },
@@ -1566,14 +1575,14 @@
                     "diskEncryptionSet": {
                         "value": "[reference(variables('diskEncSetDeploymentName')).outputs.diskEncryptionSetResourceId.value]"
                     },
-                    "serverIpAddress": {
-                        "value": "[parameters('memberServer2Ip')]"
-                    },
                     "myWorkspaceId": {
                         "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').customerId]"
                     },
                     "myWorkspaceKey": {
                         "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
+                    },
+                    "serverIpAddress": {
+                        "value": "[parameters('memberServer2Ip')]"
                     },
                     "subnetName": {
                         "value": "[variables('sharedSvcInfraSvcSubnetName')]"

@@ -662,6 +662,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
+                "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'),'/providers/microsoft.insights/diagnosticSettings/diag')]",
                 "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'))]"
             ],
             "properties": {
@@ -732,11 +733,55 @@
             }
         },
         {
-            "name": "[variables('deployBlobStPe')]",
+            "name": "[variables('deployLaPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployDnsServerSettings'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "dnsVnetResourceGroup": {
+                        "value": "[parameters('sharedSvcVnetResourceGroup')]"
+                    },
+                    "dnsVnetSubscriptionId": {
+                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
+                    },
+                    "laWorkspaceName": {
+                        "value": "[parameters('laWorkspaceName')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[parameters('laWorkspaceResourceId')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('centralSvcSubnetName')]"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('transitVnetName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('laPeDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployBlobStPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployLaPe'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -970,50 +1015,6 @@
             }
         },
         {
-            "name": "[variables('deployLaPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultPe'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "dnsVnetResourceGroup": {
-                        "value": "[parameters('sharedSvcVnetResourceGroup')]"
-                    },
-                    "dnsVnetSubscriptionId": {
-                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
-                    },
-                    "laWorkspaceName": {
-                        "value": "[parameters('laWorkspaceName')]"
-                    },
-                    "laWorkspaceResourceId": {
-                        "value": "[parameters('laWorkspaceResourceId')]"
-                    },
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('transitVnetName')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('laPeDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
             "name": "[variables('bastionName')]",
             "type": "Microsoft.Network/bastionHosts",
             "apiVersion": "[variables('networkApiVersion')]",
@@ -1021,7 +1022,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployLaPe'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultPe'))]"
             ],
             "tags": "[parameters('tags')]",
             "properties": {

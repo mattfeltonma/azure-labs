@@ -221,10 +221,11 @@
             },
             "resources": [
                 {
-                    "type": "extensions",
-                    "name": "CustomScriptExtension",
+                    "name": "[concat(parameters('vmName'),'/CustomScriptExtension')]",
+                    "type": "Microsoft.Compute/virtualMachines/extensions",
                     "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
+                    "tags": "[parameters('tags')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
                     ],
@@ -239,7 +240,7 @@
                             "fileUris": [
                                 "[variables('scriptUrl')]"
                             ],
-                            "commandToExecute": "[concat('sh ', variables('scriptName'))]"
+                            "commandToExecute": "[concat('sh ', variables('scriptName'), ' ', parameters('adminUsername'))]"
                         }
                     }
                 },
@@ -249,7 +250,8 @@
                     "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
                     "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/CustomScriptExtension')]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.Azure.NetworkWatcher",
@@ -264,7 +266,8 @@
                     "apiVersion": "[variables('vmApiVersion')]",
                     "location": "[variables('location')]",
                     "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/Microsoft.Azure.NetworkWatcher')]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.EnterpriseCloud.Monitoring",

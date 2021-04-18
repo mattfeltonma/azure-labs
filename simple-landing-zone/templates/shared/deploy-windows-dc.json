@@ -76,10 +76,16 @@
                 "description": "The Log and Analytics workspace secret"
             }
         },
+        "reverseDnsZoneName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the reverse DNS zone created on the domain "
+            }
+        },
         "subnetName": {
             "type": "string",
             "metadata": {
-                "description": "The subnet within the Virtual Network the network interface for the VM is to be placed in"
+                "description": "The name of the subnet to place the domain controller in"
             }
         },
         "tags": {
@@ -304,6 +310,9 @@
                             "Properties": {
                                 "DomainName": "[parameters('adDomainName')]",
                                 "NetBiosName": "[parameters('adNetBiosName')]",
+                                "ReverseZoneName": "[parameters('reverseDnsZoneName')]",
+                                "DcIpAddress": "[parameters('dcIpAddress')]",
+                                "MachineName": "[parameters('vmName')]",
                                 "AdminCreds": {
                                     "UserName": "[parameters('adminUsername')]",
                                     "Password": "PrivateSettingsRef:AdminPassword"

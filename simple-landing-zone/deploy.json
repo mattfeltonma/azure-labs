@@ -66,13 +66,7 @@
         "resourcesApiVersion": "2020-06-01",
         "cloudAddressSpace": "10.0.0.0/8",
         "coreServicesTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core-services/'))]",
-        "transitBastionSubnetCidr": "10.0.1.0/27",
-        "transitCentralSvcSubnetCidr": "10.0.3.0/24",
-        "transitDeploymentName": "deploy-transit",
-        "transitFwSubnetPayCidr": "10.0.2.0/26",
-        "transitGatewaySubnetCidr": "10.0.0.0/27",
-        "transitRgName": "[concat('rg-transit-',parameters('uniqueData'))]",
-        "transitVnetCidr": "10.0.0.0/16",
+        "reverseDnsZoneName": "0.1.10.in-addr.arpa",
         "sharedSvcRoutingDeploymentName": "deploy-shared-svc-routing",
         "sharedSvcAdMember1Ip": "10.1.1.4",
         "sharedSvcAdMember2Ip": "10.1.1.5",
@@ -82,6 +76,13 @@
         "sharedSvcVnetCidr": "10.1.0.0/16",
         "sharedSvcVnetSubnetAdCidr": "10.1.0.0/24",
         "sharedSvcVnetSubnetInfraCidr": "10.1.1.0/24",
+        "transitBastionSubnetCidr": "10.0.1.0/27",
+        "transitCentralSvcSubnetCidr": "10.0.3.0/24",
+        "transitDeploymentName": "deploy-transit",
+        "transitFwSubnetPayCidr": "10.0.2.0/26",
+        "transitGatewaySubnetCidr": "10.0.0.0/27",
+        "transitRgName": "[concat('rg-transit-',parameters('uniqueData'))]",
+        "transitVnetCidr": "10.0.0.0/16",
         "workloadDeploymentName": "deploy-workload",
         "workloadRgName": "[concat('rg-workload-',parameters('uniqueData'))]",
         "workloadTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/workload/'))]",
@@ -152,6 +153,9 @@
                     },
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
+                    "reverseDnsZoneName": {
+                        "value": "[variables('reverseDnsZoneName')]"
                     },
                     "sharedSvcVnetCidr": {
                         "value": "[variables('sharedSvcVnetCidr')]"

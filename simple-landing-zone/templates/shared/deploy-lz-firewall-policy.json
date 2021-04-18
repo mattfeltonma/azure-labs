@@ -80,7 +80,8 @@
                     "apiVersion": "[variables('networkApiVersion')]",
                     "location": "[variables('networkApiVersion')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]"
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]",
+                        "[concat('Microsoft.Network/firewallPolicies/', variables('lzFwPolicyName'), '/ruleCollectionGroups/', 'DefaultDnatRuleCollectionGroup')]"
                     ],
                     "properties": {
                         "priority": 200,

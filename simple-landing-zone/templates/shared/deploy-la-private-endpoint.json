@@ -76,7 +76,7 @@
     },
     "variables": {
         "insightsApiVersion": "2019-10-17-preview",
-        "networkApiVersion": "2020-05-01",
+        "networkApiVersion": "2020-07-01",
         "privateLinkConnName": "[substring(concat('plconn',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
         "privateLinkEndpointName": "[substring(concat('pl',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
         "privateLinkScopeName": "[substring(concat('plscope',parameters('laWorkspaceName'),parameters('uniqueData')),0,16)]",
