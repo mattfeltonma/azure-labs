@@ -2,13 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "acrEncryptionKeyName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the key that will be used for central ACR instance"   
-            },
-            "defaultValue": "kekacrcent"
-        },
         "diskEncryptionSetKeyName": {
             "type": "string",
             "metadata": {
@@ -167,19 +160,6 @@
             ]
         },
         {
-            "name": "[concat(variables('keyVaultName'),'/',parameters('acrEncryptionKeyName'))]",
-            "type": "Microsoft.KeyVault/vaults/keys",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
-            ],
-            "properties": {
-                "kty": "RSA",
-                "keySize": "4096"
-            }
-        },
-        {
             "name": "[concat(variables('keyVaultName'),'/',parameters('diskEncryptionSetKeyName'))]",
             "type": "Microsoft.KeyVault/vaults/keys",
             "apiVersion": "[variables('keyVaultApiVersion')]",
@@ -201,10 +181,6 @@
         "keyVaultResourceId": {
             "type": "string",
             "value": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
-        },
-        "keyVaultAcrKeyUri": {
-            "type": "string",
-            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', variables('keyVaultName'), parameters('acrEncryptionKeyName')),variables('keyVaultApiVersion'), 'Full').properties.keyUri]"
         },
         "keyVaultDesKeyUri": {
             "type": "string",
