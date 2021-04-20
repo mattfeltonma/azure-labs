@@ -208,7 +208,7 @@
         },
         "keyVaultDesKeyUri": {
             "type": "string",
-            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', variables('keyVaultName'), parameters('diskEncryptionSetKeyName')),variables('keyVaultApiVersion'), 'Full').properties.keyUri]"
+            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', variables('keyVaultName'), parameters('diskEncryptionSetKeyName')),variables('keyVaultApiVersion'), 'Full').properties.keyUriWithVersion]"
         }
     }
 }
