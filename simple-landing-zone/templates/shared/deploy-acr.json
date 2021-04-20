@@ -1,0 +1,184 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "acrKeyUri": {
+            "type": "string",
+            "metadata": {
+                "description": "The uri of key encryption key to be used by ACR"
+            }
+        },
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Key Vault instance where the key will be created"
+            }
+        },
+        "keyVaultResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group the Key Vault instance is associated with"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "keyVaultSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The id of the subscription the Key Vault instance is associated with"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
+        },
+        "laWorkspaceResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the Log Analytics Workspace the logs and metrics will be sent to"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the VM"
+            },
+            "defaultValue": {
+                "environment":"lab"
+            }
+        },      
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "acrApiVersion": "2019-12-01-preview",
+        "diagnosticApiVersion": "2017-05-01-preview",
+        "keyVaultApiVersion": "2019-09-01",
+        "miApiVersion": "2018-11-30",
+        "resourcesApiVersion": "2020-06-01",
+        "acrKeyDeploymentName": "deploy-acr-key",
+        "acrName": "[concat('acrcentral', parameters('uniqueData'))]",
+        "miName": "[concat('acrmi', parameters('uniqueData'))]",
+        "location": "[resourceGroup().location]"
+    },
+    "resources": [
+        {
+            "name": "[variables('miName')]",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "[variables('miApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "name": "[variables('acrKeyDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "resourceGroup": "[parameters('keyVaultResourceGroupName')]",
+            "subscriptionId": "[parameters('keyVaultSubscriptionId')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('miName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+                            "apiVersion": "[variables('keyVaultApiVersion')]",
+                            "name": "[concat(parameters('keyVaultName'), '/add')]",
+                            "properties": {
+                                "accessPolicies": [
+                                    {
+                                        "tenantId": "[subscription().tenantId]",
+                                        "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('miName')), variables('miApiVersion')).principalId]",
+                                        "permissions": {
+                                            "keys": [
+                                                "get",
+                                                "unwrapKey",
+                                                "wrapKey"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('acrName')]",
+            "type": "Microsoft.ContainerRegistry/registries",
+            "apiVersion": "[variables('acrApiVersion')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('acrKeyDeploymentName'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "sku": {
+                "name": "Premium",
+                "tier": "Premium"
+            },
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('miName'))]": {}
+                }
+            },
+            "properties": {
+                "encryption": {
+                    "status": "enabled",
+                    "keyVaultProperties": {
+                        "identity": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('miName')), variables('miApiVersion')).clientId]",
+                        "keyIdentifier": "[parameters('acrKeyUri')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('acrName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.ContainerRegistry/registries/providers/diagnosticSettings",
+            "apiVersion": "[variables('diagnosticApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerRegistry/registries',variables('acrName'))]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[parameters('laWorkspaceResourceId')]",
+                "logs": [
+                    {
+                        "category": "ContainerRegistryRepositoryEvents",
+                        "enabled": true
+                    },
+                    {
+                        "category": "ContainerRegistryLoginEvents",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        }
+    ],
+    "outputs": {
+        "acrName": {
+            "type": "string",
+            "value": "[variables('acrName')]"
+        },
+        "acrResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.ContainerRegistry/registries',variables('acrName'))]"
+        }
+    }
+}
