@@ -7,7 +7,7 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 
 ## Key Design Principles
 
-**Provide a centralized authentication service for virtual machine access**
+**Provide a centralized authentication service for Windows virtual machine access**
 * Windows Active Directory domain complete with sample users and groups
 
 **Restrict access to Azure resources from the Internet**
@@ -25,6 +25,9 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 **Encryption-at-rest**
 * Virtual Machines are encrypted with SSE w/ Managed Disk and CMK
 
+**Support Least Privilege**
+* Three resource groups deployed with one for shared services, one for network transit, and one for workload allowing fine grained access for systems, networking, and development teams
+
 **Central secrets storage**
 * Domain username and password are stored in Azure Key Vault
 * CMK used for Virtual Machine encryption stored in Azure Key Vault
@@ -37,9 +40,10 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 * Traffic Analytics monitoring solution enabled for NSG flow logs
 * Key Vault Analytics monitoring solution enabled for visibility into Key Vault access
 
-**Additional Features**
+**Additional Features and Notes**
 * Windows Server VM utility server joined to Active Directory domain with SQL Server Management Studio, Remote Server Administration Tools, Az CLI, and Az PowerShell modules installed
 * Ubuntu Server VM utility server with Az CLI, kubectl, and Docker installed
+* Ubuntu Server VM uses the administrator username and password supplied at deployment
 
 ## Prerequisites
 1. [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
@@ -70,7 +74,7 @@ The template will take about 2 hour to fully deploy. Ensure you have the Contrib
 * 4/18/2021
   * Added Docker installation to Ubuntu server post-provisioning script
   * Modified Firewall Policy to include empty DNAT rule collection
-  * Modified Log Analytics Private Endpoint to provision first to address issue where it would fail randomely
+  * Modified Log Analytics Private Endpoint to provision first to address issue where it would fail randomly
   
 * 4/8/2021
   * Added provisioning script to install SQL Server Management Studio, Az CLI, Az PowerShell module, and Windows Remote Server Administration Tools
