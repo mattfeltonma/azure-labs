@@ -112,6 +112,10 @@
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
+        "acrDeploymentName": "deploy-acr",
+        "acrDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-acr.json')]",
+        "acrDnsZoneName": "privatelink.azurecr.io",
+        "acrPlLinkName": "[concat(variables('acrDnsZoneName'), '-link')]",
         "adMemberVm1DeploymentName": "deploy-admember1",
         "adMemberVm1Name": "vmwserver01",
         "adNsgFlowLogDeploymentName": "deploy-adflowlog",
@@ -672,7 +676,7 @@
             ],
             "properties": {
                 "mode": "Incremental",
-                "parameters": {
+                "parameters": {                
                     "diskEncryptionSetKeyName": {
                         "value": "[variables('sharedSvcDiskEncSetName')]"
                     },
@@ -691,6 +695,32 @@
                 },
                 "templateLink": {
                     "uri": "[variables('keyVaultDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('acrDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "laWorkspaceResourceId": {
+                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('acrDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -773,7 +803,7 @@
                         "value": "[variables('sharedSvcDiskEncSetName')]"
                     },
                     "keyUrl": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultKeyUri.value]"
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultDesKeyUri.value]"
                     },
                     "keyVaultName": {
                         "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
@@ -1178,6 +1208,12 @@
         {
             "type": "Microsoft.Network/privateDnsZones",
             "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[variables('acrDnsZoneName')]",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
             "name": "[variables('blobStorageDnsZoneName')]",
             "location": "global"
         },
@@ -1359,6 +1395,22 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/privateDnsZones',variables('keyVaultDnsZoneName'))]",
                 "Microsoft.Network/privateDnsZones/privatelink.agentsvc.azure-automation.net/virtualNetworkLinks/privatelink.agentsvc.azure-automation.net-link"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[concat(variables('acrDnsZoneName'), '/', variables('acrPlLinkName'))]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones',variables('acrDnsZoneName'))]",
+                "[concat('Microsoft.Network/privateDnsZones/', variables('keyVaultDnsZoneName'), '/virtualNetworkLinks/', variables('keyVaultPlLinkName'))]"
             ],
             "properties": {
                 "registrationEnabled": false,
@@ -1611,6 +1663,14 @@
         }
     ],
     "outputs": {
+        "acrRegistryName": {
+            "type": "string",
+            "value": "[reference(variables('acrDeploymentName')).outputs.acrName.value]"
+        },
+        "acrRegistryResourceId": {
+            "type": "string",
+            "value": "[reference(variables('acrDeploymentName')).outputs.acrResourceId.value]"
+        },
         "KeyVaultName": {
             "type": "string",
             "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"

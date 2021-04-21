@@ -197,6 +197,12 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "acrRegistryName": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.acrRegistryName.value]"
+                    },
+                    "acrRegistryResourceId": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.acrRegistryResourceId.value]"
+                    },
                     "cloudAddressSpace": {
                         "value": "[variables('cloudAddressSpace')]"
                     },

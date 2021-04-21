@@ -2,6 +2,18 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "acrRegistryName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the ACR instance"
+            }
+        },
+        "acrRegistryResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the ACR instance"
+            }
+        },
         "cloudAddressSpace": {
             "type": "string",
             "metadata": {
@@ -152,6 +164,7 @@
         "diagnosticApiVersion": "2017-05-01-preview",
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
+        "acrDnsZoneName": "privatelink.azurecr.io",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
         "bastionNsgName": "[concat('nsg-bst', parameters('uniqueData'))]",
         "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
@@ -159,6 +172,7 @@
         "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
         "centralSvcNsgName": "[concat('nsg-cent', parameters('uniqueData'))]",
         "centralSvcSubnetName": "snet-central",
+        "deployAcrPe": "deploy-acrprivateendpoint",
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
         "deployBlobStPe": "deploy-storageblobprivateendpoint",
         "deployCentralSvcNsgFlowLog": "deploy-centsvcnsgflowlog",
@@ -1015,6 +1029,53 @@
             }
         },
         {
+            "name": "[variables('deployAcrPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('acrDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('sharedSvcVnetResourceGroup')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('centralSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "registry"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('transitVnetName')]"
+                    },
+                    "resourceName": {
+                        "value": "[parameters('acrRegistryName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[parameters('acrRegistryResourceId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "name": "[variables('bastionName')]",
             "type": "Microsoft.Network/bastionHosts",
             "apiVersion": "[variables('networkApiVersion')]",
@@ -1022,7 +1083,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultPe'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployAcrPe'))]"
             ],
             "tags": "[parameters('tags')]",
             "properties": {
