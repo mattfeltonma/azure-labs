@@ -53,12 +53,12 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 The template will take about 2 hour to fully deploy. Ensure you have the Contributor or greater on the subscription you are deploying the lab to.
 
 **The template allows for the following parameters**
-    * adDomainName - The DNS domain name assigned to the Active Directory domain.
-    * adNetBiosName - The NetBIOS name assigned to the Active Directory domain.
-    * location - The region the resources will be provisioned to.
-    * keyVaultAdminObjecId - The user account that will be the administrator of the Key Vault. Note that the permissions assigned to the is account exclude destructive permissions such as purge. Review the permissions in the /templates/shared/deploy-keyvault.json template for a detailed list of the permissions.
-    * vmAdminUsername - The username for the local administrators of the two virtual machines provisioned. This will also be the name of the built-in Domain Administrator in the Active Directory domain.
-    * vmAdminPassword - The password assigned to the local administrator account of the virtual machines, the Active Directory domain administrator account, and the sample Active Directory user accounts. You can change these later on to improve the security posture of the environment. This must be supplied as a secure string.
+* adDomainName - The DNS domain name assigned to the Active Directory domain.
+* adNetBiosName - The NetBIOS name assigned to the Active Directory domain.
+* location - The region the resources will be provisioned to.
+* keyVaultAdminObjecId - The user account that will be the administrator of the Key Vault. Note that the permissions assigned to the is account exclude destructive permissions such as purge. Review the permissions in the /templates/shared/deploy-keyvault.json template for a detailed list of the permissions.
+* vmAdminUsername - The username for the local administrators of the two virtual machines provisioned. This will also be the name of the built-in Domain Administrator in the Active Directory domain.
+* vmAdminPassword - The password assigned to the local administrator account of the virtual machines, the Active Directory domain administrator account, and the sample Active Directory user accounts. You can change these later on to improve the security posture of the environment. This must be supplied as a secure string.
 
 ![Deploy to Azure](https://aka.ms/deploytoazurebutton)
 
