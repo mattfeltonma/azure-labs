@@ -39,7 +39,7 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 
 **Additional Features**
 * Windows Server VM utility server joined to Active Directory domain with SQL Server Management Studio, Remote Server Administration Tools, Az CLI, and Az PowerShell modules installed
-* Ubuntu Server VM utility server with Az CLI and kubectl installed
+* Ubuntu Server VM utility server with Az CLI, kubectl, and Docker installed
 
 ## Prerequisites
 1. [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
@@ -50,7 +50,9 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 
 ## Installation
 
-1. The template allows for the following parameters
+The template will take about 2 hour to fully deploy. Ensure you have the Contributor or greater on the subscription you are deploying the lab to.
+
+**The template allows for the following parameters**
     * adDomainName - The DNS domain name assigned to the Active Directory domain.
     * adNetBiosName - The NetBIOS name assigned to the Active Directory domain.
     * location - The region the resources will be provisioned to.
@@ -58,15 +60,13 @@ This project creates an environment I'm branding a "simple landing zone". It is 
     * vmAdminUsername - The username for the local administrators of the two virtual machines provisioned. This will also be the name of the built-in Domain Administrator in the Active Directory domain.
     * vmAdminPassword - The password assigned to the local administrator account of the virtual machines, the Active Directory domain administrator account, and the sample Active Directory user accounts. You can change these later on to improve the security posture of the environment. This must be supplied as a secure string.
 
-2. Execute the template. Use the object id you collected in the prerequisites for the keyVaultAdminObjectId parameter.
+![Deploy to Azure](https://aka.ms/deploytoazurebutton)
 
-    `az deployment sub create --name slz --location EastUS2 --template-uri "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/simple-landing-zone/deploy.json" --parameters adDomainName=mydomain.com adNetBiosName=mydomain location=eastus2 keyVaultAdminObjectId=ffffffff-ffff-ffff-ffff-ffffffffffff vmAdminUsername=masteruser`
-
-3. You will be prompted to enter a secure string for the vmAdminPassword. Provide the value and press enter.
-
-The template will take around 1 hour to fully deploy. After the environment is deployed you can access the virtual machines using the Azure Bastion instance. Note that it can take up to 30 minutes for logs and metrics to appear in the Log Analytics Workspace.
 
 ## Change Log
+* 4/20/2021
+  * Added centralized Azure Container Registry behind a Private Endpoint
+
 * 4/18/2021
   * Added Docker installation to Ubuntu server post-provisioning script
   * Modified Firewall Policy to include empty DNAT rule collection
