@@ -1669,7 +1669,7 @@
         },
         "acrRegistryResourceId": {
             "type": "string",
-            "value": "[reference(variables('keyVaultDeploymentName')).outputs.acrResourceId.value]"
+            "value": "[reference(variables('acrDeploymentName')).outputs.acrResourceId.value]"
         },
         "KeyVaultName": {
             "type": "string",
