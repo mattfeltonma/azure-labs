@@ -52,6 +52,10 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 
     `az ad user show --id someuser@sometenant.com --query objectId --output tsv`
 
+3. Enable Network Watcher in the region you plan to deploy the resources to.
+
+    `az network watcher configure --resource-group=NetworkWatcherRG --locations=eastus2 --enabled=true`
+    
 ## Installation
 
 The template will take about 2 hour to fully deploy. Ensure you have the Contributor or greater on the subscription you are deploying the lab to.
