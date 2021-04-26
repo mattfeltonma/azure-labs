@@ -43,6 +43,7 @@
                 "tier": "Premium"
             },
             "properties": {
+                "publicNetworkAccess": "Disabled"
             }
         },
         {
