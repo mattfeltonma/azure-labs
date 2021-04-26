@@ -13,11 +13,11 @@
             "metadata": {
                 "description": "The NetBIOS name assigned to the Active Directory domain"
             }
-        },   
+        },
         "location": {
             "type": "string",
             "metadata": {
-                "description": "The location to deploy the resources"
+                "description": "The location to deploy the resources. Use the region abbrevation such as 'eastus2' or 'westus2'"
             }
         },
         "keyVaultAdminObjectId": {
@@ -250,7 +250,7 @@
                     },
                     "sharedSvcVnetName": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedSvcVnetName.value]"
-                    },                    
+                    },
                     "sharedSvcVnetResourceId": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedSvcVnetResourceId.value]"
                     },
