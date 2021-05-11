@@ -58,7 +58,9 @@ This project creates an environment I'm branding a "simple landing zone". It is 
     
 ## Installation
 
-The template will take about 2 hour to fully deploy. Ensure you have the Contributor or greater on the subscription you are deploying the lab to.
+The template will take about 2 hour to fully deploy. Ensure you have the Contributor or greater on the subscription you are deploying the lab to. 
+
+Occasionally the template will fail to deploy at the Log Analytics Private Endpoint deployment step with an InternalServerError. Delete the resources and re-run the template if this occurs.
 
 **The template allows for the following parameters**
 * adDomainName - The DNS domain name assigned to the Active Directory domain.
