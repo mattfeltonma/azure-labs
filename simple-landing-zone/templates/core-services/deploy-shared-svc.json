@@ -131,7 +131,7 @@
         "userPasswordSecretName": "domainadminpassword",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
-        "infraNsgFlowLogDeploymentName": "deploy-infralowlog",
+        "infraNsgFlowLogDeploymentName": "deploy-infraflowlog",
         "infraNsgName": "[concat('nsg-infra', parameters('uniqueData'))]",
         "keyVaultDeploymentName": "deploy-keyvault",
         "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-keyvault.json')]",
@@ -730,6 +730,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('acrDeploymentName'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
             ],
             "properties": {
@@ -762,6 +763,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('acrDeploymentName'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
             ],
             "properties": {

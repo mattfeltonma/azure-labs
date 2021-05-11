@@ -233,7 +233,8 @@
         "uniquePrivateEndpointNameWeb": "[substring(concat(concat('plweb',substring(variables('functionName'),5)),uniqueString(subscription().id, resourceGroup().id)),15)]",
         "uniquePrivateLinkConnectionNameWeb": "[substring(concat(concat('plconnweb',substring(variables('functionName'),5)),uniqueString(subscription().id, resourceGroup().id)),15)]",
         "repoUrl": "https://github.com/mattfeltonma/azure-function-example.git",
-        "branch": "master"
+        "branch": "master",
+        "vmTemplateUri": "https://raw.githubusercontent.com/mattfeltonma/arm-templates/master/examples/vm-windows-server-2019/deploy.json"
     },
     "resources": [
         {
@@ -951,7 +952,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/mattfeltonma/arm-templates/master/examples/vm-windows-server-2016/vm-win-2016.json",
+                    "uri": "[variables('vmTemplateUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
