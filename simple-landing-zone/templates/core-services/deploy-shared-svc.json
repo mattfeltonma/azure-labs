@@ -1504,7 +1504,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/privateDnsZones/', variables('keyVaultDnsZoneName'), '/virtualNetworkLinks/', variables('acrPlLinkName'))]"
+                "[concat('Microsoft.Network/privateDnsZones/', variables('acrDnsZoneName'), '/virtualNetworkLinks/', variables('acrPlLinkName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
