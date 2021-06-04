@@ -76,8 +76,8 @@
         "sharedSvcVnetCidr": "10.1.0.0/16",
         "sharedSvcVnetSubnetAdCidr": "10.1.0.0/24",
         "sharedSvcVnetSubnetInfraCidr": "10.1.1.0/24",
+        "sharedSvcVnetSubnetPeCidr": "10.1.2.0/24",
         "transitBastionSubnetCidr": "10.0.1.0/27",
-        "transitCentralSvcSubnetCidr": "10.0.3.0/24",
         "transitDeploymentName": "deploy-transit",
         "transitFwSubnetPayCidr": "10.0.2.0/26",
         "transitGatewaySubnetCidr": "10.0.0.0/27",
@@ -166,6 +166,9 @@
                     "sharedSvcVnetSubnetInfraCidr": {
                         "value": "[variables('sharedSvcVnetSubnetInfraCidr')]"
                     },
+                    "sharedSvcVnetSubnetPeCidr": {
+                        "value": "[variables('sharedSvcVnetSubnetPeCidr')]"   
+                    },
                     "tags": {
                         "value": "[parameters('tags')]"
                     },
@@ -197,56 +200,20 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "acrRegistryName": {
-                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.acrRegistryName.value]"
-                    },
-                    "acrRegistryResourceId": {
-                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.acrRegistryResourceId.value]"
-                    },
                     "cloudAddressSpace": {
                         "value": "[variables('cloudAddressSpace')]"
                     },
                     "dnsServerIp": {
                         "value": "[variables('sharedSvcAdVmIp')]"
                     },
-                    "transitBastionSubnetCidr": {
-                        "value": "[variables('transitBastionSubnetCidr')]"
-                    },
-                    "transitCentralSvcSubnetCidr": {
-                        "value": "[variables('transitCentralSvcSubnetCidr')]"
-                    },
-                    "transitFwSubnetPayCidr": {
-                        "value": "[variables('transitFwSubnetPayCidr')]"
-                    },
-                    "transitGatewaySubnetCidr": {
-                        "value": "[variables('transitGatewaySubnetCidr')]"
-                    },
-                    "transitVnetCidr": {
-                        "value": "[variables('transitVnetCidr')]"
-                    },
-                    "keyVaultName": {
-                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.keyVaultName.value]"
-                    },
-                    "keyVaultResourceId": {
-                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.keyVaultResourceId.value]"
-                    },
-                    "laWorkspaceName": {
-                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.laWorkspaceName.value]"
-                    },
                     "laWorkspaceResourceId": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.laWorkspaceResourceId.value]"
-                    },
-                    "logStorageAccountName": {
-                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.logStorageName.value]"
                     },
                     "logStorageAccountResourceId": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.logStorageResourceId.value]"
                     },
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
-                    },
-                    "sharedSvcVnetCidr": {
-                        "value": "[variables('sharedSvcVnetCidr')]"
                     },
                     "sharedSvcVnetName": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedSvcVnetName.value]"
@@ -259,6 +226,18 @@
                     },
                     "sharedSvcVnetSubnetAdCidr": {
                         "value": "[variables('sharedSvcVnetSubnetAdCidr')]"
+                    },
+                    "transitBastionSubnetCidr": {
+                        "value": "[variables('transitBastionSubnetCidr')]"
+                    },
+                    "transitFwSubnetPayCidr": {
+                        "value": "[variables('transitFwSubnetPayCidr')]"
+                    },
+                    "transitGatewaySubnetCidr": {
+                        "value": "[variables('transitGatewaySubnetCidr')]"
+                    },
+                    "transitVnetCidr": {
+                        "value": "[variables('transitVnetCidr')]"
                     },
                     "workloadVnetCidr": {
                         "value": "[variables('workloadVnetCidr')]"

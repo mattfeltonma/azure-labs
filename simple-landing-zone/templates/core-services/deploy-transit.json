@@ -2,18 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "acrRegistryName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the ACR instance"
-            }
-        },
-        "acrRegistryResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource id of the ACR instance"
-            }
-        },
         "cloudAddressSpace": {
             "type": "string",
             "metadata": {
@@ -26,34 +14,10 @@
                 "description": "The IP address used to set the DNS settings for the virtual network and Azure Firewall"
             }
         },
-        "keyVaultName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the central Azure Key Vault instance"
-            }
-        },
-        "keyVaultResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource ID of the central Azure Key Vault instance"
-            }
-        },
-        "laWorkspaceName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the central Log Analytics Workspace"
-            }
-        },
         "laWorkspaceResourceId": {
             "type": "string",
             "metadata": {
                 "description": "The resource ID of the central Log Analytics Workspace"
-            }
-        },
-        "logStorageAccountName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the storage account used for log storage"
             }
         },
         "logStorageAccountResourceId": {
@@ -68,12 +32,6 @@
                 "description": "The resource group where the Network Watcher instances are stored"
             },
             "defaultValue": "NetworkWatcherRG"
-        },
-        "sharedSvcVnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the Shared Services virtual network"
-            }
         },
         "sharedSvcVnetName": {
             "type": "string",
@@ -91,15 +49,7 @@
             "type": "string",
             "metadata": {
                 "description": "The resource group where the Shared Services Virtual Network exists"
-            },
-            "defaultValue": "[resourceGroup().name]"
-        },
-        "sharedSvcVnetSubscriptionId": {
-            "type": "string",
-            "metadata": {
-                "description": "The subscription ID where the Shared Services resources exist"
-            },
-            "defaultValue": "[subscription().subscriptionId]"
+            }
         },
         "sharedSvcVnetSubnetAdCidr": {
             "type": "string",
@@ -111,12 +61,6 @@
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the Bastion subnet in the transit virtual network"
-            }
-        },
-        "transitCentralSvcSubnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the subnet used to store centralized private enpdoint services"
             }
         },
         "transitFwSubnetPayCidr": {
@@ -164,26 +108,14 @@
         "diagnosticApiVersion": "2017-05-01-preview",
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
-        "acrDnsZoneName": "privatelink.azurecr.io",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
         "bastionNsgName": "[concat('nsg-bst', parameters('uniqueData'))]",
         "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
         "bastionSubnetName": "AzureBastionSubnet",
-        "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
-        "centralSvcNsgName": "[concat('nsg-cent', parameters('uniqueData'))]",
-        "centralSvcSubnetName": "snet-central",
-        "deployAcrPe": "deploy-acrprivateendpoint",
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
-        "deployBlobStPe": "deploy-storageblobprivateendpoint",
         "deployCentralSvcNsgFlowLog": "deploy-centsvcnsgflowlog",
         "deployDnsServerSettings": "deploy-dnsserversettings",
-        "deployFileStPe": "deploy-storagefileprivateendpoint",
         "deployFirewallPolicy": "deploy-firewallpolicy",
-        "deployKeyVaultPe": "deploy-keyvaultprivateendpoint",
-        "deployLaPe": "deploy-laprivateendpoint",
-        "deployTableStPe": "deploy-storagetableprivateendpoint",
-        "deployQueueStPe": "deploy-storagequeueprivateendpoint",
-        "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
         "firewallAz": [
             "1"
         ],
@@ -192,17 +124,12 @@
         "firewallPublicIpName": "[concat('pip-fw', parameters('uniqueData'))]",
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
-        "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-nsg-flow-log.json')]",
-        "laPeDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-la-private-endpoint.json')]",
         "location": "[resourceGroup().location]",
         "peeringTransitToShared": "peertransittoshared",
         "peeringSharedToTransit": "peersharedtotransit",
-        "peDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-private-endpoint.json')]",
-        "queueStorageDnsZoneName": "privatelink.queue.core.windows.net",
         "sharedSvcPeeringDeploymentName": "deploy-peering",
-        "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "vnetStandardDdosProtection": false
     },
     "resources": [
@@ -415,16 +342,6 @@
             }
         },
         {
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[variables('centralSvcNsgName')]",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "properties": {
-                "securityRules": []
-            }
-        },
-        {
             "name": "[variables('deployBastionNsgFlowLog')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
@@ -449,43 +366,6 @@
                     },
                     "targetNsgResourceId": {
                         "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('bastionNsgName'))]"
-                    },
-                    "targetStorageResourceId": {
-                        "value": "[parameters('logStorageAccountResourceId')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('nsgDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deployCentralSvcNsgFlowLog')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "resourceGroup": "[parameters('networkWatcherRg')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deployBastionNsgFlowLog'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    },
-                    "location": {
-                        "value": "[variables('location')]"
-                    },
-                    "targetLaWorkspaceResourceId": {
-                        "value": "[parameters('laWorkspaceResourceId')]"
-                    },
-                    "targetNsgName": {
-                        "value": "[variables('centralSvcNsgName')]"
-                    },
-                    "targetNsgResourceId": {
-                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('centralSvcNsgName'))]"
                     },
                     "targetStorageResourceId": {
                         "value": "[parameters('logStorageAccountResourceId')]"
@@ -532,16 +412,6 @@
                         "name": "[variables('fwPayloadSubnetName')]",
                         "properties": {
                             "addressPrefix": "[parameters('transitFwSubnetPayCidr')]"
-                        }
-                    },
-                    {
-                        "name": "[variables('centralSvcSubnetName')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('transitCentralSvcSubnetCidr')]",
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
-                            },
-                            "privateEndpointNetworkPolicies": "Disabled"
                         }
                     }
                 ],
@@ -720,16 +590,6 @@
                                         "properties": {
                                             "addressPrefix": "[parameters('transitFwSubnetPayCidr')]"
                                         }
-                                    },
-                                    {
-                                        "name": "[variables('centralSvcSubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('transitCentralSvcSubnetCidr')]",
-                                            "networkSecurityGroup": {
-                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('centralSvcNsgName'))]"
-                                            },
-                                            "privateEndpointNetworkPolicies": "Disabled"
-                                        }
                                     }
                                 ],
                                 "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
@@ -747,335 +607,6 @@
             }
         },
         {
-            "name": "[variables('deployLaPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployDnsServerSettings'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "dnsVnetResourceGroup": {
-                        "value": "[parameters('sharedSvcVnetResourceGroup')]"
-                    },
-                    "dnsVnetSubscriptionId": {
-                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
-                    },
-                    "laWorkspaceName": {
-                        "value": "[parameters('laWorkspaceName')]"
-                    },
-                    "laWorkspaceResourceId": {
-                        "value": "[parameters('laWorkspaceResourceId')]"
-                    },
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('transitVnetName')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('laPeDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deployBlobStPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployLaPe'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "privateDnsZoneName": {
-                        "value": "[variables('blobStorageDnsZoneName')]"
-                    },
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateDnsZoneResourceGroup": {
-                        "value": "[parameters('sharedSvcVnetResourceGroup')]"
-                    },
-                    "privateDnsZoneSubscription": {
-                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "privateEndpointSubResource": {
-                        "value": "blob"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('transitVnetName')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[parameters('logStorageAccountResourceId')]"
-                    },
-                    "resourceName": {
-                        "value": "[parameters('logStorageAccountName')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('peDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deployFileStPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployBlobStPe'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "privateDnsZoneName": {
-                        "value": "[variables('fileStorageDnsZoneName')]"
-                    },
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateDnsZoneResourceGroup": {
-                        "value": "[parameters('sharedSvcVnetResourceGroup')]"
-                    },
-                    "privateDnsZoneSubscription": {
-                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "privateEndpointSubResource": {
-                        "value": "file"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('transitVnetName')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[parameters('logStorageAccountResourceId')]"
-                    },
-                    "resourceName": {
-                        "value": "[parameters('logStorageAccountName')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('peDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deployTableStPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployFileStPe'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "privateDnsZoneName": {
-                        "value": "[variables('tableStorageDnsZoneName')]"
-                    },
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateDnsZoneResourceGroup": {
-                        "value": "[parameters('sharedSvcVnetResourceGroup')]"
-                    },
-                    "privateDnsZoneSubscription": {
-                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "privateEndpointSubResource": {
-                        "value": "table"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('transitVnetName')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[parameters('logStorageAccountResourceId')]"
-                    },
-                    "resourceName": {
-                        "value": "[parameters('logStorageAccountName')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('peDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deployQueueStPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployTableStPe'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "privateDnsZoneName": {
-                        "value": "[variables('queueStorageDnsZoneName')]"
-                    },
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateDnsZoneResourceGroup": {
-                        "value": "[parameters('sharedSvcVnetResourceGroup')]"
-                    },
-                    "privateDnsZoneSubscription": {
-                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "privateEndpointSubResource": {
-                        "value": "queue"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('transitVnetName')]"
-                    },
-                    "resourceName": {
-                        "value": "[parameters('logStorageAccountName')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[parameters('logStorageAccountResourceId')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('peDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deployKeyVaultPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployQueueStPe'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "privateDnsZoneName": {
-                        "value": "[variables('keyVaultDnsZoneName')]"
-                    },
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateDnsZoneResourceGroup": {
-                        "value": "[parameters('sharedSvcVnetResourceGroup')]"
-                    },
-                    "privateDnsZoneSubscription": {
-                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "privateEndpointSubResource": {
-                        "value": "vault"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('transitVnetName')]"
-                    },
-                    "resourceName": {
-                        "value": "[parameters('keyVaultName')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[parameters('keyVaultResourceId')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('peDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deployAcrPe')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultPe'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "privateDnsZoneName": {
-                        "value": "[variables('acrDnsZoneName')]"
-                    },
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateDnsZoneResourceGroup": {
-                        "value": "[parameters('sharedSvcVnetResourceGroup')]"
-                    },
-                    "privateDnsZoneSubscription": {
-                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('centralSvcSubnetName')]"
-                    },
-                    "privateEndpointSubResource": {
-                        "value": "registry"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('transitVnetName')]"
-                    },
-                    "resourceName": {
-                        "value": "[parameters('acrRegistryName')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[parameters('acrRegistryResourceId')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('peDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
             "name": "[variables('bastionName')]",
             "type": "Microsoft.Network/bastionHosts",
             "apiVersion": "[variables('networkApiVersion')]",
@@ -1083,7 +614,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployAcrPe'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployDnsServerSettings'))]"
             ],
             "tags": "[parameters('tags')]",
             "properties": {
