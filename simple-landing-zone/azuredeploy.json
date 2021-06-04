@@ -279,6 +279,9 @@
                     "sharedSvcInfraNsgResourceId": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedSvcInfraNsgResourceId.value]"
                     },
+                    "sharedSvcPeNsgResourceId": {
+                        "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedSvcPeNsgResourceId.value]"
+                    },
                     "sharedSvcRouteTableName": {
                         "value": "[reference(variables('sharedSvcDeploymentName')).outputs.sharedSvcRouteTableName.value]"
                     },
@@ -296,6 +299,9 @@
                     },
                     "sharedSvcVnetSubnetInfraCidr": {
                         "value": "[variables('sharedSvcVnetSubnetInfraCidr')]"
+                    },
+                    "sharedSvcVnetSubnetPeCidr": {
+                        "value": "[variables('sharedSvcVnetSubnetPeCidr')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"

@@ -26,6 +26,12 @@
                 "description": "The resource ID of the Shared Services Infrastructure Network Security Group"
             }            
         },
+        "sharedSvcPeNsgResourceId" : {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the Shared Services Private Endpoint Network Security Group"
+            }            
+        },
         "sharedSvcRouteTableName": {
             "type": "string",
             "metadata": {
@@ -62,6 +68,12 @@
                 "description": "The CIDR of the Infrastructure subnet in the Shared Services Virtual Network"
             }
         },
+        "sharedSvcVnetSubnetPeCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR of the Private Endpoint subnet in the Shared Services Virtual Network"
+            }
+        },
         "tags": {
             "type": "object",
             "metadata": {
@@ -77,6 +89,7 @@
         "location": "[resourceGroup().location]",
         "sharedSvcAdSubnetName": "snet-ad",
         "sharedSvcInfraSvcSubnetName": "snet-infra",
+        "sharedSvcPeSvcSubnetName": "snet-pe",
         "vnetStandardDdosProtection": false
     },
     "resources": [
@@ -141,6 +154,18 @@
                             },
                             "networkSecurityGroup": {
                                 "id": "[parameters('sharedSvcInfraNsgResourceId')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('sharedSvcPeSvcSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('sharedSvcVnetSubnetPeCidr')]",
+                            "routeTable": {
+                                "id": "[parameters('sharedSvcRouteTableResourceId')]"
+                            },
+                            "networkSecurityGroup": {
+                                "id": "[parameters('sharedSvcPeNsgResourceId')]"
                             }
                         }
                     }

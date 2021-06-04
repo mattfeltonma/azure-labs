@@ -2120,6 +2120,10 @@
             "type": "string",
             "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]"
         },
+        "sharedSvcPeNsgResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]"
+        },
         "sharedSvcRouteTableName": {
             "type": "string",
             "value": "[variables('sharedSvcRouteTableName')]"
