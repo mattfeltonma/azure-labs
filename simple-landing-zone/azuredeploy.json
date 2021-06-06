@@ -214,7 +214,7 @@
                             }
                         }
                     ],
-                    "output": {
+                    "outputs": {
                         "acrRegistryName": {
                             "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.acrRegistryName.value]"
