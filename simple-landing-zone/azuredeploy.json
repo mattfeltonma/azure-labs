@@ -216,63 +216,83 @@
                     ],
                     "output": {
                         "acrRegistryName": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.acrRegistryName.value]"
                         },
                         "acrRegistryResourceId": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.acrRegistryResourceId.value]"
                         },
                         "keyVaultName": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.keyVaultName.value]"
                         },
                         "keyVaultResourceId": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.keyVaultResourceId.value]"
                         },
                         "laWorkspaceId": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.laWorkspaceId.value]"
                         },
                         "laWorkspaceKey": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.laWorkspaceKey.value]"
                         },
                         "laWorkspaceName": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.laWorkspaceName.value]"
                         },
                         "laWorkspaceResourceId": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.laWorkspaceResourceId.value]"
                         },
                         "logStorageName": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.logStorageName.value]"
                         },
                         "logStorageResourceId": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.logStorageResourceId.value]"
                         },
                         "sharedSvcAdNsgResourceId": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcAdNsgResourceId.value]"
                         },
                         "sharedSvcInfraNsgResourceId": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcInfraNsgResourceId.value]"
                         },
                         "sharedSvcPeNsgResourceId": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcPeNsgResourceId.value]"
                         },
                         "sharedSvcAdSubnetName": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcAdSubnetName.value]"
                         },
                         "sharedSvcInfraSubnetName": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcInfraSubnetName.value]"
                         },
                         "sharedSvcPeSubnetName": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcPeSubnetName.value]"
                         },
                         "sharedSvcRouteTableName": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcRouteTableName.value]"
                         },
                         "sharedSvcRouteTableResourceId": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcRouteTableResourceId.value]"
                         },
                         "sharedSvcVnetName": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcVnetName.value]"
                         },
                         "sharedSvcVnetResourceId": {
+                            "type": "string",
                             "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcVnetResourceId.value]"
                         }
                     }
