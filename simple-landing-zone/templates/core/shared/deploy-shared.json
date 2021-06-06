@@ -694,7 +694,7 @@
             ],
             "properties": {
                 "mode": "Incremental",
-                "parameters": {                
+                "parameters": {
                     "diskEncryptionSetKeyName": {
                         "value": "[variables('sharedSvcDiskEncSetName')]"
                     },
@@ -863,7 +863,7 @@
             "properties": {
                 "securityRules": []
             }
-        },    
+        },
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('adNsgName')]",
@@ -1718,7 +1718,7 @@
                     "privateEndpointVnetName": {
                         "value": "[variables('sharedSvcVnetName')]"
                     },
-                   "resourceIdentifier": {
+                    "resourceIdentifier": {
                         "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
                     },
                     "resourceName": {
@@ -1952,7 +1952,8 @@
                                             },
                                             "networkSecurityGroup": {
                                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]"
-                                            }
+                                            },
+                                            "privateEndpointNetworkPolicies": "Disabled"
                                         }
                                     }
                                 ],
