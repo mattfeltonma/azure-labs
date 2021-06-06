@@ -97,7 +97,7 @@
         "sharedSvcAdMember1Ip": "10.1.1.4",
         "sharedSvcAdMember2Ip": "10.1.1.5",
         "sharedSvcAdVmIp": "10.1.0.4",
-        "sharedSvcRgDeploymentName": "deploy-shared",
+        "sharedSvcRgDeploymentName": "deploy-shared-rg",
         "sharedSvcSubDeploymentName": "deploy-shared-sub",
         "sharedSvcRgName": "[concat('rg-shared-',parameters('uniqueData'))]",
         "sharedSvcTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/shared/'))]",
