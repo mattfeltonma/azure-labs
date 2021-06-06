@@ -7,6 +7,11 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 
 ## Key Design Principles
 
+**Allow for minimization of blast radius**
+* Allows for multi-subscription deployment
+* Deploys resources into separate resource groups based on function and likely administration model
+* Separate Key Vault instances for core services and workloads
+
 **Provide a centralized authentication service for Windows virtual machine access**
 * Windows Active Directory domain complete with sample users and groups
 
@@ -29,8 +34,9 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 * Three resource groups deployed with one for shared services, one for network transit, and one for workload allowing fine grained access for systems, networking, and development teams
 
 **Central secrets storage**
-* Domain username and password are stored in Azure Key Vault
-* CMK used for Virtual Machine encryption stored in Azure Key Vault
+* Domain username and password are stored in core services' Azure Key Vault
+* CMK used for core services' Virtual Machine encryption stored Azure Key Vault
+* Instance of Azure Key Vault available for workload secrets storage
 
 **Centralization of logs and metrics**
 * Logs and metrics centralized in instance of Log Analytics
@@ -75,6 +81,11 @@ The template will take about 2 hour to fully deploy. Ensure you have the Contrib
 
 
 ## Change Log
+* 6/6/2021
+  * Added support for multi-subscription deployment
+  * Added instance of Azure Key Vault for workload
+  * Modified Private Endpoints for core services and moved them into Shared Services Virtual Network
+  
 * 4/20/2021
   * Added centralized Azure Container Registry behind a Private Endpoint
 

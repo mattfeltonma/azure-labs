@@ -195,6 +195,7 @@
         "firewallPublicIpName": "[concat('pip-fw', parameters('uniqueData'))]",
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
+        "transitResourceGroup": "[resourceGroup().name]",
         "transitSubId": "[subscription().subscriptionId]",
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-nsg-flow-log.json')]",
@@ -539,7 +540,7 @@
                                 "allowGatewayTransit": "false",
                                 "useRemoteGateways": "false",
                                 "remoteVirtualNetwork": {
-                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitSubId'), variables('transitVnetName'))]"
+                                    "id": "[resourceId(variables('transitSubId'), variables('transitResourceGroup'), 'Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
                                 }
                             }
                         }
