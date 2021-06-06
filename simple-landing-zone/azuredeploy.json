@@ -396,6 +396,9 @@
                     "firewallIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
                     },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
                     "transitVnetSubscriptionId": {
                         "value": "[parameters('transitServicesSubId')]"
                     },

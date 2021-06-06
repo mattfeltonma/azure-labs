@@ -185,7 +185,6 @@
         "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
         "bastionSubnetName": "AzureBastionSubnet",
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
-        "deployCentralSvcNsgFlowLog": "deploy-centsvcnsgflowlog",
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployFirewallPolicy": "deploy-firewallpolicy",
         "firewallAz": [
@@ -458,7 +457,7 @@
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployCentralSvcNsgFlowLog'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployBastionNsgFlowLog'))]"
             ],
             "properties": {
                 "addressSpace": {

@@ -14,6 +14,12 @@
                 "description": "The IP address of the Azure Firewall in the transit Virtual Network"
             }
         },
+        "keyVaultAdminObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the security principal who will be admin over the Key Vault"
+            }
+        }, 
         "transitVnetName": {
             "type": "string",
             "metadata": {
@@ -100,18 +106,21 @@
         "appNsgName": "[concat('nsg-app', parameters('uniqueData'))]",
         "dataNsgFlowLogDeploymentName": "deploy-dataflowlog",
         "dataNsgName": "[concat('nsg-data', parameters('uniqueData'))]",
-        "transitPeeringDeploymentName": "deploy-peering",
+        "keyVaultDeploymentName": "deploy-workload-keyvault",
+        "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-keyvault.json')]",
         "location": "[resourceGroup().location]",
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-nsg-flow-log.json')]",
         "peeringTransitToWorkloadName": "peertransittoworkload",
         "peeringWorkloadToTransitName": "peerworkloadtotransit",
         "workloadAppSubnetName": "snet-app",
         "workloadDataSubnetName": "snet-data",
+        "workloadDiskEncSetName": "wldiskenc",
         "workloadSupportSvcSubnetName": "snet-support",
         "workloadRouteTableName": "[concat('rt-workload', parameters('uniqueData'))]",
         "workloadVnetName": "[concat('vnet-workload', parameters('uniqueData'))]",
         "supportNsgFlowLogDeploymentName": "deploy-supportflowlog",
         "supportNsgName": "[concat('nsg-support', parameters('uniqueData'))]",
+        "transitPeeringDeploymentName": "deploy-peering",
         "vnetStandardDdosProtection": false
     },
     "resources": [
@@ -394,6 +403,38 @@
                             }
                         }
                     ]
+                }
+            }
+        },
+        {
+            "name": "[variables('keyVaultDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('transitPeeringDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "diskEncryptionSetKeyName": {
+                        "value": "[variables('workloadDiskEncSetName')]"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[parameters('laWorkspaceResourceId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
                 }
             }
         }
