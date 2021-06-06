@@ -2080,11 +2080,11 @@
             "type": "string",
             "value": "[reference(variables('acrDeploymentName')).outputs.acrResourceId.value]"
         },
-        "KeyVaultName": {
+        "keyVaultName": {
             "type": "string",
             "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
         },
-        "KeyVaultResourceId": {
+        "keyVaultResourceId": {
             "type": "string",
             "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
         },
