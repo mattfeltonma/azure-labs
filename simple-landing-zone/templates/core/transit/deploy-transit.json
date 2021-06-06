@@ -33,6 +33,66 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
+        "sharedSvcAdNsgResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Shared Services Active Directory Network Security Group"
+            }
+        },
+        "sharedSvcInfraNsgResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Shared Services Infrastructure Network Security Group"
+            }
+        },
+        "sharedSvcPeNsgResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Shared Services Private Endpoint Network Security Group"
+            }
+        },
+        "sharedSvcAdSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the AD subnet in the Shared Services virtual network"
+            }
+        },
+        "sharedSvcInfraSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Infrastructure subnet in the Shared Services virtual network"
+            }
+        },
+        "sharedSvcPeSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Private Endpoint subnet in the Shared Services virtual network"
+            }
+        },
+        "sharedSvcRouteTableName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the route table applied to the Shared Services subnets"
+            }
+        },
+        "sharedSvcRouteTableResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the route table applied to the Shared Services subnets"
+            }
+        },
+        "sharedSvcSubId": {
+            "type": "string",
+            "metadata": {
+                "description": "The shared services subscription id"
+            }
+        },
+        "sharedSvcVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR associated with the Shared Services virtual network"
+            }
+        },
         "sharedSvcVnetName": {
             "type": "string",
             "metadata": {
@@ -55,6 +115,18 @@
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the AD subnet in the Shared Services virtual network"
+            }
+        },
+        "sharedSvcVnetSubnetInfraCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Infrastructure subnet in the Shared Services virtual network"
+            }
+        },
+        "sharedSvcVnetSubnetPeCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Private Endpoint subnet in the Shared Services virtual network"
             }
         },
         "transitBastionSubnetCidr": {
@@ -120,16 +192,18 @@
             "1"
         ],
         "firewallName": "[concat('fw', parameters('uniqueData'))]",
-        "firewallDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-lz-firewall-policy.json')]",
+        "firewallDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-lz-firewall-policy.json')]",
         "firewallPublicIpName": "[concat('pip-fw', parameters('uniqueData'))]",
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
+        "transitSubId": "[subscription().subscriptionId]",
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
-        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-nsg-flow-log.json')]",
+        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-nsg-flow-log.json')]",
         "location": "[resourceGroup().location]",
         "peeringTransitToShared": "peertransittoshared",
         "peeringSharedToTransit": "peersharedtotransit",
         "sharedSvcPeeringDeploymentName": "deploy-peering",
+        "sharedSvcRoutingDeploymentName": "deploy-shared-svc-routing",
         "vnetStandardDdosProtection": false
     },
     "resources": [
@@ -442,6 +516,7 @@
             "name": "[variables('sharedSvcPeeringDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('sharedSvcSubId')]",
             "resourceGroup": "[parameters('sharedSvcVnetResourceGroup')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
@@ -465,7 +540,7 @@
                                 "allowGatewayTransit": "false",
                                 "useRemoteGateways": "false",
                                 "remoteVirtualNetwork": {
-                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitSubId'), variables('transitVnetName'))]"
                                 }
                             }
                         }
@@ -632,6 +707,114 @@
                         }
                     }
                 ]
+            }
+        },
+        {
+            "name": "[variables('sharedSvcRoutingDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('sharedSvcSubId')]",
+            "resourceGroup": "[parameters('sharedSvcVnetResourceGroup')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/bastionHosts',variables('bastionName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[parameters('sharedSvcRouteTableName')]",
+                            "type": "Microsoft.Network/routeTables",
+                            "apiVersion": "[variables('networkApiVersion')]",
+                            "location": "[variables('location')]",
+                            "tags": "[parameters('tags')]",
+                            "dependsOn": [
+                            ],
+                            "properties": {
+                                "routes": [
+                                    {
+                                        "name": "udr-default",
+                                        "properties": {
+                                            "addressPrefix": "0.0.0.0/0",
+                                            "nextHopType": "VirtualAppliance",
+                                            "nextHopIpAddress": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                                        }
+                                    }
+                                ],
+                                "disableBgpRoutePropagation": "True"
+                            },
+                            "resources": [
+                            ]
+                        },
+                        {
+                            "type": "Microsoft.Network/virtualNetworks",
+                            "name": "[parameters('sharedSvcVnetName')]",
+                            "apiVersion": "[variables('networkApiVersion')]",
+                            "location": "[variables('location')]",
+                            "tags": "[parameters('tags')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/routeTables', parameters('sharedSvcRouteTableName'))]"
+                            ],
+                            "properties": {
+                                "addressSpace": {
+                                    "addressPrefixes": [
+                                        "[parameters('sharedSvcVnetCidr')]"
+                                    ]
+                                },
+                                "subnets": [
+                                    {
+                                        "name": "[parameters('sharedSvcAdSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('sharedSvcVnetSubnetAdCidr')]",
+                                            "routeTable": {
+                                                "id": "[parameters('sharedSvcRouteTableResourceId')]"
+                                            },
+                                            "networkSecurityGroup": {
+                                                "id": "[parameters('sharedSvcAdNsgResourceId')]"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "[parameters('sharedSvcInfraSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('sharedSvcVnetSubnetInfraCidr')]",
+                                            "routeTable": {
+                                                "id": "[parameters('sharedSvcRouteTableResourceId')]"
+                                            },
+                                            "networkSecurityGroup": {
+                                                "id": "[parameters('sharedSvcInfraNsgResourceId')]"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "[parameters('sharedSvcPeSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('sharedSvcVnetSubnetPeCidr')]",
+                                            "routeTable": {
+                                                "id": "[parameters('sharedSvcRouteTableResourceId')]"
+                                            },
+                                            "networkSecurityGroup": {
+                                                "id": "[parameters('sharedSvcPeNsgResourceId')]"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
+                                "dhcpOptions": {
+                                    "dnsServers": [
+                                        "[parameters('dnsServerIp')]"
+                                    ]
+                                }
+                            },
+                            "resources": [
+                            ]
+                        }
+                    ]
+                }
             }
         },
         {

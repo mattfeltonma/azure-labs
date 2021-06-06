@@ -31,8 +31,7 @@
             "type": "string",
             "metadata": {
                 "description": "The subscription id of the subscription the transit is stored in"
-            },
-            "defaultValue": "[subscription().subscriptionId]"
+            }
         },
         "laWorkspaceResourceId": {
             "type": "string",
@@ -103,7 +102,7 @@
         "dataNsgName": "[concat('nsg-data', parameters('uniqueData'))]",
         "transitPeeringDeploymentName": "deploy-peering",
         "location": "[resourceGroup().location]",
-        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-nsg-flow-log.json')]",
+        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-nsg-flow-log.json')]",
         "peeringTransitToWorkloadName": "peertransittoworkload",
         "peeringWorkloadToTransitName": "peerworkloadtotransit",
         "workloadAppSubnetName": "snet-app",
