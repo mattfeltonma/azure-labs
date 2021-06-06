@@ -119,7 +119,7 @@
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
         "acrDeploymentName": "deploy-acr",
-        "acrDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-acr.json')]",
+        "acrDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-acr.json')]",
         "acrDnsZoneName": "privatelink.azurecr.io",
         "acrPlLinkName": "[concat(variables('acrDnsZoneName'), '-link')]",
         "adMemberVm1DeploymentName": "deploy-admember1",
