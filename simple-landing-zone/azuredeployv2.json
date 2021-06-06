@@ -1,0 +1,444 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sharedServicesSubId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id to deploy Shared Services resources"
+            }
+        },
+        "transitServicesSubId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id to deploy Transit resources"
+            }
+        },
+        "workloadSubId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id to deploy the Workload resources"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location to deploy the resources. Use the region abbrevation such as 'eastus2' or 'westus2'"
+            }
+        },
+        "adDomainName": {
+            "type": "string",
+            "metadata": {
+                "description": "The DNS name assigned to the Active Directory domain"
+            }
+        },
+        "adNetBiosName": {
+            "type": "string",
+            "metadata": {
+                "description": "The NetBIOS name assigned to the Active Directory domain"
+            }
+        },
+        "vmAdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Administrator name for VMs that are created"
+            }
+        },
+        "vmAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the VMs that are created"
+            }
+        },
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+            }
+        },
+        "workloadType": {
+            "type": "string",
+            "metadata": {
+                "description": "The type of workload to deploy"
+            },
+            "defaultValue": "standard",
+            "allowedValues": [
+                "standard"
+            ]
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that wil be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "networkWatcherResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where Network Watcher resources exist"
+            },
+            "defaultValue": "NetworkWatcherRG"
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Creates a new GUID to create uniqueness for resources"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "resourcesApiVersion": "2020-06-01",
+        "cloudAddressSpace": "10.0.0.0/8",
+        "reverseDnsZoneName": "0.1.10.in-addr.arpa",
+        "sharedSvcAdMember1Ip": "10.1.1.4",
+        "sharedSvcAdMember2Ip": "10.1.1.5",
+        "sharedSvcAdVmIp": "10.1.0.4",
+        "sharedSvcRgDeploymentName": "deploy-shared-rg",
+        "sharedSvcSubDeploymentName": "deploy-shared-sub",
+        "sharedSvcRgName": "[concat('rg-shared-',parameters('uniqueData'))]",
+        "sharedSvcTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/shared/'))]",
+        "sharedSvcVnetCidr": "10.1.0.0/16",
+        "sharedSvcVnetSubnetAdCidr": "10.1.0.0/24",
+        "sharedSvcVnetSubnetInfraCidr": "10.1.1.0/24",
+        "sharedSvcVnetSubnetPeCidr": "10.1.2.0/24",
+        "transitBastionSubnetCidr": "10.0.1.0/27",
+        "transitRgDeploymentName": "deploy-transit",
+        "transitSubDeploymentName": "deploy-transit-sub",
+        "transitFwSubnetPayCidr": "10.0.2.0/26",
+        "transitGatewaySubnetCidr": "10.0.0.0/27",
+        "transitRgName": "[concat('rg-transit-',parameters('uniqueData'))]",
+        "transitTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/transit/'))]",
+        "transitVnetCidr": "10.0.0.0/16",
+        "workloadRgDeploymentName": "deploy-workload",
+        "workloadSubDeploymentName": "deploy-workload-sub",
+        "workloadRgName": "[concat('rg-workload-',parameters('uniqueData'))]",
+        "workloadTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/workloads/'))]",
+        "workloadVnetCidr": "10.2.0.0/16",
+        "workloadVnetSubnetAppCidr": "10.2.0.0/24",
+        "workloadVnetSubnetDataCidr": "10.2.1.0/24",
+        "workloadVnetSubnetSupportCidr": "10.2.2.0/24"
+    },
+    "resources": [
+        {
+            "name": "[variables('sharedSvcSubDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
+            "subscriptionId": "[parameters('sharedServicesSubId')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[variables('sharedSvcRgName')]",
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "[variables('resourcesApiVersion')]",
+                            "location": "[parameters('location')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('sharedSvcRgDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('sharedServicesSubId')]",
+            "resourceGroup": "[variables('sharedSvcRgName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('sharedSvcSubDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adDomainName": {
+                        "value": "[parameters('adDomainName')]"
+                    },
+                    "adNetBiosName": {
+                        "value": "[parameters('adNetBiosName')]"
+                    },
+                    "memberServer1Ip": {
+                        "value": "[variables('sharedSvcAdMember1Ip')]"
+                    },
+                    "memberServer2Ip": {
+                        "value": "[variables('sharedSvcAdMember2Ip')]"
+                    },
+                    "adVmIp": {
+                        "value": "[variables('sharedSvcAdVmIp')]"
+                    },
+                    "transitBastionSubnetCidr": {
+                        "value": "[variables('transitBastionSubnetCidr')]"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "networkWatcherRg": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
+                    "reverseDnsZoneName": {
+                        "value": "[variables('reverseDnsZoneName')]"
+                    },
+                    "sharedSvcVnetCidr": {
+                        "value": "[variables('sharedSvcVnetCidr')]"
+                    },
+                    "sharedSvcVnetSubnetAdCidr": {
+                        "value": "[variables('sharedSvcVnetSubnetAdCidr')]"
+                    },
+                    "sharedSvcVnetSubnetInfraCidr": {
+                        "value": "[variables('sharedSvcVnetSubnetInfraCidr')]"
+                    },
+                    "sharedSvcVnetSubnetPeCidr": {
+                        "value": "[variables('sharedSvcVnetSubnetPeCidr')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[concat(variables('sharedSvcTemplatesUri'),'deploy-shared.json')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('transitSubDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
+            "subscriptionId": "[parameters('transitServicesSubId')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('sharedSvcRgDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[variables('transitRgName')]",
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "[variables('resourcesApiVersion')]",
+                            "location": "[parameters('location')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('transitRgDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('transitServicesSubId')]",
+            "resourceGroup": "[variables('transitRgName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('transitSubDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "cloudAddressSpace": {
+                        "value": "[variables('cloudAddressSpace')]"
+                    },
+                    "dnsServerIp": {
+                        "value": "[variables('sharedSvcAdVmIp')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.laWorkspaceResourceId.value]"
+                    },
+                    "logStorageAccountResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.logStorageResourceId.value]"
+                    },
+                    "networkWatcherRg": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
+                    "sharedSvcAdNsgResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcAdNsgResourceId.value]"
+                    },
+                    "sharedSvcInfraNsgResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcInfraNsgResourceId.value]"
+                    },
+                    "sharedSvcPeNsgResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcPeNsgResourceId.value]"
+                    },
+                    "sharedSvcRouteTableName": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcRouteTableName.value]"
+                    },
+                    "sharedSvcRouteTableResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcRouteTableResourceId.value]"
+                    },
+                    "sharedSvcSubId": {
+                        "value": "[parameters('sharedServicesSubId')]"
+                    },
+                    "sharedSvcVnetCidr": {
+                        "value": "[variables('sharedSvcVnetCidr')]"
+                    },
+                    "sharedSvcVnetName": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcVnetName.value]"
+                    },
+                    "sharedSvcVnetResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcVnetResourceId.value]"
+                    },
+                    "sharedSvcVnetResourceGroup": {
+                        "value": "[variables('sharedSvcRgName')]"
+                    },
+                    "sharedSvcVnetSubnetAdCidr": {
+                        "value": "[variables('sharedSvcVnetSubnetAdCidr')]"
+                    },
+                    "sharedSvcVnetSubnetInfraCidr": {
+                        "value": "[variables('sharedSvcVnetSubnetInfraCidr')]"
+                    },
+                    "sharedSvcVnetSubnetPeCidr": {
+                        "value": "[variables('sharedSvcVnetSubnetPeCidr')]"
+                    },
+                    "sharedSvcAdSubnetName": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcAdSubnetName.value]"
+                    },
+                    "sharedSvcInfraSubnetName": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcInfraSubnetName.value]"
+                    },
+                    "sharedSvcPeSubnetName": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcPeSubnetName.value]"
+                    },
+                    "transitBastionSubnetCidr": {
+                        "value": "[variables('transitBastionSubnetCidr')]"
+                    },
+                    "transitFwSubnetPayCidr": {
+                        "value": "[variables('transitFwSubnetPayCidr')]"
+                    },
+                    "transitGatewaySubnetCidr": {
+                        "value": "[variables('transitGatewaySubnetCidr')]"
+                    },
+                    "transitVnetCidr": {
+                        "value": "[variables('transitVnetCidr')]"
+                    },
+                    "workloadVnetCidr": {
+                        "value": "[variables('workloadVnetCidr')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[concat(variables('transitTemplatesUri'),'deploy-transit.json')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "name": "[variables('workloadSubDeploymentName')]",
+            "location": "[parameters('location')]",
+            "subscriptionId": "[parameters('workloadSubId')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('transitRgDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[variables('workloadRgName')]",
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "[variables('resourcesApiVersion')]",
+                            "location": "[parameters('location')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "condition": "[equals(parameters('workloadType'),'standard')]",
+            "name": "[variables('workloadRgDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('workloadSubId')]",
+            "resourceGroup": "[variables('workloadRgName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('workloadSubDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "dnsServerIp": {
+                        "value": "[variables('sharedSvcAdVmIp')]"
+                    },
+                    "firewallIp": {
+                        "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
+                    },
+                    "transitVnetSubscriptionId": {
+                        "value": "[parameters('transitServicesSubId')]"
+                    },
+                    "transitVnetName": {
+                        "value": "[reference(variables('transitRgDeploymentName')).outputs.transitVnetName.value]"
+                    },
+                    "transitVnetResourceGroupName": {
+                        "value": "[variables('transitRgName')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.laWorkspaceResourceId.value]"
+                    },
+                    "logStorageAccountResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.logStorageResourceId.value]"
+                    },
+                    "networkWatcherRg": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
+                    "workloadVnetCidr": {
+                        "value": "[variables('workloadVnetCidr')]"
+                    },
+                    "workloadVnetSubnetAppCidr": {
+                        "value": "[variables('workloadVnetSubnetAppCidr')]"
+                    },
+                    "workloadVnetSubnetDataCidr": {
+                        "value": "[variables('workloadVnetSubnetDataCidr')]"
+                    },
+                    "workloadVnetSubnetSupportCidr": {
+                        "value": "[variables('workloadVnetSubnetSupportCidr')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[concat(variables('workloadTemplatesUri'),'empty/deploy-workload.json')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}
