@@ -1942,6 +1942,18 @@
                                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]"
                                             }
                                         }
+                                    },
+                                    {
+                                        "name": "[variables('sharedSvcPeSvcSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('sharedSvcVnetSubnetPeCidr')]",
+                                            "routeTable": {
+                                                "id": "[resourceId('Microsoft.Network/routeTables',variables('sharedSvcRouteTableName'))]"
+                                            },
+                                            "networkSecurityGroup": {
+                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]"
+                                            }
+                                        }
                                     }
                                 ],
                                 "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
