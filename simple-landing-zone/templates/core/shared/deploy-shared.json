@@ -854,7 +854,7 @@
                         "value": "[variables('sharedSvcDiskEncSetName')]"
                     },
                     "keyUrl": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultDesKeyUri.value]"
+                        "value": "[reference(variables('keyVaultKeyDeploymentName')).outputs.keyVaultDesKeyUri.value]"
                     },
                     "keyVaultName": {
                         "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
