@@ -114,7 +114,6 @@
         "peeringWorkloadToTransitName": "peerworkloadtotransit",
         "workloadAppSubnetName": "snet-app",
         "workloadDataSubnetName": "snet-data",
-        "workloadDiskEncSetName": "wldiskenc",
         "workloadSupportSvcSubnetName": "snet-support",
         "workloadRouteTableName": "[concat('rt-workload', parameters('uniqueData'))]",
         "workloadVnetName": "[concat('vnet-workload', parameters('uniqueData'))]",
@@ -416,9 +415,6 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "diskEncryptionSetKeyName": {
-                        "value": "[variables('workloadDiskEncSetName')]"
-                    },
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdminObjectId')]"
                     },
