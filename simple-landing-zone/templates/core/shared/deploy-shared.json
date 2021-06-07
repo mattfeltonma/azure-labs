@@ -144,9 +144,10 @@
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
         "infraNsgFlowLogDeploymentName": "deploy-infraflowlog",
         "infraNsgName": "[concat('nsg-infra', parameters('uniqueData'))]",
-        "keyVaultApiVersion": "2019-09-01",
         "keyVaultDeploymentName": "deploy-keyvault",
         "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-keyvault.json')]",
+        "keyVaultKeyDeploymentName": "deploy-keyvault-disk-key",
+        "keyVaultKeyDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-key.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultPlLinkName": "[concat(variables('keyVaultDnsZoneName'), '-link')]",
         "laPeDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-la-private-endpoint.json')]",
@@ -166,6 +167,9 @@
         "queueStoragePlLinkName": "[concat(variables('queueStorageDnsZoneName'), '-link')]",
         "secretDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-secret.json')]",
         "sharedSvcDiskEncSetName": "ssdiskenc",
+        "sharedSvcDiskEncKeyName": "cntdiskkey",
+        "sharedSvcDiskEncKeyType": "RSA",
+        "sharedSvcDiskEncKeySize": "4096",
         "sharedSvcAdSubnetName": "snet-ad",
         "sharedSvcInfraSvcSubnetName": "snet-infra",
         "sharedSvcPeSvcSubnetName": "snet-pe",
@@ -716,16 +720,32 @@
             }
         },
         {
-            "name": "[concat(reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value,'/',variables('sharedSvcDiskEncSetName'))]",
-            "type": "Microsoft.KeyVault/vaults/keys",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "tags": "[parameters('tags')]",
+            "name": "[variables('keyVaultKeyDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
             ],
             "properties": {
-                "kty": "RSA",
-                "keySize": "4096"
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "keyName": {
+                        "value": "[variables('sharedSvcDiskEncKeyName')]"
+                    },
+                    "keyType": {
+                        "value": "[variables('sharedSvcDiskEncKeyType')]"
+                    },
+                    "keySize": {
+                        "value": "[variables('sharedSvcDiskEncKeySize')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultKeyDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
             }
         },
         {
@@ -733,7 +753,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.KeyVault/vaults/', reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value,'/keys/', variables('sharedSvcDiskEncSetName'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultKeyDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
