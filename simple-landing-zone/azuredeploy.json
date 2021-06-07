@@ -437,7 +437,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('workloadTemplatesUri'),'empty/deploy-workload.json')]",
+                    "uri": "[concat(variables('workloadTemplatesUri'),'standard/deploy-workload.json')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
