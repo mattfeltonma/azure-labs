@@ -58,9 +58,7 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 
     `az ad user show --id someuser@sometenant.com --query objectId --output tsv`
 
-3. Enable Network Watcher in the region you plan to deploy the resources to.
-
-    `az network watcher configure --resource-group=NetworkWatcherRG --locations=eastus2 --enabled=true`
+3. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in [this link](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create#create-a-network-watcher-in-the-portal). Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 and the deployment will fail.
     
 ## Installation
 
@@ -85,7 +83,7 @@ The template will take about 2 hour to fully deploy. Ensure you have the Contrib
   * Added support for multi-subscription deployment
   * Added instance of Azure Key Vault for workload
   * Modified Private Endpoints for core services and moved them into Shared Services Virtual Network
-  
+
 * 4/20/2021
   * Added centralized Azure Container Registry behind a Private Endpoint
 
