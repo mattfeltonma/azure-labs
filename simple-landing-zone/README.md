@@ -3,11 +3,13 @@
 ## Overview
 This project creates an environment I'm branding a "simple landing zone". It is loosely based off the [Microsoft Enterprise-Scale Landing Zone](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/enterprise-scale/architecture) but is intended to be more simplistic and for the purposes of proof-of-concepts and experimentation. The project uses a combination of ARM templates and PowerShell DSC to deploy to create a security-driven "Enterprise-Scale like" environment for organizations to use for proof-of-concepts in Microsoft Azure.
 
+The environment consists of three sets of resources as documented below which include shared services resources, transit resources, and workload resources. These resources are deployed in resource groups named for the function and can optionally be deployed in resource groups in different subscriptions to limit the blast radius of failed changes or security breaches.
+
 ![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/simple-landing-zone/images/simple-landing-zone.png)
 
 ## Key Design Principles
 
-**Allow for minimization of blast radius**
+**Support for smaller blast radius**
 * Allows for multi-subscription deployment
 * Deploys resources into separate resource groups based on function and likely administration model
 * Separate Key Vault instances for core services and workloads
@@ -62,16 +64,19 @@ This project creates an environment I'm branding a "simple landing zone". It is 
     
 ## Installation
 
-The template will take about 2 hour to fully deploy. Ensure you have the Contributor or greater on the subscription you are deploying the lab to. 
+The template will take about 2 hour to fully deploy. Ensure you have the Contributor or greater on the subscription or subscriptions you are deploying the lab to. 
 
 ## Known Issues
 * Sometimes the template will fail to deploy in East US 2 at the Log Analytics Private Endpoint deployment step with an InternalServerError. Delete the resources and re-run the template if this occurs. Unknown as to why this occurs.
 
 **The template allows for the following parameters**
+* sharedServicesSubId - The subscription id of the subscription to deploy the Shared Services resources to
+* transitServicesSubId - The subscription id of the subscription to deploy the Transit resources to
+* workloadSubId - The subscription id of the subscription to deploy the Workload resources to 
 * adDomainName - The DNS domain name assigned to the Active Directory domain.
 * adNetBiosName - The NetBIOS name assigned to the Active Directory domain.
 * location - The region the resources will be provisioned to.
-* keyVaultAdminObjecId - The user account that will be the administrator of the Key Vault. Note that the permissions assigned to the is account exclude destructive permissions such as purge. Review the permissions in the /templates/shared/deploy-keyvault.json template for a detailed list of the permissions.
+* keyVaultAdmin - The object id of the user or group security principal that will be the administrator of the Key Vault. Note that the permissions assigned to the security principal exclude destructive permissions such as purge. Review the permissions in the /templates/general/deploy-keyvault.json template for a detailed list of the permissions.
 * vmAdminUsername - The username for the local administrators of the two virtual machines provisioned. This will also be the name of the built-in Domain Administrator in the Active Directory domain.
 * vmAdminPassword - The password assigned to the local administrator account of the virtual machines, the Active Directory domain administrator account, and the sample Active Directory user accounts. You can change these later on to improve the security posture of the environment. This must be supplied as a secure string.
 
@@ -83,6 +88,7 @@ The template will take about 2 hour to fully deploy. Ensure you have the Contrib
   * Added support for multi-subscription deployment
   * Added instance of Azure Key Vault for workload
   * Modified Private Endpoints for core services and moved them into Shared Services Virtual Network
+  * Updated lab image and added Visio
 
 * 4/20/2021
   * Added centralized Azure Container Registry behind a Private Endpoint
