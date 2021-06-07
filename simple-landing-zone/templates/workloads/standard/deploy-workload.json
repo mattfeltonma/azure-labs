@@ -419,7 +419,7 @@
                         "value": "[parameters('keyVaultAdminObjectId')]"
                     },
                     "keyVaultNamePrefix": {
-                        "value": "kvworkload"
+                        "value": "kvwl"
                     },
                     "laWorkspaceResourceId": {
                         "value": "[parameters('laWorkspaceResourceId')]"
