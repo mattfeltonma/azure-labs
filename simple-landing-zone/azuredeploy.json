@@ -372,7 +372,7 @@
                     "sharedSvcVnetResourceGroupName": {
                         "value": "[variables('sharedSvcRgName')]"
                     },
-                    "sharedVnetSubscriptionId": {
+                    "sharedSvcVnetSubscriptionId": {
                         "value": "[parameters('sharedServicesSubId')]"
                     },
                     "transitVnetName": {
