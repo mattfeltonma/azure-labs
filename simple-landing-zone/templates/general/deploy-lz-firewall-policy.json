@@ -8,6 +8,12 @@
                 "description": "The CIDR assigned to the Windows Active Directory subnet"
             }        
         },
+        "peSubnet": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the centralized Private Endpoint subnet"
+            }        
+        },
         "cloudAddressSpace": {
             "type": "string",
             "metadata": {
@@ -386,6 +392,36 @@
                                         "ruleConditionType": "NetworkRuleCondition",
                                         "ruleType": "NetworkRule",
                                         "destinationFqdns": []
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            },
+                            {
+                                "name": "AllowPeTraffic",
+                                "priority": 102,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowPeTraffic",
+                                        "ipProtocols": [
+                                            "TCP",
+                                            "UDP"
+                                        ],
+                                        "destinationPorts": [
+                                            "*"
+                                        ],
+                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "destinationIpGroups": [],
+                                        "destinationAddresses": [
+                                            "[parameters('peSubnet')]"
+                                        ],
+                                        "ruleConditionType": "NetworkRuleCondition",
+                                        "ruleType": "NetworkRule"
                                     }
                                 ],
                                 "ruleCollectionType": "FirewallPolicyFilterRuleCollection"

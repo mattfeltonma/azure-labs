@@ -273,26 +273,11 @@
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
                     },
-                    "sharedSvcAdNsgResourceId": {
-                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcAdNsgResourceId.value]"
-                    },
-                    "sharedSvcInfraNsgResourceId": {
-                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcInfraNsgResourceId.value]"
-                    },
-                    "sharedSvcPeNsgResourceId": {
-                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcPeNsgResourceId.value]"
-                    },
                     "sharedSvcRouteTableName": {
                         "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcRouteTableName.value]"
                     },
-                    "sharedSvcRouteTableResourceId": {
-                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcRouteTableResourceId.value]"
-                    },
                     "sharedSvcSubId": {
                         "value": "[parameters('sharedServicesSubId')]"
-                    },
-                    "sharedSvcVnetCidr": {
-                        "value": "[variables('sharedSvcVnetCidr')]"
                     },
                     "sharedSvcVnetName": {
                         "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcVnetName.value]"
@@ -306,20 +291,8 @@
                     "sharedSvcVnetSubnetAdCidr": {
                         "value": "[variables('sharedSvcVnetSubnetAdCidr')]"
                     },
-                    "sharedSvcVnetSubnetInfraCidr": {
-                        "value": "[variables('sharedSvcVnetSubnetInfraCidr')]"
-                    },
                     "sharedSvcVnetSubnetPeCidr": {
                         "value": "[variables('sharedSvcVnetSubnetPeCidr')]"
-                    },
-                    "sharedSvcAdSubnetName": {
-                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcAdSubnetName.value]"
-                    },
-                    "sharedSvcInfraSubnetName": {
-                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcInfraSubnetName.value]"
-                    },
-                    "sharedSvcPeSubnetName": {
-                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.sharedSvcPeSubnetName.value]"
                     },
                     "transitBastionSubnetCidr": {
                         "value": "[variables('transitBastionSubnetCidr')]"

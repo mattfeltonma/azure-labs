@@ -33,64 +33,16 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
-        "sharedSvcAdNsgResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource id of the Shared Services Active Directory Network Security Group"
-            }
-        },
-        "sharedSvcInfraNsgResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource id of the Shared Services Infrastructure Network Security Group"
-            }
-        },
-        "sharedSvcPeNsgResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource id of the Shared Services Private Endpoint Network Security Group"
-            }
-        },
-        "sharedSvcAdSubnetName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the AD subnet in the Shared Services virtual network"
-            }
-        },
-        "sharedSvcInfraSubnetName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the Infrastructure subnet in the Shared Services virtual network"
-            }
-        },
-        "sharedSvcPeSubnetName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the Private Endpoint subnet in the Shared Services virtual network"
-            }
-        },
         "sharedSvcRouteTableName": {
             "type": "string",
             "metadata": {
                 "description": "The name of the route table applied to the Shared Services subnets"
             }
         },
-        "sharedSvcRouteTableResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource id of the route table applied to the Shared Services subnets"
-            }
-        },
         "sharedSvcSubId": {
             "type": "string",
             "metadata": {
                 "description": "The shared services subscription id"
-            }
-        },
-        "sharedSvcVnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR associated with the Shared Services virtual network"
             }
         },
         "sharedSvcVnetName": {
@@ -115,12 +67,6 @@
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the AD subnet in the Shared Services virtual network"
-            }
-        },
-        "sharedSvcVnetSubnetInfraCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the Infrastructure subnet in the Shared Services virtual network"
             }
         },
         "sharedSvcVnetSubnetPeCidr": {
@@ -151,12 +97,6 @@
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the transit virtual network"
-            }
-        },
-        "workloadVnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the spoke virtual network.  This is used in the firewall rules."
             }
         },
         "tags": {
@@ -244,6 +184,9 @@
                 "parameters": {
                     "adSubnet": {
                         "value": "[parameters('sharedSvcVnetSubnetAdCidr')]"
+                    },
+                    "peSubnet": {
+                        "value": "[parameters('sharedSvcVnetSubnetPeCidr')]"
                     },
                     "cloudAddressSpace": {
                         "value": "[parameters('cloudAddressSpace')]"
