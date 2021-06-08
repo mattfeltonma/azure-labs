@@ -369,8 +369,11 @@
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdmin')]"
                     },
-                    "transitVnetSubscriptionId": {
-                        "value": "[parameters('transitServicesSubId')]"
+                    "sharedSvcVnetResourceGroupName": {
+                        "value": "[variables('sharedSvcRgName')]"
+                    },
+                    "sharedVnetSubscriptionId": {
+                        "value": "[parameters('sharedServicesSubId')]"
                     },
                     "transitVnetName": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.transitVnetName.value]"

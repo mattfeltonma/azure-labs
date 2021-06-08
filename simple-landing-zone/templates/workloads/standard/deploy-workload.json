@@ -19,25 +19,6 @@
             "metadata": {
                 "description": "The object ID of the security principal who will be admin over the Key Vault"
             }
-        }, 
-        "transitVnetName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the transit virtual network"
-            }
-        },
-        "transitVnetResourceGroupName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the resource group the transit virtual network exists in"
-            },
-            "defaultValue": "[resourceGroup().name]"
-        },
-        "transitVnetSubscriptionId": {
-            "type": "string",
-            "metadata": {
-                "description": "The subscription id of the subscription the transit is stored in"
-            }
         },
         "laWorkspaceResourceId": {
             "type": "string",
@@ -57,6 +38,38 @@
                 "description": "The resource group where the Network Watcher instances are stored"
             },
             "defaultValue": "NetworkWatcherRG"
+        },
+        "sharedSvcVnetResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group the transit virtual network exists in"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "sharedSvcVnetSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id of the subscription the transit is stored in"
+            }
+        },
+        "transitVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the transit virtual network"
+            }
+        },
+        "transitVnetResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group the transit virtual network exists in"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "transitVnetSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id of the subscription the transit is stored in"
+            }
         },
         "workloadVnetCidr": {
             "type": "string",
@@ -457,10 +470,10 @@
                         "value": "[variables('location')]"
                     },
                     "privateDnsZoneResourceGroup": {
-                        "value": "[resourceGroup().name]"
+                        "value": "[parameters('sharedSvcVnetResourceGroupName')]"
                     },
                     "privateDnsZoneSubscription": {
-                        "value": "[subscription().subscriptionId]"
+                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
                     },
                     "privateEndpointSubnetName": {
                         "value": "[variables('workloadSupportSvcSubnetName')]"
