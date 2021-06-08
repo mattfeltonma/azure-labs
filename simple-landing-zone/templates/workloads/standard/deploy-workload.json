@@ -119,8 +119,12 @@
         "appNsgName": "[concat('nsg-app', parameters('uniqueData'))]",
         "dataNsgFlowLogDeploymentName": "deploy-dataflowlog",
         "dataNsgName": "[concat('nsg-data', parameters('uniqueData'))]",
+        "diskEncSetDeploymentName": "deploy-workload-diskencset",
+        "diskEncSetDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-disk-encryption-set.json')]",
         "keyVaultDeploymentName": "deploy-workload-keyvault",
         "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-keyvault.json')]",
+        "keyVaultKeyDeploymentName": "deploy-keyvault-key-workload",
+        "keyVaultKeyDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-key.json')]",
         "keyVaultPeDeploymentName": "deploy-workload-keyvault-pe",
         "keyVaultPeDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-private-endpoint.json')]",
         "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
@@ -130,6 +134,10 @@
         "peeringWorkloadToTransitName": "peerworkloadtotransit",
         "workloadAppSubnetName": "snet-app",
         "workloadDataSubnetName": "snet-data",
+        "workloadDiskEncSetName": "wldiskenc",
+        "workloadDiskEncKeyName": "wldiskkey",
+        "workloadDiskEncKeyType": "RSA",
+        "workloadDiskEncKeySize": "4096",
         "workloadSupportSvcSubnetName": "snet-support",
         "workloadRouteTableName": "[concat('rt-workload', parameters('uniqueData'))]",
         "workloadVnetName": "[concat('vnet-workload', parameters('uniqueData'))]",
@@ -454,11 +462,76 @@
             }
         },
         {
+            "name": "[variables('keyVaultKeyDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "keyName": {
+                        "value": "[variables('workloadDiskEncKeyName')]"
+                    },
+                    "keyType": {
+                        "value": "[variables('workloadDiskEncKeyType')]"
+                    },
+                    "keySize": {
+                        "value": "[variables('workloadDiskEncKeySize')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultKeyDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('diskEncSetDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultKeyDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "diskEncryptionSetName": {
+                        "value": "[variables('workloadDiskEncSetName')]"
+                    },
+                    "keyUrl": {
+                        "value": "[reference(variables('keyVaultKeyDeploymentName')).outputs.keyVaultDesKeyUri.value]"
+                    },
+                    "keyVaultName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "sourceKeyVault": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('diskEncSetDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "name": "[variables('keyVaultPeDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('keyVaultDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('diskEncSetDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
