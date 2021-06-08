@@ -108,6 +108,9 @@
         "dataNsgName": "[concat('nsg-data', parameters('uniqueData'))]",
         "keyVaultDeploymentName": "deploy-workload-keyvault",
         "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-keyvault.json')]",
+        "keyVaultPeDeploymentName": "deploy-workload-keyvault-pe",
+        "keyVaultPeDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-private-endpoint.json')]",
+        "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
         "location": "[resourceGroup().location]",
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-nsg-flow-log.json')]",
         "peeringTransitToWorkloadName": "peertransittoworkload",
@@ -433,6 +436,56 @@
                 },
                 "templateLink": {
                     "uri": "[variables('keyVaultDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('keyVaultPeDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('keyVaultDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('keyVaultPrivateDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[subscription().subscriptionId]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('workloadSupportSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "vault"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('workloadVnetName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+                    },
+                    "resourceName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultPeDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
