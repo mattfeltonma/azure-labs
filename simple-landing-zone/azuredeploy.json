@@ -369,6 +369,15 @@
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdmin')]"
                     },
+                    "laWorkspaceResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.laWorkspaceResourceId.value]"
+                    },
+                    "logStorageAccountResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.logStorageResourceId.value]"
+                    },
+                    "networkWatcherRg": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
                     "sharedSvcVnetResourceGroupName": {
                         "value": "[variables('sharedSvcRgName')]"
                     },
@@ -381,14 +390,8 @@
                     "transitVnetResourceGroupName": {
                         "value": "[variables('transitRgName')]"
                     },
-                    "laWorkspaceResourceId": {
-                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.laWorkspaceResourceId.value]"
-                    },
-                    "logStorageAccountResourceId": {
-                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.logStorageResourceId.value]"
-                    },
-                    "networkWatcherRg": {
-                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    "transitVnetSubscriptionId": {
+                        "value": "[parameters('transitServicesSubId')]"
                     },
                     "workloadVnetCidr": {
                         "value": "[variables('workloadVnetCidr')]"
