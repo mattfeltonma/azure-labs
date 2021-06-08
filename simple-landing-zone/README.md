@@ -54,9 +54,11 @@ The environment consists of three sets of resources as documented below which in
 * Ubuntu Server VM uses the administrator username and password supplied at deployment
 
 ## Prerequisites
-1. [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+1. You must hold at least the Contributor role within each Azure subscription you configure the template to deploy resources to. 
 
-2. Ensure the following [resource providers](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types) are registered in each subscriptions you plan to deploy resources to. The required resource providers are:
+2. [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+
+3. Ensure the following [resource providers](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types) are registered in each subscriptions you plan to deploy resources to. The required resource providers are:
 
     * Microsoft.Network
     * Microsoft.Insights
@@ -68,18 +70,17 @@ The environment consists of three sets of resources as documented below which in
     * Microsoft.OperationsManagement
     * Microsoft.Resources
 
-3. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance. This will be used for the keyVaultAdminObjectId parameter of the template.
+4. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance. This will be used for the keyVaultAdmin parameter of the template.
 
     `az ad user show --id someuser@sometenant.com --query objectId --output tsv`
 
-4. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in [this link](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create#create-a-network-watcher-in-the-portal). Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 which will cause the deployment of the environment to fail.
+5. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in [this link](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create#create-a-network-watcher-in-the-portal). Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 which will cause the deployment of the environment to fail.
     
 ## Installation
 
-The template will take about 2 hour to fully deploy. Ensure you have the Contributor or greater on the subscription or subscriptions you are deploying the lab to. 
+Use the Deploy to Azure button below. Note that the template will take about 2 hour to fully deploy.
 
-## Known Issues
-* [Issue 31](https://github.com/mattfeltonma/azure-labs/issues/31) Sometimes the template will fail to deploy in East US 2 at the Log Analytics Private Endpoint deployment step with an InternalServerError. Delete the resources and re-run the template if this occurs. There is no solution for this problem at this time.
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fmaster%2Fsimple-landing-zone%2Fazuredeploy.json)
 
 **The template allows for the following parameters**
 * sharedServicesSubId - The subscription id of the subscription to deploy the Shared Services resources to
@@ -92,10 +93,11 @@ The template will take about 2 hour to fully deploy. Ensure you have the Contrib
 * vmAdminUsername - The username for the local administrators of the two virtual machines provisioned. This will also be the name of the built-in Domain Administrator in the Active Directory domain.
 * vmAdminPassword - The password assigned to the local administrator account of the virtual machines, the Active Directory domain administrator account, and the sample Active Directory user accounts. You can change these later on to improve the security posture of the environment. This must be supplied as a secure string.
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fmaster%2Fsimple-landing-zone%2Fazuredeploy.json)
+## Known Issues
+* [Issue 31](https://github.com/mattfeltonma/azure-labs/issues/31) Sometimes the template will fail to deploy in East US 2 at the Log Analytics Private Endpoint deployment step with an InternalServerError. Delete the resources and re-run the template if this occurs. There is no solution for this problem at this time.
 
 ## Change Log
-* 6/6/2021
+* 6/9/2021
   * Added support for multi-subscription deployment
   * Added instance of Azure Key Vault for workload
   * Created linked template for Azure Key Vault key deployment
