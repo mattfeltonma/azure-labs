@@ -56,18 +56,30 @@ The environment consists of three sets of resources as documented below which in
 ## Prerequisites
 1. [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 
-2. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance. This will be used for the keyVaultAdminObjectId parameter of the template.
+2. Ensure the following [resource providers](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types) are registered in each subscriptions you plan to deploy resources to. The required resource providers are:
+
+    * Microsoft.Network
+    * Microsoft.Insights
+    * Microsoft.Keyvault
+    * Microsoft.Compute
+    * Microsoft.ContainerRegistery
+    * Microsoft.Storage
+    * Microsoft.OperationalInsights
+    * Microsoft.OperationsManagement
+    * Microsoft.Resources
+
+3. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance. This will be used for the keyVaultAdminObjectId parameter of the template.
 
     `az ad user show --id someuser@sometenant.com --query objectId --output tsv`
 
-3. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in [this link](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create#create-a-network-watcher-in-the-portal). Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 and the deployment will fail.
+4. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in [this link](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create#create-a-network-watcher-in-the-portal). Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 which will cause the deployment of the environment to fail.
     
 ## Installation
 
 The template will take about 2 hour to fully deploy. Ensure you have the Contributor or greater on the subscription or subscriptions you are deploying the lab to. 
 
 ## Known Issues
-* Sometimes the template will fail to deploy in East US 2 at the Log Analytics Private Endpoint deployment step with an InternalServerError. Delete the resources and re-run the template if this occurs. Unknown as to why this occurs.
+* [Issue 31](https://github.com/mattfeltonma/azure-labs/issues/31) Sometimes the template will fail to deploy in East US 2 at the Log Analytics Private Endpoint deployment step with an InternalServerError. Delete the resources and re-run the template if this occurs. There is no solution for this problem at this time.
 
 **The template allows for the following parameters**
 * sharedServicesSubId - The subscription id of the subscription to deploy the Shared Services resources to
@@ -82,13 +94,14 @@ The template will take about 2 hour to fully deploy. Ensure you have the Contrib
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fmaster%2Fsimple-landing-zone%2Fazuredeploy.json)
 
-
 ## Change Log
 * 6/6/2021
   * Added support for multi-subscription deployment
   * Added instance of Azure Key Vault for workload
+  * Created linked template for Azure Key Vault key deployment
   * Modified Private Endpoints for core services and moved them into Shared Services Virtual Network
   * Updated lab image and added Visio
+  * Adding scaffolding to future workload deployments of different types
 
 * 4/20/2021
   * Added centralized Azure Container Registry behind a Private Endpoint
