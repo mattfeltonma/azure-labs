@@ -306,9 +306,6 @@
                     "transitVnetCidr": {
                         "value": "[variables('transitVnetCidr')]"
                     },
-                    "workloadVnetCidr": {
-                        "value": "[variables('workloadVnetCidr')]"
-                    },
                     "tags": {
                         "value": "[parameters('tags')]"
                     },
