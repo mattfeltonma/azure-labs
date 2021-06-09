@@ -5,7 +5,7 @@ This project creates an environment I'm branding a "simple landing zone". It is 
 
 The environment consists of three sets of resources as documented below which include shared services resources, transit resources, and workload resources. These resources are deployed in resource groups named for the function and can optionally be deployed in resource groups in different subscriptions to limit the blast radius of failed changes or security breaches.
 
-![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/simple-landing-zone/images/simple-landing-zone.png)
+![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/simple-landing-zone/images/simple-landing-zone-v2.png)
 
 ## Key Design Principles
 
