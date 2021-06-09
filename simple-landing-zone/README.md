@@ -31,8 +31,6 @@ The environment consists of three sets of resources as documented below which in
 
 **Encryption-at-rest**
 * Shared Services Virtual Machines are encrypted with SSE w/ Managed Disk and CMK
-* Disk Encryption Set created in workload instance of Key Vault for use for encryption of VMs in workload resource group (or subscription)
-
 
 **Support Least Privilege**
 * Three resource groups deployed with one for shared services, one for network transit, and one for workload allowing fine grained access for systems, networking, and development teams
