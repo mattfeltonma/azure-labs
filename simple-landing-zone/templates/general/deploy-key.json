@@ -19,7 +19,7 @@
             "metadata": {
                 "description": "The type of key. Allowed values are EC, EC-HSM, RSA, RSA-HSM"
             },
-            "defaultValue": "RSA-HSM",
+            "defaultValue": "RSA",
             "allowedValues": [
                 "RSA",
                 "EC",
