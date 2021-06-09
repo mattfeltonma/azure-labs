@@ -2,18 +2,18 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "diskEncryptionSetKeyName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the key that will be used for disk encryption set"   
-            },
-            "defaultValue": "kekdiskenc"
-        },
         "keyVaultAdminObjectId": {
             "type": "string",
             "metadata": {
                 "description": "The object ID of the security principal who will be admin over the Key Vault"
             }
+        },
+        "keyVaultNamePrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Azure Key Vault"
+            },
+            "defaultValue": "kvcentral"
         },
         "laWorkspaceResourceId": {
             "type": "string",
@@ -67,7 +67,7 @@
             "setissuers",
             "update"
         ],
-        "keyVaultName": "[concat('kvcentral', parameters('uniqueData'))]",
+        "keyVaultName": "[concat(parameters('keyVaultNamePrefix'), parameters('uniqueData'))]",
         "keyPermissions": [
             "list",
             "encrypt",
@@ -158,19 +158,6 @@
             },
             "resources": [
             ]
-        },
-        {
-            "name": "[concat(variables('keyVaultName'),'/',parameters('diskEncryptionSetKeyName'))]",
-            "type": "Microsoft.KeyVault/vaults/keys",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
-            ],
-            "properties": {
-                "kty": "RSA",
-                "keySize": "4096"
-            }
         }
     ],
     "outputs": {
@@ -181,10 +168,6 @@
         "keyVaultResourceId": {
             "type": "string",
             "value": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
-        },
-        "keyVaultDesKeyUri": {
-            "type": "string",
-            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', variables('keyVaultName'), parameters('diskEncryptionSetKeyName')),variables('keyVaultApiVersion'), 'Full').properties.keyUriWithVersion]"
         }
     }
 }

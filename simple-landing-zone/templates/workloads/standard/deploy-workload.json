@@ -14,25 +14,11 @@
                 "description": "The IP address of the Azure Firewall in the transit Virtual Network"
             }
         },
-        "transitVnetName": {
+        "keyVaultAdminObjectId": {
             "type": "string",
             "metadata": {
-                "description": "The name of the transit virtual network"
+                "description": "The object ID of the security principal who will be admin over the Key Vault"
             }
-        },
-        "transitVnetResourceGroupName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the resource group the transit virtual network exists in"
-            },
-            "defaultValue": "[resourceGroup().name]"
-        },
-        "transitVnetSubscriptionId": {
-            "type": "string",
-            "metadata": {
-                "description": "The subscription id of the subscription the transit is stored in"
-            },
-            "defaultValue": "[subscription().subscriptionId]"
         },
         "laWorkspaceResourceId": {
             "type": "string",
@@ -52,6 +38,38 @@
                 "description": "The resource group where the Network Watcher instances are stored"
             },
             "defaultValue": "NetworkWatcherRG"
+        },
+        "sharedSvcVnetResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group the transit virtual network exists in"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "sharedSvcVnetSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id of the subscription the transit is stored in"
+            }
+        },
+        "transitVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the transit virtual network"
+            }
+        },
+        "transitVnetResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group the transit virtual network exists in"
+            },
+            "defaultValue": "[resourceGroup().name]"
+        },
+        "transitVnetSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id of the subscription the transit is stored in"
+            }
         },
         "workloadVnetCidr": {
             "type": "string",
@@ -101,9 +119,13 @@
         "appNsgName": "[concat('nsg-app', parameters('uniqueData'))]",
         "dataNsgFlowLogDeploymentName": "deploy-dataflowlog",
         "dataNsgName": "[concat('nsg-data', parameters('uniqueData'))]",
-        "transitPeeringDeploymentName": "deploy-peering",
+        "keyVaultDeploymentName": "deploy-workload-keyvault",
+        "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-keyvault.json')]",
+        "keyVaultPeDeploymentName": "deploy-workload-keyvault-pe",
+        "keyVaultPeDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-private-endpoint.json')]",
+        "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
         "location": "[resourceGroup().location]",
-        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-nsg-flow-log.json')]",
+        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-nsg-flow-log.json')]",
         "peeringTransitToWorkloadName": "peertransittoworkload",
         "peeringWorkloadToTransitName": "peerworkloadtotransit",
         "workloadAppSubnetName": "snet-app",
@@ -113,6 +135,7 @@
         "workloadVnetName": "[concat('vnet-workload', parameters('uniqueData'))]",
         "supportNsgFlowLogDeploymentName": "deploy-supportflowlog",
         "supportNsgName": "[concat('nsg-support', parameters('uniqueData'))]",
+        "transitPeeringDeploymentName": "deploy-peering",
         "vnetStandardDdosProtection": false
     },
     "resources": [
@@ -395,6 +418,88 @@
                             }
                         }
                     ]
+                }
+            }
+        },
+        {
+            "name": "[variables('keyVaultDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('transitPeeringDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
+                    },
+                    "keyVaultNamePrefix": {
+                        "value": "kvwl"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[parameters('laWorkspaceResourceId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('keyVaultPeDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('keyVaultDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('keyVaultPrivateDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('sharedSvcVnetResourceGroupName')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('workloadSupportSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "vault"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('workloadVnetName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+                    },
+                    "resourceName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultPeDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
                 }
             }
         }

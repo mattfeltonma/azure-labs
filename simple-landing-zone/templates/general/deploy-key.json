@@ -1,0 +1,60 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Azure Key Vault instance"
+            }
+        },
+        "keyName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of key"
+            }
+        },
+        "keyType": {
+            "type": "string",
+            "metadata": {
+                "description": "The type of key. Allowed values are EC, EC-HSM, RSA, RSA-HSM"
+            },
+            "defaultValue": "RSA",
+            "allowedValues": [
+                "RSA",
+                "EC",
+                "RSA-HSM",
+                "EC-HSM"
+            ]
+        },
+        "keySize": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The key size in bits"
+            },
+            "defaultValue": "4096"
+        }
+    },
+    "variables": {
+        "keyVaultApiVersion": "2019-09-01"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('keyVaultName'),'/',parameters('keyName'))]",
+            "type": "Microsoft.KeyVault/vaults/keys",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "kty": "[parameters('keyType')]",
+                "keySize": "[parameters('keySize')]"
+            }
+        }
+    ],
+    "outputs": {
+        "keyVaultDesKeyUri": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.KeyVault/vaults/keys', parameters('keyVaultName'), parameters('keyName')),variables('keyVaultApiVersion'), 'Full').properties.keyUriWithVersion]"
+        }
+    }
+}

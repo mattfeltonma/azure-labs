@@ -70,6 +70,12 @@
                 "description": "The CIDR assigned to the subnet used for other infrastructure services such as backup or PKI"
             }
         },
+        "sharedSvcVnetSubnetPeCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the subnet used for private endpoints for central services"
+            }
+        },
         "transitBastionSubnetCidr": {
             "type": "string",
             "metadata": {
@@ -113,7 +119,7 @@
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
         "acrDeploymentName": "deploy-acr",
-        "acrDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-acr.json')]",
+        "acrDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-acr.json')]",
         "acrDnsZoneName": "privatelink.azurecr.io",
         "acrPlLinkName": "[concat(variables('acrDnsZoneName'), '-link')]",
         "adMemberVm1DeploymentName": "deploy-admember1",
@@ -124,41 +130,58 @@
         "adVmName": "vmdc01",
         "blobStorageDnsZoneName": "privatelink.blob.core.windows.net",
         "blobStoragePlLinkName": "[concat(variables('blobStorageDnsZoneName'), '-link')]",
-        "dcVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-dc.json')]",
+        "dcVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-windows-dc.json')]",
+        "deployAcrPe": "deploy-acrprivateendpoint",
+        "deployBlobStPe": "deploy-storageblobprivateendpoint",
+        "deployFileStPe": "deploy-storagefileprivateendpoint",
+        "deployKeyVaultPe": "deploy-keyvaultprivateendpoint",
+        "deployLaPe": "deploy-laprivateendpoint",
+        "deployQueueStPe": "deploy-storagequeueprivateendpoint",
+        "deployTableStPe": "deploy-storagetableprivateendpoint",
         "diskEncSetDeploymentName": "deploy-diskencset",
-        "diskEncSetDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-disk-encryption-set.json')]",
-        "userNameSecretName": "domainadminusername",
-        "userPasswordSecretName": "domainadminpassword",
+        "diskEncSetDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-disk-encryption-set.json')]",
         "fileStorageDnsZoneName": "privatelink.file.core.windows.net",
         "fileStoragePlLinkName": "[concat(variables('fileStorageDnsZoneName'), '-link')]",
         "infraNsgFlowLogDeploymentName": "deploy-infraflowlog",
         "infraNsgName": "[concat('nsg-infra', parameters('uniqueData'))]",
         "keyVaultDeploymentName": "deploy-keyvault",
-        "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-keyvault.json')]",
+        "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-keyvault.json')]",
+        "keyVaultKeyDeploymentName": "deploy-keyvault-disk-key",
+        "keyVaultKeyDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-key.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultPlLinkName": "[concat(variables('keyVaultDnsZoneName'), '-link')]",
+        "laPeDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-la-private-endpoint.json')]",
         "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
         "linuxVm1DeploymentName": "deploy-linuxserver1",
-        "linuxVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-ubuntu-server.json')]",
+        "linuxVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-ubuntu-server.json')]",
         "linuxVm1Name": "vmlserver01",
         "location": "[resourceGroup().location]",
         "logAnalyticsRetention": 30,
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
-        "memberVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-windows-member.json')]",
-        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-nsg-flow-log.json')]",
+        "memberVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-windows-member.json')]",
+        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-nsg-flow-log.json')]",
+        "peDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-private-endpoint.json')]",
+        "peNsgFlowLogDeploymentName": "deploy-peflowlog",
+        "privateEndpointNsgName": "[concat('nsg-pe', parameters('uniqueData'))]",
         "queueStorageDnsZoneName": "privatelink.queue.core.windows.net",
         "queueStoragePlLinkName": "[concat(variables('queueStorageDnsZoneName'), '-link')]",
-        "secretDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../shared/deploy-secret.json')]",
+        "secretDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-secret.json')]",
         "sharedSvcDiskEncSetName": "ssdiskenc",
+        "sharedSvcDiskEncKeyName": "cntdiskkey",
+        "sharedSvcDiskEncKeyType": "RSA",
+        "sharedSvcDiskEncKeySize": "4096",
         "sharedSvcAdSubnetName": "snet-ad",
         "sharedSvcInfraSvcSubnetName": "snet-infra",
+        "sharedSvcPeSvcSubnetName": "snet-pe",
         "sharedSvcRouteTableName": "[concat('rt-shared', parameters('uniqueData'))]",
         "sharedSvcVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
         "tableStorageDnsZoneName": "privatelink.table.core.windows.net",
         "tableStoragePlLinkName": "[concat(variables('tableStorageDnsZoneName'), '-link')]",
         "updateVnetDeploymentName": "deploy-update-vnet",
         "userNameSecretDeploymentName": "deploy-usernamesecret",
+        "userNameSecretName": "domainadminusername",
         "userPasswordSecretDeploymentName": "deploy-userpasswordsecret",
+        "userPasswordSecretName": "domainadminpassword",
         "vmSku": "Standard_DS2_v2",
         "vnetStandardDdosProtection": false
     },
@@ -676,10 +699,7 @@
             ],
             "properties": {
                 "mode": "Incremental",
-                "parameters": {                
-                    "diskEncryptionSetKeyName": {
-                        "value": "[variables('sharedSvcDiskEncSetName')]"
-                    },
+                "parameters": {
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdminObjectId')]"
                     },
@@ -700,11 +720,40 @@
             }
         },
         {
-            "name": "[variables('acrDeploymentName')]",
+            "name": "[variables('keyVaultKeyDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "keyName": {
+                        "value": "[variables('sharedSvcDiskEncKeyName')]"
+                    },
+                    "keyType": {
+                        "value": "[variables('sharedSvcDiskEncKeyType')]"
+                    },
+                    "keySize": {
+                        "value": "[variables('sharedSvcDiskEncKeySize')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultKeyDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('acrDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultKeyDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -796,7 +845,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultKeyDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -805,7 +855,7 @@
                         "value": "[variables('sharedSvcDiskEncSetName')]"
                     },
                     "keyUrl": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultDesKeyUri.value]"
+                        "value": "[reference(variables('keyVaultKeyDeploymentName')).outputs.keyVaultDesKeyUri.value]"
                     },
                     "keyVaultName": {
                         "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
@@ -829,6 +879,16 @@
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('infraNsgName')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('privateEndpointNsgName')]",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
@@ -1060,11 +1120,50 @@
             }
         },
         {
+            "name": "[variables('peNsgFlowLogDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]",
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('adNsgName')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('privateEndpointNsgName'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('nsgDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "name": "[variables('adNsgFlowLogDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('peNsgFlowLogDeploymentName'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]",
                 "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
@@ -1162,6 +1261,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]",
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('adNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]",
                 "[resourceId('Microsoft.Network/routeTables', variables('sharedSvcRouteTableName'))]"
             ],
             "properties": {
@@ -1193,6 +1293,16 @@
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]"
                             }
+                        }
+                    },
+                    {
+                        "name": "[variables('sharedSvcPeSvcSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('sharedSvcVnetSubnetPeCidr')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Disabled"
                         }
                     }
                 ],
@@ -1422,11 +1532,340 @@
             }
         },
         {
+            "name": "[variables('deployLaPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/privateDnsZones/', variables('acrDnsZoneName'), '/virtualNetworkLinks/', variables('acrPlLinkName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "dnsVnetResourceGroup": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "dnsVnetSubscriptionId": {
+                        "value": "[subscription().subscriptionId]"
+                    },
+                    "laWorkspaceName": {
+                        "value": "[variables('laWorkspaceName')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('sharedSvcPeSvcSubnetName')]"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('sharedSvcVnetName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('laPeDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployBlobStPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployLaPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('blobStorageDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[subscription().subscriptionId]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('sharedSvcPeSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "blob"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('sharedSvcVnetName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('logStorageAccountName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployFileStPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployBlobStPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('fileStorageDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[subscription().subscriptionId]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('sharedSvcPeSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "file"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('sharedSvcVnetName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('logStorageAccountName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployTableStPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployFileStPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('tableStorageDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[subscription().subscriptionId]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('sharedSvcPeSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "table"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('sharedSvcVnetName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('logStorageAccountName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployQueueStPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployTableStPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('queueStorageDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[subscription().subscriptionId]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('sharedSvcPeSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "queue"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('sharedSvcVnetName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('logStorageAccountName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployKeyVaultPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployQueueStPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('keyVaultDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[subscription().subscriptionId]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('sharedSvcPeSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "vault"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('sharedSvcVnetName')]"
+                    },
+                    "resourceName": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployAcrPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('acrDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[subscription().subscriptionId]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('sharedSvcPeSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "registry"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('sharedSvcVnetName')]"
+                    },
+                    "resourceName": {
+                        "value": "[reference(variables('acrDeploymentName')).outputs.acrName.value]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[reference(variables('acrDeploymentName')).outputs.acrResourceId.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "name": "[variables('adVmDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/privateDnsZones/', variables('keyVaultDnsZoneName'), '/virtualNetworkLinks/', variables('keyVaultPlLinkName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployAcrPe'))]",
                 "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
             ],
             "properties": {
@@ -1534,6 +1973,19 @@
                                             "networkSecurityGroup": {
                                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]"
                                             }
+                                        }
+                                    },
+                                    {
+                                        "name": "[variables('sharedSvcPeSvcSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('sharedSvcVnetSubnetPeCidr')]",
+                                            "routeTable": {
+                                                "id": "[resourceId('Microsoft.Network/routeTables',variables('sharedSvcRouteTableName'))]"
+                                            },
+                                            "networkSecurityGroup": {
+                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]"
+                                            },
+                                            "privateEndpointNetworkPolicies": "Disabled"
                                         }
                                     }
                                 ],
@@ -1673,11 +2125,11 @@
             "type": "string",
             "value": "[reference(variables('acrDeploymentName')).outputs.acrResourceId.value]"
         },
-        "KeyVaultName": {
+        "keyVaultName": {
             "type": "string",
             "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
         },
-        "KeyVaultResourceId": {
+        "keyVaultResourceId": {
             "type": "string",
             "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
         },
@@ -1713,6 +2165,10 @@
             "type": "string",
             "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('infraNsgName'))]"
         },
+        "sharedSvcPeNsgResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]"
+        },
         "sharedSvcRouteTableName": {
             "type": "string",
             "value": "[variables('sharedSvcRouteTableName')]"
@@ -1720,6 +2176,18 @@
         "sharedSvcRouteTableResourceId": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/routeTables', variables('sharedSvcRouteTableName'))]"
+        },
+        "sharedSvcAdSubnetName": {
+            "type": "string",
+            "value": "[variables('sharedSvcAdSubnetName')]"
+        },
+        "sharedSvcInfraSubnetName": {
+            "type": "string",
+            "value": "[variables('sharedSvcInfraSvcSubnetName')]"
+        },
+        "sharedSvcPeSubnetName": {
+            "type": "string",
+            "value": "[variables('sharedSvcPeSvcSubnetName')]"
         },
         "sharedSvcVnetName": {
             "type": "string",
