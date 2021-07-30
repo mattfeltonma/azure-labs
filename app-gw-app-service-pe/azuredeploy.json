@@ -1,0 +1,233 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sharedServicesSubId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id to deploy Shared Services resources"
+            }
+        },
+        "transitServicesSubId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id to deploy Transit resources"
+            }
+        },
+        "workloadSubId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id to deploy the Workload resources"
+            }
+        },
+        "customWebDomain": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify a custom domain name to be used for private access to the application via the Application Gateway. This will be created as an Azure Private DNS Zone"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location to deploy the resources. Modify template to allow additional regions"
+            },
+            "allowedValues": [
+                "centralus",
+                "eastus",
+                "eastus2",
+                "southcentralus",
+                "westus",
+                "westus2"
+            ]
+        },
+        "vmAdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Administrator name for VMs that are created"
+            }
+        },
+        "vmAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the VMs that are created"
+            }
+        },
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that wil be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "networkWatcherResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where Network Watcher resources exist"
+            },
+            "defaultValue": "NetworkWatcherRG"
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Creates a new GUID to create uniqueness for resources"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "resourcesApiVersion": "2020-06-01",
+        "cloudAddressSpace": "10.0.0.0/8",
+        "appGwPrivateIp": "10.1.3.4",
+        "sharedSvcDevServerIp": "10.1.0.5",
+        "sharedSvcRgDeploymentName": "deploy-shared-rg",
+        "sharedSvcSubDeploymentName": "deploy-shared-sub",
+        "sharedSvcRgName": "[concat('rg-shared-',parameters('uniqueData'))]",
+        "sharedSvcTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/shared/'))]",
+        "sharedSvcVnetCidr": "10.1.0.0/16",
+        "sharedSvcVnetSubnetDevCidr": "10.1.0.0/24",
+        "sharedSvcVnetSubnetPeCidr": "10.1.2.0/24",
+        "transitAppGwSubnetCidr": "10.1.3.0/27",
+        "transitBastionSubnetCidr": "10.0.1.0/27",
+        "transitRgDeploymentName": "deploy-transit",
+        "transitSubDeploymentName": "deploy-transit-sub",
+        "transitFwSubnetPayCidr": "10.0.2.0/26",
+        "transitGatewaySubnetCidr": "10.0.0.0/27",
+        "transitRgName": "[concat('rg-transit-',parameters('uniqueData'))]",
+        "transitTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/transit/'))]",
+        "transitVnetCidr": "10.0.0.0/16",
+        "workloadRgDeploymentName": "deploy-workload",
+        "workloadSubDeploymentName": "deploy-workload-sub",
+        "workloadRgName": "[concat('rg-workload-',parameters('uniqueData'))]",
+        "workloadTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/workloads/'))]",
+        "workloadVnetCidr": "10.2.0.0/16",
+        "workloadVnetSubnetAppSvcPeCidr": "10.2.0.0/24",
+        "workloadVnetSubnetAppSveRviCidr": "10.2.1.0/24",
+        "workloadVnetSubnetSvcCidr": "10.2.2.0/24"
+    },
+    "resources": [
+        {
+            "name": "[variables('transitSubDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
+            "subscriptionId": "[parameters('transitServicesSubId')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[variables('transitRgName')]",
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "[variables('resourcesApiVersion')]",
+                            "location": "[parameters('location')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('sharedSvcSubDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "location": "[parameters('location')]",
+            "subscriptionId": "[parameters('sharedServicesSubId')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[variables('sharedSvcRgName')]",
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "[variables('resourcesApiVersion')]",
+                            "location": "[parameters('location')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('transitRgDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('transitServicesSubId')]",
+            "resourceGroup": "[variables('transitRgName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('transitSubDeploymentName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('sharedSvcSubDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "appGwPrivateIp": {
+                        "value": "[variables('appGwPrivateIp')]"
+                    },
+                    "cloudAddressSpace": {
+                        "value": "[variables('cloudAddressSpace')]"
+                    },
+                    "customWebDomain": {
+                        "value": "[parameters('customWebDomain')]"
+                    },
+                     "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "networkWatcherRg": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
+                    "sharedSvcRgName": {
+                        "value": "[variables('sharedSvcRgName')]"
+                    },
+                    "sharedSvcSubcriptionId": {
+                        "value": "[parameters('sharedServicesSubId')]"
+                    },
+                    "transitAppGwSubnetCidr": {
+                        "value": "[variables('transitAppGwSubnetCidr')]"
+                    },
+                    "transitBastionSubnetCidr": {
+                        "value": "[variables('transitBastionSubnetCidr')]"
+                    },
+                    "transitFwSubnetPayCidr": {
+                        "value": "[variables('transitFwSubnetPayCidr')]"
+                    },
+                    "transitGatewaySubnetCidr": {
+                        "value": "[variables('transitGatewaySubnetCidr')]"
+                    },
+                    "transitVnetCidr": {
+                        "value": "[variables('transitVnetCidr')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "workloadVnetCidr": {
+                        "value": "[variables('workloadVnetCidr')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[concat(variables('transitTemplatesUri'),'deploy-transit.json')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

@@ -1,0 +1,167 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "cloudAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "The address space allocated to Azure as a whole"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "networkApiVersion": "2020-07-01",
+        "location": "[resourceGroup().location]",
+        "lzFwPolicyName": "[concat('fwpol',parameters('uniqueData'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('lzFwPolicyName')]",
+            "type": "Microsoft.Network/firewallPolicies",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "dnsSettings": {
+                    "enableProxy": true,
+                    "requireProxyForNetworkRules": true
+                },
+                "sku": {
+                    "tier": "Premium"
+                },
+                "threatIntelMode": "Alert"
+            },
+            "resources": [
+                {
+                    "name": "DefaultDnatRuleCollectionGroup",
+                    "type": "ruleCollectionGroups",
+                    "apiVersion": "[variables('networkApiVersion')]",
+                    "location": "[variables('networkApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]"
+                    ],
+                    "properties": {
+                        "priority": 100,
+                        "ruleCollections": [
+                        ]
+                    }
+                },
+                {
+                    "name": "DefaultNetworkRuleCollectionGroup",
+                    "type": "ruleCollectionGroups",
+                    "apiVersion": "[variables('networkApiVersion')]",
+                    "location": "[variables('networkApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]",
+                        "[concat('Microsoft.Network/firewallPolicies/', variables('lzFwPolicyName'), '/ruleCollectionGroups/', 'DefaultDnatRuleCollectionGroup')]"
+                    ],
+                    "properties": {
+                        "priority": 200,
+                        "ruleCollections": [
+                            {
+                                "name": "AllowVmRequired",
+                                "priority": 100,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowKMSActivation",
+                                        "ipProtocols": [
+                                            "TCP"
+                                        ],
+                                        "destinationPorts": [
+                                            "1688"
+                                        ],
+                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "destinationIpGroups": [],
+                                        "destinationAddresses": [],
+                                        "ruleConditionType": "NetworkRuleCondition",
+                                        "ruleType": "NetworkRule",
+                                        "destinationFqdns": [
+                                            "kms.core.windows.net"
+                                        ]
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "DefaultApplicationRuleCollectionGroup",
+                    "type": "ruleCollectionGroups",
+                    "apiVersion": "[variables('networkApiVersion')]",
+                    "location": "[variables('networkApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]",
+                        "[concat('Microsoft.Network/firewallPolicies/', variables('lzFwPolicyName'), '/ruleCollectionGroups/', 'DefaultNetworkRuleCollectionGroup')]"
+                    ],
+                    "properties": {
+                        "priority": 300,
+                        "ruleCollections": [
+                            {
+                                "name": "AllowResourcesInternet",
+                                "priority": 100,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowVMInternet",
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            },
+                                            {
+                                                "protocolType": "Http",
+                                                "port": 80
+                                            }
+                                        ],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "targetFqdns": [
+                                            "*"
+                                        ],
+                                        "fqdnTags": [],
+                                        "ruleType": "ApplicationRule"
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "firewallPolicyId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]"
+        }
+    }
+}
