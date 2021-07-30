@@ -100,7 +100,6 @@
     },
     "variables": {
         "diagnosticApiVersion": "2017-05-01-preview",
-        "laApiVersion": "2015-11-01-preview",
         "managedIdentityApiVersion": "2018-11-30",
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
@@ -125,12 +124,12 @@
             "1"
         ],
         "firewallName": "[concat('fw', parameters('uniqueData'))]",
-        "firewallDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-lz-firewall-policy.json')]",
+        "firewallDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-fw-policy.json')]",
         "firewallPublicIpName": "[concat('pip-fw', parameters('uniqueData'))]",
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
         "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-key-vault.json')]",
-        "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
+        "lawDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-law.json')]",
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-nsg-flow-log.json')]",
@@ -148,37 +147,17 @@
             ],
             "properties": {
                 "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {},
-                    "variables": {},
-                    "resources": [
-                        {
-                            "name": "[variables('laWorkspaceName')]",
-                            "type": "Microsoft.OperationalInsights/workspaces",
-                            "apiVersion": "[variables('laApiVersion')]",
-                            "location": "[variables('location')]",
-                            "tags": "[parameters('tags')]",
-                            "properties": {
-                                "sku": {
-                                    "name": "PerGB2018"
-                                },
-                                "publicNetworkAccessForIngestion": "Enabled",
-                                "publicNetworkAccessForQuery": "Enabled",
-                                "retentionInDays": 30
-                            },
-                            "resources": []
-                        }
-                    ],
-                    "outputs": [
-                        {
-                            "logAnalyticsResourceId": {
-                                "type": "string",
-                                "value": "[resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName'))]"
-                            }
-                        }
-                    ]
+                "parameters": {
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('lawDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
                 }
             }
         },
