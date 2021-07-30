@@ -94,7 +94,7 @@
         "sharedSvcVnetCidr": "10.1.0.0/16",
         "sharedSvcVnetSubnetDevCidr": "10.1.0.0/24",
         "sharedSvcVnetSubnetPeCidr": "10.1.2.0/24",
-        "transitAppGwSubnetCidr": "10.1.3.0/27",
+        "transitAppGwSubnetCidr": "10.0.3.0/27",
         "transitBastionSubnetCidr": "10.0.1.0/27",
         "transitRgDeploymentName": "deploy-transit",
         "transitSubDeploymentName": "deploy-transit-sub",
