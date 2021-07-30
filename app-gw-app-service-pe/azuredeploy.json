@@ -194,7 +194,7 @@
                     "sharedSvcRgName": {
                         "value": "[variables('sharedSvcRgName')]"
                     },
-                    "sharedSvcSubcriptionId": {
+                    "sharedSvcSubscriptionId": {
                         "value": "[parameters('sharedServicesSubId')]"
                     },
                     "transitAppGwSubnetCidr": {
