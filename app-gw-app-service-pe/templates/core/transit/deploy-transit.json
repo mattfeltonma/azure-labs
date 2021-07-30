@@ -935,12 +935,12 @@
                     "firewallMode": "Detection",
                     "ruleSetType": "OWASP",
                     "ruleSetVersion": "3.0"
-                },
-                "identity": {
-                    "type": "UserAssigned",
-                    "userAssignedIdentities": {
-                        "id": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]"
-                    }
+                }
+            },
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "id": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]"
                 }
             }
         }
