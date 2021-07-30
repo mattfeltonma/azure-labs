@@ -85,7 +85,7 @@
     "variables": {
         "resourcesApiVersion": "2020-06-01",
         "cloudAddressSpace": "10.0.0.0/8",
-        "appGwPrivateIp": "10.1.3.4",
+        "appGwPrivateIp": "10.0.3.4",
         "sharedSvcDevServerIp": "10.1.0.5",
         "sharedSvcRgDeploymentName": "deploy-shared-rg",
         "sharedSvcSubDeploymentName": "deploy-shared-sub",
