@@ -101,7 +101,7 @@
     "variables": {
         "diagnosticApiVersion": "2017-05-01-preview",
         "managedIdentityApiVersion": "2018-11-30",
-        "networkApiVersion": "2020-04-01",
+        "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
         "appGwName": "agw-transit",
