@@ -827,42 +827,6 @@
             }
         },
         {
-            "name": "[variables('deployKeyVault')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]",
-                "[concat('Microsoft.Resources/deployments/',variables('deployAppGwRt'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "keyVaultAdminObjectId": {
-                        "value": "[parameters('keyVaultAdminObjectId')]"
-                    },
-                    "keyVaultNamePrefix": {
-                        "value": "kvcnt"
-                    },
-                    "laWorkspaceResourceId": {
-                        "value": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]"
-                    },
-                    "managedIdentityObjectId": {
-                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('keyVaultDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
             "name": "[variables('appGwName')]",
             "type": "Microsoft.Network/applicationGateways",
             "apiVersion": "[variables('networkApiVersion')]",
