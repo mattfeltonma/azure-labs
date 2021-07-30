@@ -42,7 +42,7 @@
                     "enableProxy": true
                 },
                 "sku": {
-                    "tier": "Premium"
+                    "tier": "Standard"
                 },
                 "threatIntelMode": "Alert"
             },
