@@ -940,7 +940,7 @@
             "identity": {
                 "type": "UserAssigned",
                 "userAssignedIdentities": {
-                    "id": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))).principalId]"
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]": {}
                 }
             }
         }
