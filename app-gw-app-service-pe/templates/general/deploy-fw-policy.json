@@ -39,8 +39,7 @@
             "tags": "[parameters('tags')]",
             "properties": {
                 "dnsSettings": {
-                    "enableProxy": true,
-                    "requireProxyForNetworkRules": true
+                    "enableProxy": true
                 },
                 "sku": {
                     "tier": "Premium"
