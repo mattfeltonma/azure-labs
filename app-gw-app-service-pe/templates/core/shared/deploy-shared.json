@@ -157,7 +157,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[parameters('centralKeyVaultResourceId')]"
+                        "value": "[parameters('centralKeyVaultName')]"
                     },
                     "location": {
                         "value": "[variables('location')]"
@@ -187,7 +187,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[parameters('centralKeyVaultResourceId')]"
+                        "value": "[parameters('centralKeyVaultName')]"
                     },
                     "location": {
                         "value": "[variables('location')]"
