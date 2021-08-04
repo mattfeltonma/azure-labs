@@ -301,6 +301,12 @@
                     "sharedSvcVnetSubnetPeCidr": {
                         "value": "[variables('sharedSvcVnetSubnetPeCidr')]"
                     },
+                    "transitResourceGroupName": {
+                        "value": "[variables('transitRgName')]"
+                    },
+                    "transitSubscriptionId": {
+                        "value": "[parameters('transitServicesSubId')]"
+                    },
                     "transitVnetName": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.transitVnetName.value]"
                     },
