@@ -834,6 +834,8 @@
             "name": "[variables('deployKeyVault')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
+            "resourceGroup": "[parameters('sharedSvcRgName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]",
                 "[concat('Microsoft.Resources/deployments/',variables('deployAppGwRt'))]"

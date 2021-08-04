@@ -470,6 +470,9 @@
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
                     }
                 },
                 "templateLink": {
