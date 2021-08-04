@@ -649,6 +649,12 @@
                                         "properties": {
                                             "addressPrefix": "[parameters('transitFwSubnetPayCidr')]"
                                         }
+                                    },
+                                    {
+                                        "name": "[variables('appGwSubnetName')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('transitAppGwSubnetCidr')]"
+                                        }
                                     }
                                 ],
                                 "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
