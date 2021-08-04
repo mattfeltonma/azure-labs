@@ -42,7 +42,7 @@ try {
     Invoke-WebRequest -Uri $uri -OutFile $destination
 
     # Install Visual Studio Code
-    Start-Process $destination -ArgumentList '/VERYSILENT' -Wait
+    Start-Process $destination -ArgumentList '/VERYSILENT /NORESTART /MERGETASKS=!runcode' -Wait
     
 }
 
@@ -63,7 +63,7 @@ try {
 }
 
 catch {
-    Write-Host "Unable to install Visual Studio Code"
+    Write-Host "Unable to install Google Chrome"
 } 
 
 Stop-Transcript 
