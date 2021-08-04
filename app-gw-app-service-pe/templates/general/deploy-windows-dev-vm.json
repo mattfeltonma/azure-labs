@@ -300,7 +300,7 @@
                     "location": "[variables('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",   
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/CreateMemberServer')]"
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/CreateDevServer')]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.Compute",
