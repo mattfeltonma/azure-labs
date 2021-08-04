@@ -685,14 +685,6 @@
             ],
             "properties": {
                 "routes": [
-                    {
-                        "name": "udr-workload",
-                        "properties": {
-                            "addressPrefix": "[parameters('workloadVnetCidr')]",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
-                        }
-                    }
                 ],
                 "disableBgpRoutePropagation": "True"
             },

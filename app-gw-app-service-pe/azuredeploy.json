@@ -106,7 +106,7 @@
         "workloadRgDeploymentName": "deploy-workload",
         "workloadSubDeploymentName": "deploy-workload-sub",
         "workloadRgName": "[concat('rg-workload-',parameters('uniqueData'))]",
-        "workloadTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/workloads/'))]",
+        "workloadTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/workload/'))]",
         "workloadVnetCidr": "10.2.0.0/16",
         "workloadVnetSubnetAppSvcPeCidr": "10.2.0.0/24",
         "workloadVnetSubnetAppSvcRviCidr": "10.2.1.0/24",
