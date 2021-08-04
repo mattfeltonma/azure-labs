@@ -100,6 +100,7 @@
     },
     "variables": {
         "diagnosticApiVersion": "2017-05-01-preview",
+        "dnsApiVersion": "2018-09-01",
         "managedIdentityApiVersion": "2018-11-30",
         "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
@@ -109,6 +110,8 @@
         "appGwRouteTableName": "rt-agw",
         "appGwSubnetName": "snet-agw",
         "appGwUmi": "agw-umi",
+        "appServicesPrivateDnsZoneName": "privatelink.azurewebsites.net",
+        "appServicesPlLinkName": "[concat(variables('appServicesPrivateDnsZoneName'), '-link')]",
         "applicationGatewayId": "[resourceId('Microsoft.Network/applicationGateways', variables('appGwName'))]",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
         "bastionNsgName": "[concat('nsg-bst', parameters('uniqueData'))]",
@@ -129,6 +132,8 @@
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
         "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-key-vault.json')]",
+        "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
+        "keyVaultPlLinkName": "[concat(variables('keyVaultPrivateDnsZoneName'), '-link')]",
         "lawDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-law.json')]",
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
@@ -552,12 +557,56 @@
             ]
         },
         {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[variables('keyVaultPrivateDnsZoneName')]",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[variables('appServicesPrivateDnsZoneName')]",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[concat(variables('keyVaultPrivateDnsZoneName'), '/', variables('keyVaultPlLinkName'))]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('keyVaultPrivateDnsZoneName'))]",
+                "[resourceId('Microsoft.Network/azureFirewalls',variables('firewallName'))]"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[concat(variables('appServicesPrivateDnsZoneName'), '/', variables('appServicesPlLinkName'))]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('appServicesPrivateDnsZoneName'))]",
+                "[concat('Microsoft.Network/privateDnsZones/',variables('keyVaultPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('keyVaultPlLinkName'))]"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
+                }
+            }
+        },
+        {
             "name": "[variables('deployDnsServerSettings')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'),'/providers/microsoft.insights/diagnosticSettings/diag')]",
-                "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'))]"
+                "[concat('Microsoft.Network/privateDnsZones/',variables('appServicesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('appServicesPlLinkName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -913,7 +962,7 @@
                 ],
                 "requestRoutingRules": [
                     {
-                        "Name": "myapp-Rule",
+                        "Name": "placeholder",
                         "properties": {
                             "RuleType": "Basic",
                             "httpListener": {
@@ -946,21 +995,41 @@
         }
     ],
     "outputs": {
+        "appGwRouteTableName": {
+            "type": "string",
+            "value": "[variables('appGwRouteTableName')]"
+        },
+        "centralKeyVaultName": {
+            "type": "string",
+            "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
+        },
+        "centralKeyVaultResourceId": {
+            "type": "string",
+            "value": "[reference(variables('deployKeyVault')).outputs.KeyVaultResourceId.value]"
+        },
         "firewallIp": {
             "type": "string",
             "value": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+        },
+        "lawName": {
+            "type": "string",
+            "value": "[reference(variables('deployLaw')).outputs.logAnalyticsName.value]"
         },
         "lawResourceId": {
             "type": "string",
             "value": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]"
         },
-        "storageAccountResourceId": {
+        "nsgStorageAccountResourceId": {
             "type": "string",
             "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
         },
         "transitVnetName": {
             "type": "string",
             "value": "[variables('transitVnetName')]"
+        },
+        "transitVnetResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualNetworks',variables('transitVnetName'))]"
         }
     }
 }
