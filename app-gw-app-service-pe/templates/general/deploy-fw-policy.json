@@ -26,7 +26,7 @@
         }
     },
     "variables": {
-        "networkApiVersion": "2020-07-01",
+        "fwPolicyApiVersion": "2020-11-01",
         "location": "[resourceGroup().location]",
         "lzFwPolicyName": "[concat('fwpol',parameters('uniqueData'))]"
     },
@@ -34,7 +34,7 @@
         {
             "name": "[variables('lzFwPolicyName')]",
             "type": "Microsoft.Network/firewallPolicies",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('fwPolicyApiVersion')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -50,8 +50,8 @@
                 {
                     "name": "DefaultDnatRuleCollectionGroup",
                     "type": "ruleCollectionGroups",
-                    "apiVersion": "[variables('networkApiVersion')]",
-                    "location": "[variables('networkApiVersion')]",
+                    "apiVersion": "[variables('fwPolicyApiVersion')]",
+                    "location": "[variables('fwPolicyApiVersion')]",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]"
                     ],
@@ -64,8 +64,8 @@
                 {
                     "name": "DefaultNetworkRuleCollectionGroup",
                     "type": "ruleCollectionGroups",
-                    "apiVersion": "[variables('networkApiVersion')]",
-                    "location": "[variables('networkApiVersion')]",
+                    "apiVersion": "[variables('fwPolicyApiVersion')]",
+                    "location": "[variables('fwPolicyApiVersion')]",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]",
                         "[concat('Microsoft.Network/firewallPolicies/', variables('lzFwPolicyName'), '/ruleCollectionGroups/', 'DefaultDnatRuleCollectionGroup')]"
@@ -109,8 +109,8 @@
                 {
                     "name": "DefaultApplicationRuleCollectionGroup",
                     "type": "ruleCollectionGroups",
-                    "apiVersion": "[variables('networkApiVersion')]",
-                    "location": "[variables('networkApiVersion')]",
+                    "apiVersion": "[variables('fwPolicyApiVersion')]",
+                    "location": "[variables('fwPolicyApiVersion')]",
                     "dependsOn": [
                         "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]",
                         "[concat('Microsoft.Network/firewallPolicies/', variables('lzFwPolicyName'), '/ruleCollectionGroups/', 'DefaultNetworkRuleCollectionGroup')]"
