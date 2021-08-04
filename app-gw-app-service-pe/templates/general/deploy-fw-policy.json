@@ -8,6 +8,12 @@
                 "description": "The address space allocated to Azure as a whole"
             }
         },
+        "workloadVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR range of the workload virtual network"
+            }
+        },
         "tags": {
             "type": "object",
             "metadata": {
@@ -40,6 +46,11 @@
             "properties": {
                 "dnsSettings": {
                     "enableProxy": true
+                },
+                "snat": {
+                    "privateRanges": [
+                        "[parameters('workloadVnetCidr')]"
+                    ]
                 },
                 "sku": {
                     "tier": "Premium"

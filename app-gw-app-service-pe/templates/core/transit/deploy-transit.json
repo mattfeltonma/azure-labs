@@ -237,6 +237,9 @@
                     "cloudAddressSpace": {
                         "value": "[parameters('cloudAddressSpace')]"
                     },
+                    "workloadVnetCidr": {
+                        "value": "[parameters('workloadVnetCidr')]"
+                    },
                     "tags": {
                         "value": "[parameters('tags')]"
                     },
