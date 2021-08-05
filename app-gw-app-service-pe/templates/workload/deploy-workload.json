@@ -342,7 +342,7 @@
                     {
                         "name": "[variables('workloadRviSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('workloadVnetSubnetDataCidr')]",
+                            "addressPrefix": "[parameters('workloadVnetSubnetRviCidr')]",
                             "routeTable": {
                                 "id": "[resourceId('Microsoft.Network/routeTables',variables('workloadRouteTableName'))]"
                             },
@@ -640,7 +640,7 @@
             "subscriptionId": "[parameters('transitVnetSubscriptionId')]",
             "resourceGroup": "[parameters('transitVnetResourceGroupName')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/')]"
+                "[concat('Microsoft.Resources/deployments/',variables('appSvcPeDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
