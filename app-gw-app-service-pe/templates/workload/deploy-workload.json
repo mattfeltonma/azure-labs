@@ -124,7 +124,7 @@
         "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
         "linuxFxVersion": "PYTHON|3.8",
         "location": "[resourceGroup().location]",
-        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-nsg-flow-log.json')]",
+        "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-nsg-flow-log.json')]",
         "peDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-private-endpoint.json')]",
         "peeringTransitToWorkloadName": "peertransittoworkload",
         "peeringWorkloadToTransitName": "peerworkloadtotransit",
