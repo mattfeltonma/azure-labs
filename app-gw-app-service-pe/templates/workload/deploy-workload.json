@@ -119,7 +119,7 @@
         "appSvcPeDeploymentName": "deploy-appsvc-pe",
         "branch": "master",
         "keyVaultDeploymentName": "deploy-workload-keyvault",
-        "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-keyvault.json')]",
+        "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-key-vault.json')]",
         "keyVaultPeDeploymentName": "deploy-workload-keyvault-pe",
         "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
         "linuxFxVersion": "PYTHON|3.8",
