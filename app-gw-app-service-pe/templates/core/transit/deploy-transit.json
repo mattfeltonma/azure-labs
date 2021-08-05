@@ -850,7 +850,7 @@
                     "managedIdentityObjectId": {
                         "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
                     },
-                    "managedIdentityKeyPermissions": {
+                    "managedIdentitySecretPermissions": {
                         "value": [
                             "get",
                             "list"
