@@ -76,10 +76,10 @@
                 "description": "The CIDR assigned to the subnet used for the application layer of the workload"
             }
         },
-        "workloadVnetSubnetDataCidr": {
+        "workloadVnetSubnetRviCidr": {
             "type": "string",
             "metadata": {
-                "description": "The CIDR assigned to the subnet used for the data layer of the workload"
+                "description": "The CIDR assigned to the subnet used for regional vnet integration"
             }
         },
         "workloadVnetSubnetSupportCidr": {
