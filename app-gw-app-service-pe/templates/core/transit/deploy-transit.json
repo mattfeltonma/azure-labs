@@ -841,11 +841,20 @@
                     "keyVaultNamePrefix": {
                         "value": "kvcnt"
                     },
+                    "managedIdentityInUse": {
+                        "value": "True"
+                    },
                     "laWorkspaceResourceId": {
                         "value": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]"
                     },
                     "managedIdentityObjectId": {
                         "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
+                    },
+                    "managedIdentityKeyPermissions": {
+                        "value": [
+                            "get",
+                            "list"
+                        ]
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
