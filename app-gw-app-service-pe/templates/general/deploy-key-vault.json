@@ -33,7 +33,7 @@
             "metadata": {
                 "description": "The object ID of the managed identity"
             },
-            "defaultValue": null
+            "defaultValue": "Null"
         },
         "managedIdentityCertPermissions": {
             "type": "array",
