@@ -178,7 +178,7 @@
         },
         {
             "condition": "[equals(parameters('managedIdentityInUse'), 'False')]",
-            "name": "[variables('keyVaultName')]",
+            "name": "[concat(variables('keyVaultName'),'m')]",
             "type": "Microsoft.KeyVault/vaults",
             "apiVersion": "[variables('keyVaultApiVersion')]",
             "location": "[variables('location')]",
