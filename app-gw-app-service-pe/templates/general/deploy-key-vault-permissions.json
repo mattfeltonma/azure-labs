@@ -51,12 +51,11 @@
         }
     },
     "variables": {
-        "keyVaultApiVersion": "2019-09-01",
-        "accessPolicyName": "[concat('ap', parameters('uniqueData'))]"
+        "keyVaultApiVersion": "2019-09-01"
     },
     "resources": [
         {
-            "name": "[concat(parameters('keyVaultName'),'/',variables('accessPolicyName'))]",
+            "name": "[concat(parameters('keyVaultName'),'/add')]",
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
             "apiVersion": "[variables('keyVaultApiVersion')]",
             "properties": {
