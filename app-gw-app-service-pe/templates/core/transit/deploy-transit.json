@@ -871,7 +871,7 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "keyVaultNamePrefix": {
+                    "keyVaultName": {
                         "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
                     },
                     "objectId": {
