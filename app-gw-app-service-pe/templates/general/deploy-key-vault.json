@@ -21,41 +21,6 @@
                 "description": "The resource ID of the Log Analytics Workspace the logs and metrics will be sent to"
             }
         },
-        "managedIdentityInUse": {
-            "type": "string",
-            "metadata": {
-                "description": "Whether or not a managed identity needs access to the Key Vault (True if yes, False if no"
-            },
-            "defaultValue": "False"
-        },
-        "managedIdentityObjectId": {
-            "type": "string",
-            "metadata": {
-                "description": "The object ID of the managed identity"
-            },
-            "defaultValue": "Null"
-        },
-        "managedIdentityCertPermissions": {
-            "type": "array",
-            "metadata": {
-                "description": "The cert permissions required for the managed identity"
-            },
-            "defaultValue": []
-        },
-        "managedIdentityKeyPermissions": {
-            "type": "array",
-            "metadata": {
-                "description": "The key permissions required for the managed identity"
-            },
-            "defaultValue": []
-        },
-        "managedIdentitySecretPermissions": {
-            "type": "array",
-            "metadata": {
-                "description": "The secret permissions required for the managed identity"
-            },
-            "defaultValue": []
-        },
         "softDeleteRetentionDays": {
             "type": "int",
             "metadata": {
@@ -132,53 +97,7 @@
     },
     "resources": [
         {
-            "condition": "[equals(parameters('managedIdentityInUse'), 'True')]",
             "name": "[variables('keyVaultName')]",
-            "type": "Microsoft.KeyVault/vaults",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "properties": {
-                "accessPolicies": [
-                    {
-                        "objectId": "[parameters('keyVaultAdminObjectId')]",
-                        "tenantId": "[parameters('tenantId')]",
-                        "permissions": {
-                            "keys": "[variables('keyPermissions')]",
-                            "secrets": "[variables('secretsPermissions')]",
-                            "certificates": "[variables('certPermissions')]"
-                        }
-                    },
-                    {
-                        "objectId": "[parameters('managedIdentityObjectId')]",
-                        "tenantId": "[parameters('tenantId')]",
-                        "permissions": {
-                            "keys": "[parameters('managedIdentityKeyPermissions')]",
-                            "secrets": "[parameters('managedIdentitySecretPermissions')]",
-                            "certificates": "[parameters('managedIdentityCertPermissions')]"
-                        }
-                    }
-                ],
-                "enabledForTemplateDeployment": true,
-                "enableSoftDelete": true,
-                "enablePurgeProtection": true,
-                "networkAcls": {
-                    "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
-                    "ipRules": [],
-                    "defaultAction": "Deny"
-                },
-                "sku": {
-                    "family": "A",
-                    "name": "[variables('keyVaultSku')]"
-                },
-                "softDeleteRetentionInDays": "[parameters('softDeleteRetentionDays')]",
-                "tenantid": "[parameters('tenantId')]"
-            }
-        },
-        {
-            "condition": "[equals(parameters('managedIdentityInUse'), 'False')]",
-            "name": "[concat(variables('keyVaultName'),'m')]",
             "type": "Microsoft.KeyVault/vaults",
             "apiVersion": "[variables('keyVaultApiVersion')]",
             "location": "[variables('location')]",

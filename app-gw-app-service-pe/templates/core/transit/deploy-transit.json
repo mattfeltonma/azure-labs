@@ -122,6 +122,7 @@
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployFirewallPolicy": "deploy-firewallpolicy",
         "deployKeyVault": "deploy-keyvault-central",
+        "deployKeyVaultPermissions": "deploy-keyvault-perm-cent",
         "deployLaw": "deploy-sharedsvclaw",
         "firewallAz": [
             "1"
@@ -132,6 +133,7 @@
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
         "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-key-vault.json')]",
+        "keyVaultPermDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-key-vault-permissions.json')]",
         "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultPlLinkName": "[concat(variables('keyVaultPrivateDnsZoneName'), '-link')]",
         "lawDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-law.json')]",
@@ -829,7 +831,6 @@
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "resourceGroup": "[parameters('sharedSvcRgName')]",
             "dependsOn": [
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]",
                 "[concat('Microsoft.Resources/deployments/',variables('deployAppGwRt'))]"
             ],
             "properties": {
@@ -841,20 +842,8 @@
                     "keyVaultNamePrefix": {
                         "value": "kvcnt"
                     },
-                    "managedIdentityInUse": {
-                        "value": "True"
-                    },
                     "laWorkspaceResourceId": {
                         "value": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]"
-                    },
-                    "managedIdentityObjectId": {
-                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
-                    },
-                    "managedIdentitySecretPermissions": {
-                        "value": [
-                            "get",
-                            "list"
-                        ]
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -870,13 +859,45 @@
             }
         },
         {
+            "name": "[variables('deployKeyVaultPermissions')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
+            "resourceGroup": "[parameters('sharedSvcRgName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deployKeyVault'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultNamePrefix": {
+                        "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
+                    },
+                    "objectId": {
+                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
+                    },
+                    "secretPermissions": {
+                        "value": [
+                            "get",
+                            "list"
+                        ]
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultPermDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "name": "[variables('appGwName')]",
             "type": "Microsoft.Network/applicationGateways",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVault'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultPermissions'))]",
                 "[resourceId('Microsoft.Network/publicIpAddresses',variables('appGwPublicIpName'))]"
             ],
             "properties": {

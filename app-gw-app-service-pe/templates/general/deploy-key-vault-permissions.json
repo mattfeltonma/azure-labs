@@ -1,0 +1,79 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "certPermissions": {
+            "type": "array",
+            "metadata": {
+                "description": "The cert permissions required for the managed identity"
+            },
+            "defaultValue": []
+        },
+        "keyPermissions": {
+            "type": "array",
+            "metadata": {
+                "description": "The key permissions required for the managed identity"
+            },
+            "defaultValue": []
+        },
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Key Vault instance"
+            }
+        },
+        "objectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object id of the security principal being granted permissions on the Key Vault instance"
+            }
+        },
+        "secretPermissions": {
+            "type": "array",
+            "metadata": {
+                "description": "The secret permissions required for the managed identity"
+            },
+            "defaultValue": []
+        },
+        "tenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "The tenant id the Key Vault instance will be created in"
+            },
+            "defaultValue": "[subscription().tenantId]"
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "keyVaultApiVersion": "2019-09-01",
+        "accessPolicyName": "[concat('ap', parameters('uniqueData'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('keyVaultName'),'/',variables('accessPolicyName'))]",
+            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+            "apiVersion": "[variables('keyVaultApiVersion')]",
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "objectId": "[parameters('objectId')]",
+                        "permissions": {
+                            "certificates": "[parameters('certPermissions')]",
+                            "keys": "[parameters('keyPermissions')]",
+                            "secrets": "[parameters('secretPermissions')]"
+                        },
+                        "tenantid": "[parameters('tenantId')]"
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {
+    }
+}
