@@ -134,7 +134,7 @@
         "supportNsgFlowLogDeploymentName": "deploy-supportflowlog",
         "supportNsgName": "[concat('nsg-support', parameters('uniqueData'))]",
         "transitPeeringDeploymentName": "deploy-peering",
-        "uniqueWebAppName": "[concat('app',parameters('uniqueData'))]",   
+        "uniqueWebAppName": "[concat('app',parameters('uniqueData'))]",
         "workloadAppSubnetName": "snet-app",
         "workloadRviSubnetName": "snet-rvi",
         "workloadSupportSvcSubnetName": "snet-support",
@@ -343,6 +343,14 @@
                         "name": "[variables('workloadRviSubnetName')]",
                         "properties": {
                             "addressPrefix": "[parameters('workloadVnetSubnetRviCidr')]",
+                            "delegations": [
+                                {
+                                    "name": "delegation",
+                                    "properties": {
+                                        "serviceName": "Microsoft.Web/serverFarms"
+                                    }
+                                }
+                            ],
                             "routeTable": {
                                 "id": "[resourceId('Microsoft.Network/routeTables',variables('workloadRouteTableName'))]"
                             },
@@ -653,7 +661,7 @@
                     "parameters": {},
                     "variables": {},
                     "resources": [
-                       {
+                        {
                             "name": "[concat(parameters('appGwRouteTableName'),'/udr-appsvc')]",
                             "type": "Microsoft.Network/routeTables/routes",
                             "apiVersion": "[variables('networkApiVersion')]",
