@@ -108,7 +108,7 @@
     "variables": {
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
-        "webApiVersion": "2019-08-01",
+        "webApiVersion": "2020-12-01",
         "appGwRouteTableUpdateDeploymentName": "deploy-appgwrt-update",
         "appNsgFlowLogDeploymentName": "deploy-appflowlog",
         "appNsgName": "[concat('nsg-app', parameters('uniqueData'))]",
@@ -551,7 +551,10 @@
                     "properties": {
                         "repoUrl": "[variables('repoUrl')]",
                         "branch": "[variables('branch')]",
-                        "isManualIntegration": true
+                        "isManualIntegration": true,
+                        "isGitHubAction": false,
+                        "deploymentRollbackEnabled": false,
+                        "isMercurial": false
                     }
                 },
                 {
