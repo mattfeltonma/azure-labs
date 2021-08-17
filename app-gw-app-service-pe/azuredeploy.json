@@ -347,6 +347,9 @@
                     "appGwRouteTableName": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwRouteTableName.value]"
                     },
+                    "appGwUmiId": {
+                        "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwUmiId.value]"
+                    },
                     "dnsServerIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
                     },
@@ -400,5 +403,10 @@
             }
         }
     ],
-    "outputs": {}
+    "outputs": {
+        "appSvcDnsName": {
+            "type": "string",
+            "value": "[reference(variables('workloadRgDeploymentName')).outputs.appSvcUrl.value]"
+        }
+    }
 }

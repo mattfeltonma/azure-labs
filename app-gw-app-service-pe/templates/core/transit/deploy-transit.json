@@ -133,7 +133,6 @@
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
         "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-key-vault.json')]",
-        "keyVaultPermDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-key-vault-permissions.json')]",
         "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultPlLinkName": "[concat(variables('keyVaultPrivateDnsZoneName'), '-link')]",
         "lawDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-law.json')]",
@@ -859,38 +858,6 @@
             }
         },
         {
-            "name": "[variables('deployKeyVaultPermissions')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
-            "resourceGroup": "[parameters('sharedSvcRgName')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]",
-                "[concat('Microsoft.Resources/deployments/',variables('deployKeyVault'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
-                    },
-                    "objectId": {
-                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
-                    },
-                    "secretPermissions": {
-                        "value": [
-                            "get",
-                            "list"
-                        ]
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('keyVaultPermDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
             "name": "[variables('appGwName')]",
             "type": "Microsoft.Network/applicationGateways",
             "apiVersion": "[variables('networkApiVersion')]",
@@ -1031,6 +998,10 @@
         "appGwRouteTableName": {
             "type": "string",
             "value": "[variables('appGwRouteTableName')]"
+        },
+        "appGwUmiId": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
         },
         "centralKeyVaultName": {
             "type": "string",
