@@ -128,7 +128,7 @@
         "peDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-private-endpoint.json')]",
         "peeringTransitToWorkloadName": "peertransittoworkload",
         "peeringWorkloadToTransitName": "peerworkloadtotransit",
-        "repoUrl": "https://github.com/mattfeltonma/azure-function-example.git",
+        "repoUrl": "https://github.com/mattfeltonma/python-sample-web-app.git",
         "rviNsgFlowLogDeploymentName": "deploy-rviflowlog",
         "rviNsgName": "[concat('nsg-rvi', parameters('uniqueData'))]",
         "supportNsgFlowLogDeploymentName": "deploy-supportflowlog",
@@ -655,7 +655,7 @@
                             "type": "Microsoft.Network/routeTables/routes",
                             "apiVersion": "[variables('networkApiVersion')]",
                             "properties": {
-                                "addressPrefix": "[reference(variables('appSvcPeDeploymentName')).outputs.privateEndpointIp.value]",
+                                "addressPrefix": "[concat(reference(variables('appSvcPeDeploymentName')).outputs.privateEndpointIp.value,'/32')]",
                                 "nextHopType": "VirtualAppliance",
                                 "nextHopIpAddress": "[parameters('firewallIp')]"
                             }
