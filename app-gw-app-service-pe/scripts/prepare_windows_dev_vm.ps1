@@ -37,7 +37,7 @@ try {
 
     # Download Visual Studio Code
     Write-Host "Installing Visual Studio Code"
-    $uri = "https://code.visualstudio.com/sha/download?build=stable&os=win32-user"
+    $uri = "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64"
     $destination = "C:\MachinePrep\files\visualstudiocode.exe"
     Invoke-WebRequest -Uri $uri -OutFile $destination
 
@@ -53,7 +53,7 @@ catch {
 try {
 
     # Download Google Chrome browser
-    Write-Host "Downloading Google Chrome..."
+    Write-Host "Downloading and installing Google Chrome..."
     $uri = "https://dl.google.com/chrome/install/chrome_installer.exe"
     $destination = "C:\MachinePrep\files\chrome_installer.exe"
     Invoke-WebRequest -Uri $uri -OutFile $destination
