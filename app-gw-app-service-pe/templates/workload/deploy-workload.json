@@ -607,7 +607,9 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites',variables('uniqueWebAppName'))]"
+                "[resourceId('Microsoft.Web/sites',variables('uniqueWebAppName'))]",
+                "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]",
+                "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"
             ],
             "properties": {
                 "mode": "Incremental",
