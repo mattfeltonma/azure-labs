@@ -807,7 +807,12 @@
                                         }
                                     }
                                 ],
-                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
+                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
+                                "dhcpOptions": {
+                                    "dnsServers": [
+                                        "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                                    ]
+                                }
                             },
                             "resources": [
                             ]
