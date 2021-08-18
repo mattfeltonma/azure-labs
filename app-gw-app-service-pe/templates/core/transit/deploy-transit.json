@@ -122,7 +122,6 @@
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployFirewallPolicy": "deploy-firewallpolicy",
         "deployKeyVault": "deploy-keyvault-central",
-        "deployKeyVaultPermissions": "deploy-keyvault-perm-cent",
         "deployLaw": "deploy-sharedsvclaw",
         "firewallAz": [
             "1"
@@ -661,12 +660,7 @@
                                         }
                                     }
                                 ],
-                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
-                                "dhcpOptions": {
-                                    "dnsServers": [
-                                        "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
-                                    ]
-                                }
+                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
                             },
                             "resources": [
                             ]
@@ -807,12 +801,7 @@
                                         }
                                     }
                                 ],
-                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
-                                "dhcpOptions": {
-                                    "dnsServers": [
-                                        "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
-                                    ]
-                                }
+                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
                             },
                             "resources": [
                             ]
