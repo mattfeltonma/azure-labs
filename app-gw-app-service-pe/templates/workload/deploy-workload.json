@@ -8,6 +8,12 @@
                 "description": "The application gateway route table name"
             }
         },
+        "appGwSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block assigned to the Application Gateway subnet"
+            }
+        },
         "appGwUmiId": {
             "type": "string",
             "metadata": {
@@ -306,6 +312,14 @@
                         "name": "udr-default",
                         "properties": {
                             "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('firewallIp')]"
+                        }
+                    },
+                    {
+                        "name": "udr-appgw",
+                        "properties": {
+                            "addressPrefix":"[parameters('appGwSubnetCidr')]",
                             "nextHopType": "VirtualAppliance",
                             "nextHopIpAddress": "[parameters('firewallIp')]"
                         }
