@@ -421,6 +421,10 @@
         "transitResourceGroupName": {
             "type": "string",
             "value": "[variables('transitRgName')]"
+        },
+        "workloadKeyVaultName": {
+            "type": "string",
+            "value": "[reference(variables('workloadRgDeploymentName')).outputs.workloadKeyVaultName.value]"
         }
     }
 }

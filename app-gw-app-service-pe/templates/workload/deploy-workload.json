@@ -744,6 +744,10 @@
         "appSvcDnsName": {
             "type": "string",
             "value": "[concat(parameters('uniqueWebAppName'), '.azurewebsites.net')]"
+        },
+        "workloadKeyVaultName": {
+            "type": "string",
+            "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
         }
     }
 }
