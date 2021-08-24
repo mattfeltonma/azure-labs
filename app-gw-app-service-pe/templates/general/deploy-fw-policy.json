@@ -2,6 +2,18 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "appGatewayCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the App Gateway subnet"
+            }
+        },
+        "appServicesFqdn": {
+            "type": "string",
+            "metadata": {
+                "description": "The FQDN of the App Services instance"
+            }
+        },
         "cloudAddressSpace": {
             "type": "string",
             "metadata": {
@@ -155,6 +167,39 @@
                                         "sourceIpGroups": [],
                                         "targetFqdns": [
                                             "*"
+                                        ],
+                                        "fqdnTags": [],
+                                        "ruleType": "ApplicationRule"
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            },
+                            {
+                                "name": "AllowAppGateway",
+                                "priority": 101,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowAppGateway",
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            },
+                                            {
+                                                "protocolType": "Http",
+                                                "port": 80
+                                            }
+                                        ],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [
+                                            "[parameters('appGatewayCidr')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "targetFqdns": [
+                                            "[parameters('appServicesFqdn')]"
                                         ],
                                         "fqdnTags": [],
                                         "ruleType": "ApplicationRule"

@@ -115,6 +115,12 @@
                 "description": "Data used to append to resources to ensure uniqueness"
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "uniqueWebAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "The unique name assigned to the application deployed to app services"
+            }
         }
     },
     "variables": {
@@ -148,7 +154,6 @@
         "supportNsgFlowLogDeploymentName": "deploy-supportflowlog",
         "supportNsgName": "[concat('nsg-support', parameters('uniqueData'))]",
         "transitPeeringDeploymentName": "deploy-peering",
-        "uniqueWebAppName": "[concat('app',parameters('uniqueData'))]",
         "workloadAppSubnetName": "snet-app",
         "workloadRviSubnetName": "snet-rvi",
         "workloadSupportSvcSubnetName": "snet-support",
@@ -556,7 +561,7 @@
         {
             "type": "Microsoft.Web/sites",
             "apiVersion": "[variables('webApiVersion')]",
-            "name": "[variables('uniqueWebAppName')]",
+            "name": "[parameters('uniqueWebAppName')]",
             "location": "[variables('location')]",
             "kind": "app",
             "dependsOn": [
@@ -576,7 +581,7 @@
                     "apiVersion": "[variables('webApiVersion')]",
                     "name": "web",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]"
+                        "[resourceId('Microsoft.Web/sites', parameters('uniqueWebAppName'))]"
                     ],
                     "properties": {
                         "repoUrl": "[variables('repoUrl')]",
@@ -592,8 +597,8 @@
                     "type": "networkConfig",
                     "apiVersion": "[variables('webApiVersion')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]"
+                        "[resourceId('Microsoft.Web/sites', parameters('uniqueWebAppName'))]",
+                        "[concat('Microsoft.Web/sites/', parameters('uniqueWebAppName'),'/sourcecontrols/web')]"
                     ],
                     "properties": {
                         "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('workloadVnetName'), variables('workloadRviSubnetName'))]",
@@ -601,13 +606,13 @@
                     }
                 },
                 {
-                    "name": "[concat(variables('uniqueWebAppName'),'/appsettings')]",
+                    "name": "[concat(parameters('uniqueWebAppName'),'/appsettings')]",
                     "type": "Microsoft.Web/sites/config",
                     "apiVersion": "[variables('webApiVersion')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"
+                        "[resourceId('Microsoft.Web/sites', parameters('uniqueWebAppName'))]",
+                        "[concat('Microsoft.Web/sites/', parameters('uniqueWebAppName'),'/sourcecontrols/web')]",
+                        "[concat('Microsoft.Web/sites/', parameters('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"
                     ],
                     "properties": {
                         "WEBSITE_VNET_ROUTE_ALL": "1"
@@ -621,9 +626,9 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites',variables('uniqueWebAppName'))]",
-                "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]",
-                "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"
+                "[resourceId('Microsoft.Web/sites',parameters('uniqueWebAppName'))]",
+                "[concat('Microsoft.Web/sites/', parameters('uniqueWebAppName'),'/sourcecontrols/web')]",
+                "[concat('Microsoft.Web/sites/', parameters('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -650,10 +655,10 @@
                         "value": "[variables('workloadVnetName')]"
                     },
                     "resourceIdentifier": {
-                        "value": "[resourceId('Microsoft.Web/sites',variables('uniqueWebAppName'))]"
+                        "value": "[resourceId('Microsoft.Web/sites',parameters('uniqueWebAppName'))]"
                     },
                     "resourceName": {
-                        "value": "[variables('uniqueWebAppName')]"
+                        "value": "[parameters('uniqueWebAppName')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -738,7 +743,7 @@
     "outputs": {
         "appSvcUrl": {
             "type": "string",
-            "value": "[concat('https://', variables('uniqueWebAppName'), '.azurewebsites.net')]"
+            "value": "[concat('https://', parameters('uniqueWebAppName'), '.azurewebsites.net')]"
         }
     }
 }

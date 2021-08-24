@@ -139,6 +139,7 @@
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-nsg-flow-log.json')]",
         "location": "[resourceGroup().location]",
+        "uniqueWebAppName": "[concat('app',parameters('uniqueData'))]",
         "vnetStandardDdosProtection": false
     },
     "resources": [
@@ -234,6 +235,12 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "appGatewayCidr": {
+                        "value": "[parameters('transitAppGwSubnetCidr')]"
+                    },
+                    "appServicesFqdn": {
+                        "value": "[concat(variables('uniqueWebAppName'),'.azurewebsites.net')]"
+                    },
                     "cloudAddressSpace": {
                         "value": "[parameters('cloudAddressSpace')]"
                     },
@@ -1006,6 +1013,10 @@
         "appGwUmiId": {
             "type": "string",
             "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
+        },
+        "appServicesWebAppName": {
+            "type": "string",
+            "value": "[variables('uniqueWebAppName')]"
         },
         "centralKeyVaultName": {
             "type": "string",

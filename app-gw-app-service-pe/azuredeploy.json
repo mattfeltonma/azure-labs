@@ -397,6 +397,9 @@
                     },
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
+                    },
+                    "uniqueWebAppName": {
+                        "value": "[reference(variables('transitRgDeploymentName')).outputs.appServicesWebAppName.value]"
                     }
                 },
                 "templateLink": {
