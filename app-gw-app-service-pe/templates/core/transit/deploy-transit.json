@@ -105,7 +105,7 @@
         "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
-        "appGwName": "agw-transit",
+        "appGwName": "[concat('agw',parameters('uniqueData'))]",
         "appGwPublicIpName": "[concat('pip-agw', parameters('uniqueData'))]",
         "appGwRouteTableName": "rt-agw",
         "appGwSubnetName": "snet-agw",
@@ -1006,6 +1006,10 @@
         }
     ],
     "outputs": {
+        "appGwName": {
+            "type": "string",
+            "value": "[variables('appGwName')]"
+        },
         "appGwRouteTableName": {
             "type": "string",
             "value": "[variables('appGwRouteTableName')]"

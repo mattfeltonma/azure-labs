@@ -741,9 +741,9 @@
         }
     ],
     "outputs": {
-        "appSvcUrl": {
+        "appSvcDnsName": {
             "type": "string",
-            "value": "[concat('https://', parameters('uniqueWebAppName'), '.azurewebsites.net')]"
+            "value": "[concat(parameters('uniqueWebAppName'), '.azurewebsites.net')]"
         }
     }
 }
