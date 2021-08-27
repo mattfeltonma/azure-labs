@@ -2,10 +2,10 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "deploymentScriptUmiResourceId": {
+        "deploymentScriptUmiPrincipleId": {
             "type": "string",
             "metadata": {
-                "description": "The resource id of the user-assigned managed identity used by the deployment scripts"
+                "description": "The principle id of the user-assigned managed identity used by the deployment scripts"
             }
         },
         "sharedServicesRgName": {
@@ -50,7 +50,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "principalId": {
-                        "value": "[reference(parameters('deploymentScriptUmiResourceId')).principalId]"
+                        "value": "[parameters('deploymentScriptUmiPrincipleId')]"
                     }
                 },
                 "templateLink": {
