@@ -20,6 +20,18 @@
                 "description": "The address space allocated to Azure as a whole"
             }
         },
+        "sharedServicesVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR range of the shared services virtual network"
+            }
+        },
+        "transitVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR range of the transit virtual network"
+            }
+        },
         "workloadVnetCidr": {
             "type": "string",
             "metadata": {
@@ -61,7 +73,8 @@
                 },
                 "snat": {
                     "privateRanges": [
-                        "[parameters('workloadVnetCidr')]"
+                        "[parameters('sharedServicesVnetCidr')]",
+                        "[parameters('transitVnetCidr')]"
                     ]
                 },
                 "sku": {

@@ -137,11 +137,6 @@
         "appSvcPeDeploymentName": "deploy-appsvc-pe",
         "branch": "master",
         "keyVaultDeploymentName": "deploy-workload-keyvault",
-        "keyVaultDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-key-vault.json')]",
-        "keyVaultPermDeploymentName": "deploy-kv-perm",
-        "keyVaultPermDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-key-vault-permissions.json')]",
-        "keyVaultPeDeploymentName": "deploy-workload-keyvault-pe",
-        "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
         "linuxFxVersion": "PYTHON|3.8",
         "location": "[resourceGroup().location]",
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-nsg-flow-log.json')]",
@@ -461,92 +456,10 @@
             }
         },
         {
-            "name": "[variables('keyVaultDeploymentName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('transitPeeringDeploymentName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "keyVaultAdminObjectId": {
-                        "value": "[parameters('keyVaultAdminObjectId')]"
-                    },
-                    "keyVaultNamePrefix": {
-                        "value": "kvwl"
-                    },
-                    "laWorkspaceResourceId": {
-                        "value": "[parameters('laWorkspaceResourceId')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('keyVaultDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('keyVaultPeDeploymentName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('keyVaultDeploymentName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "privateDnsZoneName": {
-                        "value": "[variables('keyVaultPrivateDnsZoneName')]"
-                    },
-                    "privateEndpointLocation": {
-                        "value": "[variables('location')]"
-                    },
-                    "privateDnsZoneResourceGroup": {
-                        "value": "[parameters('transitVnetResourceGroupName')]"
-                    },
-                    "privateDnsZoneSubscription": {
-                        "value": "[parameters('transitVnetSubscriptionId')]"
-                    },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('workloadSupportSvcSubnetName')]"
-                    },
-                    "privateEndpointSubResource": {
-                        "value": "vault"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('workloadVnetName')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultResourceId.value]"
-                    },
-                    "resourceName": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('peDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "[variables('webApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('keyVaultPeDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('transitPeeringDeploymentName'))]"
             ],
             "name": "[variables('appServicePlanName')]",
             "location": "[variables('location')]",
@@ -703,51 +616,12 @@
                     ]
                 }
             }
-        },
-        {
-            "name": "[variables('keyVaultPermDeploymentName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('appGwRouteTableUpdateDeploymentName'))]"  
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
-                    },
-                    "objectId": {
-                        "value": "[parameters('appGwUmiId')]"
-                    },
-                    "secretPermissions": {
-                        "value": [
-                            "get",
-                            "list"
-                        ]
-                    },
-                    "certPermissions": {
-                        "value": [
-                            "get",
-                            "list"
-                        ]
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('keyVaultPermDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
         }
     ],
     "outputs": {
         "appSvcDnsName": {
             "type": "string",
             "value": "[concat(parameters('uniqueWebAppName'), '.azurewebsites.net')]"
-        },
-        "workloadKeyVaultName": {
-            "type": "string",
-            "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
         }
     }
 }

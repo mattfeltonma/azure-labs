@@ -1,26 +1,84 @@
-# Azure Web App Virtual enabled with Private Endpoints, Regional VNet Integration, and Forced Tunneling
+# Mediating traffic between Application Gateway and App Service Enabled for Private Endpoints
 
 ## Overview
-Organizations often struggle with the balance of security and agility when moving into the cloud.  This conflict is even more prevelant in heavily regulated industries like public sector, healthcare, and financial services.  PaaS (platform-as-a-service) offerings provide organizations an opportunity to increase agility and reduce costs versus traditional IaaS (infrastructure-as-a-service).  These benefits come with the drawback of less control because of shared responsibilty where the cloud provider fully manages the operating system, hypervisor, and physical hardware and shares responsibilty with the consumer for the layers above.  These layers include network controls and application configuration.  What the cloud provider allows the consumer to configure in those layers can vary significantly across cloud providers and services.
+Organizations in regulated industries are typically required to mediate and inspect traffic between users and applications when the application provides access to sensitive data. For web-based traffic mediation and inspect can sometimes be satisifed with a combination of a WAF (Web Application Firewall) and virtual firewalls provided by public cloud providers, such as Network Security Groups in Microsoft Azure. While this is the preferred pattern due to its simplicity, the controls provided by a particular WAF and the challenges around the distributed nature of Network Security Group Flow Logs may not be sufficient for some organizations. In those instances there is typically a desire to insert a security appliance in the middle of the communication path to provide centralized logging and additional security controls and IDS/IPS capabilities that may not be available in the WAF being used by the organization.
 
-Two common requirements for organizations are to mediate traffic leaving their cloud tenant with a security stack (firewall, forward proxy, NIDS, etc) and to exercise tight control over incoming traffic.  With PaaS services like [Azure App Services](https://docs.microsoft.com/en-us/azure/app-service/) these were historically challenges because applications deployed to the service are by default accessible over a public endpoint and traffic from the application to 3rd party APIs was not able to be routed through a customer security stack .  These challenges were sometimes addressed by deploying applications into a dedicated environments called an [ASE (App Service Environment)](https://docs.microsoft.com/en-us/azure/app-service/environment/intro) into customer Virtual Networks which allowed customers to route non-Microsoft-management traffic to a security stack and optionally place application behind a private IP address in the customer's Virtual Network.  Unfortunately, ASEs are signifcantly complex to configure and manage and come with the costs expected from a dedicated compute cluster.
+Using a hub and spoke architecture, this lab environment demonstrates a pattern where a publicly-facing Application Gateway exposes an application running in a multi-tenant Azure App Service Plan which has been configured with a [Private Endpoint](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) and [Regional VNet (Virtual Network) Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration). Routing and SNAT has been configured so that traffic between the Application Gateway and App Service Private Endpoint is mediated and optionally inspected by an [Azure Firewall Premium](https://docs.microsoft.com/en-us/azure/firewall/premium-features) instance.
 
-In early 2020 Microsoft introduced (Regional VNet [Virtual Network) Integration](https://azure.github.io/AppService/2020/02/27/General-Availability-of-VNet-Integration-with-Windows-Web-Apps.html).  This new feature allows organizations to use non-isolated [App Service Plans](https://docs.microsoft.com/en-us/azure/app-service/overview-hosting-plans) such as Standard and Premium plans while still being able to route traffic to a mediation security stack.
+In addition to the above, the lab comes with the following features:
 
-In late 2020 Microsoft provided a solution to the other challenge of controlling inbound traffic by supporting [Private Endpoints for App Services and Azure Functions](https://azure.github.io/AppService/2020/10/06/private-endpoint-app-service-ga.html).  This allows customers to restrict access to the Web App to traffic incoming from the private IP address assigned to the [Private Endpoint](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview).
+1. A [simple Python Web App](https://github.com/mattfeltonma/python-sample-web-app) deployed to App Services which pulls data from two public APIs. One API returns the current time and the other API returns a random quote from the greatest TV show of all time, Breaking Bad.
+2. Azure Firewall is configured to send logs to a Log Analytics Workspace.
+3. Windows Server 2019 VM instance deployed with Azure CLI, Az PowerShell, Visual Studio Code, Google Chrome, and Windows RSAT (Remote Server Administration Tools).
+4. Centralized Key Vault behind a private endpoint containing the username and password configured for the Windows Server 2019 VM.
+5. Workload Key Vault behind a private endpoint that can be used to store the Application Gateway certificate for the App Service.
+6. [Application Gateway is configured with a User-Assigned Managed Identity](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs) which has been granted appropriate permissions to access certificates stored in the workload Key Vault instance.
+7. Uses the support for ]wildcard certificates currently in preview](https://docs.microsoft.com/en-us/azure/application-gateway/multiple-site-overview#wildcard-host-names-in-listener-preview) for Application Gateway.
 
-This ARM template deploys a small lab in Azure that demonstrates Private Endpoint and Regional VNet Integration features.  It uses a [hub and spoke architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke) where Internet-bound traffic generated from an Azure Web App is routed to an instance of Azure Firewall where it is mediated.  A Private Endpoint is created for the Azure Web App and traffic to the Private Endpoint from the Virtual Machine in the hub is mediated by Azure Firewall.  The Azure Firewall instance has been configured to write its logs to a Log Analytics Workspace.  [These Kusto queries](https://docs.microsoft.com/en-us/azure/firewall/log-analytics-samples) can be used to analyze the data written to Log Analytics.
+![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/app-gw-app-service-pe/images/app-gw-app-svc-pe.png)
 
-The template also deploys a [simple Python Web App](https://github.com/mattfeltonma/python-sample-web-app) which pulls data from two public APIs. One API returns the current time and the other API returns a random quote from the greatest TV show of all time, Breaking Bad.
+## Prerequisites
+1. You must hold at least the Contributor role within each Azure subscription you configure the template to deploy resources to. 
 
-![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/private-endpoint-app-service/lab_visual.png)
+2. [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 
-## Installation
-1.  Create a resource group.
-2.  Deploy the template to the resource group using the New-AzResourceGroupDeployment cmdlet.  Example: **New-AzResourceGroupDeployment -Name "myDeployment" -ResourceGroupName "myResourceGroup" -TemplateUri "https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/private-endpoint-app-service/deploy.json"**  
-3.  You will be prompted to provide an administrator user name and password for the local administrator accounts on the virtual machines.
-4.  Use a web browser or curl to access the website from the Virtual Machine deployed into the hub Virtual Network.
+3. Ensure the following [resource providers](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types) are registered in each subscriptions you plan to deploy resources to. The required resource providers are:
 
+    * Microsoft.Network
+    * Microsoft.Insights
+    * Microsoft.Keyvault
+    * Microsoft.Compute
+    * Microsoft.Storage
+    * Microsoft.OperationalInsights
+    * Microsoft.OperationsManagement
+    * Microsoft.Resources
+    
+4. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance. This will be used for the keyVaultAdmin parameter of the template.
 
+    `az ad user show --id someuser@sometenant.com --query objectId --output tsv`
+
+5. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in [this link](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create#create-a-network-watcher-in-the-portal). Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 which will cause the deployment of the environment to fail.
+
+## Deployment
+1. Use the Deploy to Azure button below. Note that the template will take about 1 hour to fully deploy. 
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fmaster%2Fapp-gw-app-service-pe%2Fazuredeploy.json)
+
+**The template allows for the following parameters**
+* customWebDomain - The domain you'll be using to access the application publicly. The Application Gateway will be configured with an http listener for this domain. If this is a zone you do not own and do not have access to administer DNS you will need to modify the host file of the machine you are using the test the solution as described later in this document. For example, it could be mydomain.com.
+* sharedServicesSubId - The subscription id of the subscription to deploy the Shared Services resources to
+* transitServicesSubId - The subscription id of the subscription to deploy the Transit resources to
+* workloadSubId - The subscription id of the subscription to deploy the Workload resources to 
+* location - The region the resources will be provisioned to.
+* keyVaultAdmin - The object id of the user or group security principal that will be the administrator of the Key Vault. Note that the permissions assigned to the security principal exclude destructive permissions such as purge. Review the permissions in the /templates/general/deploy-keyvault.json template for a detailed list of the permissions.
+* vmAdminUsername - The username for the local administrators of the two virtual machines provisioned. This will also be the name of the built-in Domain Administrator in the Active Directory domain.
+* vmAdminPassword - The password assigned to the local administrator account of the virtual machines, the Active Directory domain administrator account, and the sample Active Directory user accounts. You can change these later on to improve the security posture of the environment. This must be supplied as a secure string.
+
+2. After the template deploys it will provide the [outputs below](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/outputs?tabs=azure-powershell#get-output-values). These outputs will need to be provided to the bash script. Record these values.
+
+* applicationGatewayName - The name assigned to the Application Gateway provisioned in the transit virtual network.
+* appServiceDnsName - The FQDN of the App Service instance provisioned into the workload resource group.
+* transitResourceGroupName - The name assigned to the resource group containing the transit resources such as the Application Gateway and Azure Firewall.
+* workloadKeyVaultName - The name assigned to the Key Vault instance provisioned in the workload resource group.
+
+## Post Deployment Steps
+
+At this point you need to perform the post-deployment task of creating a certificate for the Application Gateway and setting up a https listener on the public IP. I have created both a PowerShell (for Windows users) and Bash script (for OSX and Linux users) that will perform the post-installation steps for you. 
+
+The PowerShell script can be run on the development machine deployed as part of the template. You can log into the machine using the username and password you configured at deployment. Alternatively, if your Azure AD tenant has conditional access policies in place restricting where and from you can authenticate from, you can run the script from your machine. Note that you will need to [allow your IP address through the Key Vault instance](https://docs.microsoft.com/en-us/azure/key-vault/general/network-security) deployed into the workload resource group if you run the script from your machine.
+
+Follow the steps below to run the script:
+
+1. Open a shell or command prompt and create the following variables:
+
+* AGW_NAME - Set to the value of the applicationGatewayName output from the deployment.
+* APP_FQDN - Set to the value of the appServiceDnsName output from the deployment.
+* DOMAIN_NAME - Set to the domain name you want the application to have over the public interface of the Application Gateway. This domain name should be prefixed with a wildcard such as *.mydomain.com. Ensure you use the same domain that you used for the customWebDomain parameter of the Azure deployment.
+* TRANSIT_RG - Set to the value of the transitResourceGroupName output from the template.
+* WORKLOAD_KV_NAME - Set to the value of the workloadKeyVaultName.
+
+2. Run the app-gateway-configure.ps1 or app-gateway-configure.sh script to complete the setup. 
+
+At this point your application is good to go to be accessed over the public Internet from your own machine. If you own the domain you used for the DOMAIN_NAME value you can go about setting up the appropriate DNS records with your DNS provider. If you do not own the domain, then you can optionally [modify the hosts file](https://www.groovypost.com/howto/edit-hosts-file-windows-10/) on your machine to resolve the record to the public IP address of the Application Gateway, such as www.mydomain.com.
 
 

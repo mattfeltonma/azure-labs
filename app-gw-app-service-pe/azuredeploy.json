@@ -164,9 +164,9 @@
             }
         },
         {
+            "name": "[variables('workloadSubDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "name": "[variables('workloadSubDeploymentName')]",
             "location": "[parameters('location')]",
             "subscriptionId": "[parameters('workloadSubId')]",
             "dependsOn": [
@@ -222,6 +222,9 @@
                     },
                     "sharedSvcRgName": {
                         "value": "[variables('sharedSvcRgName')]"
+                    },
+                    "sharedServicesVnetCidr": {
+                        "value": "[variables('sharedSvcVnetCidr')]"
                     },
                     "sharedSvcSubscriptionId": {
                         "value": "[parameters('sharedServicesSubId')]"
@@ -324,6 +327,12 @@
                     },
                     "vmAdminUsername": {
                         "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "workloadResourceGroupName": {
+                        "value": "[variables('workloadRgName')]"
+                    },
+                    "workloadSubscriptionId": {
+                        "value": "[parameters('workloadSubId')]"
                     }
                 },
                 "templateLink": {
@@ -352,6 +361,9 @@
                     },
                     "appGwUmiId": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwUmiId.value]"
+                    },
+                    "deploymentScriptUmiResId": {
+                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.deploymentScriptUmiResId.value]"
                     },
                     "dnsServerIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
