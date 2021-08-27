@@ -869,6 +869,9 @@
             "name": "[variables('deploymentScriptUmi')]",
             "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
             "apiVersion": "[variables('managedIdentityApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]"
+            ],
             "tags": "[parameters('tags')]",
             "location": "[variables('location')]"
         },
@@ -1090,7 +1093,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "deploymentScriptUmiResourceId": {
-                        "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))]"
+                        "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('deploymentScriptUmi'))]"
                     },
                     "sharedServicesRgName": {
                         "value": "[parameters('sharedSvcRgName')]"
