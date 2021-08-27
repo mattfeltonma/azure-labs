@@ -142,7 +142,7 @@
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployFirewallPolicy": "deploy-firewallpolicy",
         "deployKeyVault": "deploy-keyvault-central",
-        "deploymentScriptUmi": "[concat('arm-umi',parameters('uniqueData'))]",
+        "deploymentScriptUmi": "[concat('arm1-umi',parameters('uniqueData'))]",
         "dsIdDeployName": "deploy-ds-id",
         "deployLaw": "deploy-sharedsvclaw",
         "deploymentScriptPermUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-deployscript-perm.json')]",
