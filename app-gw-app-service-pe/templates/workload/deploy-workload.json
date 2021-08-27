@@ -124,7 +124,6 @@
         "appServicePrivateDnsZoneName": "privatelink.azurewebsites.net",
         "appSvcPeDeploymentName": "deploy-appsvc-pe",
         "branch": "master",
-        "keyVaultDeploymentName": "deploy-workload-keyvault",
         "linuxFxVersion": "PYTHON|3.8",
         "location": "[resourceGroup().location]",
         "nsgDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../general/deploy-nsg-flow-log.json')]",
