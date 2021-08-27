@@ -123,7 +123,7 @@
         "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
-        "appGwCertDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-deployment-script')]",
+        "appGwCertDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-deployment-script.json')]",
         "appGwName": "[concat('agw',parameters('uniqueData'))]",
         "appGwPostDeployment": "deploy-post-agw-config",
         "appGwPublicIpName": "[concat('pip-agw', parameters('uniqueData'))]",
