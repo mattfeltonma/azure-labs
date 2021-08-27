@@ -124,7 +124,6 @@
         "devNsgName": "[concat('nsg-dev', parameters('uniqueData'))]",
         "devVmDeploymentName": "deploy-dev-vm",
         "devVmName": "vmwdev01",
-        "dsIdDeployName":"deploy-ds-umi",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "location": "[resourceGroup().location]",
         "devVmDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-windows-dev-vm.json')]",
@@ -534,9 +533,5 @@
         }
     ],
     "outputs": {        
-        "deploymentScriptUmiResId": {
-            "type": "string",
-            "value": "[reference(variables('dsIdDeployName')).outputs.deploymentScriptUmiResId.value]"
-        }
     }
 }
