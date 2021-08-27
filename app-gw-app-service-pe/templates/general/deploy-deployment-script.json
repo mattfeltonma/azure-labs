@@ -74,7 +74,7 @@
             "tags": "[parameters('tags')]",
             "properties": {
                 "azCliVersion": "2.24.2",
-                "cleanupPreference": "Always",
+                "cleanupPreference": "OnSuccess",
                 "primaryScriptUri": "[variables('deployScriptUri')]",
                 "environmentVariables": [
                     {
