@@ -40,7 +40,25 @@
         "deployWorkloadPerm": "deploy-workload-perm"
     },
     "resources": [
-
+        {
+            "name": "[variables('deployTransitPerm')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "principalId": {
+                        "value": "[reference(parameters('deploymentScriptUmiResourceId')).principalId]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'deploy-owner-perm.json')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
     ],
     "outputs": {
     }
