@@ -1160,7 +1160,7 @@
                         "value": "[reference(variables('dsScriptUmiDeploy')).outputs.dsUmiResourceId.value]"
                     },
                     "keyVaultName": {
-                        "value": "[reference(variables('deployKeyVault'))]"
+                        "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
