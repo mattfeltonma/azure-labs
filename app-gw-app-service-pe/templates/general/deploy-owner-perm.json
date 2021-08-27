@@ -17,7 +17,7 @@
         }
     },
     "variables": {
-        "roleAssignmentApiVersion": "2020-10-01-preview"
+        "roleAssignmentApiVersion": "2020-08-01-preview"
     },
     "resources": [
         {
