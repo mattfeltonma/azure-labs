@@ -1159,10 +1159,6 @@
             "type": "string",
             "value": "[variables('appGwRouteTableName')]"
         },
-        "appGwUmiId": {
-            "type": "string",
-            "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
-        },
         "appServicesWebAppName": {
             "type": "string",
             "value": "[variables('uniqueWebAppName')]"
