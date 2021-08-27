@@ -1113,7 +1113,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "deploymentScriptUmiResourceId": {
-                        "value": "[reference(variables('deploymentScriptUmi')).outputs.dsUmiResourceId.value]"
+                        "value": "[reference(variables('dsScriptUmiDeploy')).outputs.dsUmiResourceId.value]"
                     },
                     "sharedServicesRgName": {
                         "value": "[parameters('sharedSvcRgName')]"
@@ -1151,7 +1151,7 @@
                         "value": "[parameters('customWebDomain')]"
                     },
                     "deploymentScriptUmiResId": {
-                        "value": "[reference(variables('deploymentScriptUmi')).outputs.dsUmiResourceId.value]"
+                        "value": "[reference(variables('dsScriptUmiDeploy')).outputs.dsUmiResourceId.value]"
                     },
                     "keyVaultName": {
                         "value": "[reference(variables('deployKeyVault'))]"
