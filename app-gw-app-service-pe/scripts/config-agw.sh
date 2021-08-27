@@ -50,10 +50,12 @@ POLICY=$(cat << EOF
 EOF
 )
 
+echo $POLICY >> ./policy.json
+
 # Create a new certificate in Azure Key Vault to be used by the Application Gateway
 az keyvault certificate create \
 --name=$AGW_CERT_NAME \
---policy=$POLICY \
+--policy=@./policy.json \
 --vault-name=$KV_NAME
 
 # Get the certificate secret id
