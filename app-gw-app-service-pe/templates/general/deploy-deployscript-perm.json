@@ -58,6 +58,48 @@
                     "contentVersion": "1.0.0.0"
                 }
             }
+        },
+        {
+            "name": "[variables('deploySharedServicesPerm')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('sharedServicesSubId')]",
+            "resourceGroup": "[parameters('sharedServicesRgName')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "principalId": {
+                        "value": "[parameters('deploymentScriptUmiPrincipleId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'deploy-owner-perm.json')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployWorkloadPerm')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('workloadSubId')]",
+            "resourceGroup": "[parameters('workloadRgName')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "principalId": {
+                        "value": "[parameters('deploymentScriptUmiPrincipleId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[uri(deployment().properties.templateLink.uri, 'deploy-owner-perm.json')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
         }
     ],
     "outputs": {
