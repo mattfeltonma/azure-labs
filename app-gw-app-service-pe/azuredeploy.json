@@ -359,20 +359,11 @@
                     "appGwSubnetCidr": {
                         "value": "[variables('transitAppGwSubnetCidr')]"
                     },
-                    "appGwUmiId": {
-                        "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwUmiId.value]"
-                    },
-                    "deploymentScriptUmiResId": {
-                        "value": "[reference(variables('sharedSvcRgDeploymentName')).outputs.deploymentScriptUmiResId.value]"
-                    },
                     "dnsServerIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
                     },
                     "firewallIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
-                    },
-                    "keyVaultAdminObjectId": {
-                        "value": "[parameters('keyVaultAdmin')]"
                     },
                     "laWorkspaceResourceId": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.lawResourceId.value]"
