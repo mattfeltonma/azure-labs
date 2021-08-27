@@ -169,9 +169,6 @@
             "apiVersion": "[variables('resourcesApiVersion')]",
             "location": "[parameters('location')]",
             "subscriptionId": "[parameters('workloadSubId')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('sharedSvcSubDeploymentName'))]"
-            ],
             "properties": {
                 "mode": "Incremental",
                 "template": {
