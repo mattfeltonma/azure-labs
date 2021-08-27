@@ -123,9 +123,9 @@
         "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
-        "appGwCertCreateDeploy": "deploy-post-agw-config",
         "appGwCertDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-deployment-script')]",
         "appGwName": "[concat('agw',parameters('uniqueData'))]",
+        "appGwPostDeployment": "deploy-post-agw-config",
         "appGwPublicIpName": "[concat('pip-agw', parameters('uniqueData'))]",
         "appGwRouteTableName": "rt-agw",
         "appGwSubnetName": "snet-agw",
@@ -1112,7 +1112,7 @@
             }
         },
         {
-            "name": "[variables('appGwCertCreateDeploy')]",
+            "name": "[variables('appGwPostDeployment')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
@@ -1121,6 +1121,9 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "appGwName": {
+                        "value": "[variables('appGwName')]"
+                    },
                     "customWebDomain": {
                         "value": "[parameters('customWebDomain')]"
                     },
@@ -1132,6 +1135,12 @@
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
+                    },
+                    "transitRg": {
+                        "value": "[resourceGroup().name]"
+                    },
+                    "webAppName": {
+                        "value": "[variables('uniqueWebAppName')]"
                     }
                 },
                 "templateLink": {

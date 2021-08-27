@@ -250,6 +250,12 @@
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
                     },
+                    "workloadResourceGroupName": {
+                        "value": "[variables('workloadRgName')]"
+                    },
+                    "workloadSubscriptionId": {
+                        "value": "[parameters('workloadSubId')]"
+                    },
                     "workloadVnetCidr": {
                         "value": "[variables('workloadVnetCidr')]"
                     }
@@ -327,12 +333,6 @@
                     },
                     "vmAdminUsername": {
                         "value": "[parameters('vmAdminUsername')]"
-                    },
-                    "workloadResourceGroupName": {
-                        "value": "[variables('workloadRgName')]"
-                    },
-                    "workloadSubscriptionId": {
-                        "value": "[parameters('workloadSubId')]"
                     }
                 },
                 "templateLink": {
