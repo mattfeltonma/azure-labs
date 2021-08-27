@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Create a certificate policy
-POLICY=\''{
+POLICY=$(cat << EOF
+{
   "issuerParameters": {
     "certificateTransparency": null,
     "name": "Self"
@@ -37,15 +38,17 @@ POLICY=\''{
     ],
     "subjectAlternativeNames": {
         "dns_names": [
-            "'"$DOMAIN_NAME"'"
+            "$DOMAIN_NAME"
         ],
         "emails": [],
         "upns": []
     },
-    "subject": "'"CN=$DOMAIN_NAME"'",
+    "subject": "CN=$DOMAIN_NAME",
     "validityInMonths": 12
   }
-}'\'
+}
+EOF
+)
 
 # Create a new certificate in Azure Key Vault to be used by the Application Gateway
 az keyvault certificate create \
