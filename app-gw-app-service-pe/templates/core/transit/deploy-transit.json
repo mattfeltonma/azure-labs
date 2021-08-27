@@ -866,7 +866,7 @@
             "location": "[variables('location')]"
         },
         {
-            "name": "[variables('deploymentScriptUmi')]",
+            "name": "my-umi",
             "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
             "apiVersion": "[variables('managedIdentityApiVersion')]",
             "dependsOn": [
@@ -884,7 +884,7 @@
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/',variables('deployAppGwRt'))]",
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]",
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('deploymentScriptUmi'))]"
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'my-umi')]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1093,7 +1093,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "deploymentScriptUmiResourceId": {
-                        "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('deploymentScriptUmi'))]"
+                        "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'my-umi')]"
                     },
                     "sharedServicesRgName": {
                         "value": "[parameters('sharedSvcRgName')]"
@@ -1131,7 +1131,7 @@
                         "value": "[parameters('customWebDomain')]"
                     },
                     "deploymentScriptUmiResId": {
-                        "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))]"
+                        "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'my-umi')]"
                     },
                     "keyVaultName": {
                         "value": "[reference(variables('deployKeyVault'))]"
