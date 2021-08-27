@@ -123,7 +123,7 @@
         "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
-        "appGwCertDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-deployment-script.json')]",
+        "appGwPostDeploymentUri": "[uri(deployment().properties.templateLink.uri, '../../general/deploy-deployment-script.json')]",
         "appGwName": "[concat('agw',parameters('uniqueData'))]",
         "appGwPostDeployment": "deploy-post-agw-config",
         "appGwPublicIpName": "[concat('pip-agw', parameters('uniqueData'))]",
@@ -1156,8 +1156,8 @@
                     "customWebDomain": {
                         "value": "[parameters('customWebDomain')]"
                     },
-                    "deploymentScriptUmiPrincipleId": {
-                        "value": "[reference(variables('dsScriptUmiDeploy')).outputs.dsUmiPrincipleId.value]"
+                    "deploymentScriptUmiResId": {
+                        "value": "[reference(variables('dsScriptUmiDeploy')).outputs.dsUmiResourceId.value]"
                     },
                     "keyVaultName": {
                         "value": "[reference(variables('deployKeyVault'))]"
@@ -1165,7 +1165,7 @@
                     "tags": {
                         "value": "[parameters('tags')]"
                     },
-                    "transitRg": {
+                    "transitRgName": {
                         "value": "[resourceGroup().name]"
                     },
                     "webAppName": {
@@ -1173,7 +1173,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('appGwCertDeploymentUri')]",
+                    "uri": "[variables('appGwPostDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
