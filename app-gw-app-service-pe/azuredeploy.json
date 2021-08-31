@@ -91,6 +91,7 @@
         "sharedSvcSubDeploymentName": "[concat('deploy-shared-sub', parameters('uniqueData'))]",
         "sharedSvcRgName": "[concat('rg-shared-',parameters('uniqueData'))]",
         "sharedSvcTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/shared/'))]",
+        "sharedSvcTemplateFile": "[concat(variables('sharedSvcTemplatesUri'), 'deploy-shared.json')]",
         "sharedSvcVnetCidr": "10.1.0.0/16",
         "sharedSvcVnetSubnetDevCidr": "10.1.0.0/24",
         "sharedSvcVnetSubnetPeCidr": "10.1.2.0/24",
@@ -102,11 +103,13 @@
         "transitGatewaySubnetCidr": "10.0.0.0/27",
         "transitRgName": "[concat('rg-transit-',parameters('uniqueData'))]",
         "transitTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/transit/'))]",
+        "transitTemplatesFile": "[concat(variables('transitTemplatesUri'), 'deploy-transit.json')]",
         "transitVnetCidr": "10.0.0.0/16",
         "workloadRgDeploymentName": "[concat('deploy-workload',parameters('uniqueData'))]",
         "workloadSubDeploymentName": "[concat('deploy-workload-sub', parameters('uniqueData'))]",
         "workloadRgName": "[concat('rg-workload-',parameters('uniqueData'))]",
         "workloadTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/workload/'))]",
+        "workloadTemplatesFile": "[concat(variables('workloadTemplatesUri'), 'deploy-workload.json')]",
         "workloadVnetCidr": "10.2.0.0/16",
         "workloadVnetSubnetAppSvcPeCidr": "10.2.0.0/24",
         "workloadVnetSubnetAppSvcRviCidr": "10.2.1.0/24",
@@ -258,7 +261,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('transitTemplatesUri'),'deploy-transit.json')]",
+                    "uri": "[variables('transitTemplatesFile')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -333,7 +336,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('sharedSvcTemplatesUri'),'deploy-shared.json')]",
+                    "uri": "[variables('sharedSvcTemplateFile')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -403,7 +406,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[concat(variables('workloadTemplatesUri'),'deploy-workload.json')]",
+                    "uri": "[variables('workloadTemplatesFile')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
