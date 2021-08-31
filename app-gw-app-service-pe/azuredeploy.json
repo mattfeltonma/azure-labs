@@ -250,12 +250,6 @@
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
                     },
-                    "workloadResourceGroupName": {
-                        "value": "[variables('workloadRgName')]"
-                    },
-                    "workloadSubscriptionId": {
-                        "value": "[parameters('workloadSubId')]"
-                    },
                     "workloadVnetCidr": {
                         "value": "[variables('workloadVnetCidr')]"
                     }

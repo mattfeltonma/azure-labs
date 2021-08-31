@@ -2,10 +2,10 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "appGwName": {
+        "appGwCertName": {
             "type": "string",
             "metadata": {
-                "description": "The name of the App Gateway"
+                "description": "The name assigned to the App Gateway certificate"
             }
         },
         "customWebDomain": {
@@ -34,25 +34,11 @@
             "defaultValue": {
                 "environment": "lab"
             }
-        },
-        "transitRgName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the transit resource group"
-            }
-        },
-        "webAppName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name that will be assigned to the Web App"
-            }
         }
     },
     "variables": {
-        "agw-cert-name": "appservice",
-        "appServicesFqdn": "[concat(parameters('webAppName'),'.azurewebsites.net')]",
         "deployScriptApiVersion": "2020-10-01",
-        "deployScriptName": "post-config-agw",
+        "deployScriptName": "agw-cert-create",
         "deployScriptUri": "[uri(deployment().properties.templateLink.uri, '../../scripts/config-agw.sh')]",
         "location": "[resourceGroup().location]"
     },
@@ -79,15 +65,7 @@
                 "environmentVariables": [
                     {
                         "name": "AGW_CERT_NAME",
-                        "value": "[variables('agw-cert-name')]"
-                    },
-                    {
-                        "name": "AGW_NAME",
-                        "value": "[parameters('appGwName')]"
-                    },
-                    {
-                        "name": "APP_FQDN",
-                        "value": "[variables('appServicesFqdn')]"
+                        "value": "[parameters('appGwCertName')]"
                     },
                     {
                         "name": "DOMAIN_NAME",
@@ -96,10 +74,6 @@
                     {
                         "name": "KV_NAME",
                         "value": "[parameters('keyVaultName')]"
-                    },
-                    {
-                        "name": "TRANSIT_RG",
-                        "value": "[parameters('transitRgName')]"
                     }
                 ],
                 "retentionInterval": "P1D",
@@ -108,5 +82,9 @@
         }
     ],
     "outputs": {
+            "result": {
+            "value": "[reference(variables('deployScriptName')).outputs.CERT_SECRET]",
+            "type": "string"
+        }
     }
 }

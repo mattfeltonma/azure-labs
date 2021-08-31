@@ -7,85 +7,17 @@
             "metadata": {
                 "description": "The principle id of the user-assigned managed identity used by the deployment scripts"
             }
-        },
-        "sharedServicesRgName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the shared services resource group"
-            }
-        },
-        "sharedServicesSubId": {
-            "type": "string",
-            "metadata": {
-                "description": "The subscription id of the shared services subscription"
-            }
-        },
-        "workloadRgName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the workload resource group"
-            }
-        },
-        "workloadSubId": {
-            "type": "string",
-            "metadata": {
-                "description": "The subscription id of the workload subscription"
-            }
         }
     },
     "variables": {
         "resourcesApiVersion": "2020-06-01",
-        "deploySharedServicesPerm": "deploy-shared-svc-perm",
         "deployTransitPerm": "deploy-transit-perm",
-        "deployWorkloadPerm": "deploy-workload-perm"
     },
     "resources": [
         {
             "name": "[variables('deployTransitPerm')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "principalId": {
-                        "value": "[parameters('deploymentScriptUmiPrincipleId')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[uri(deployment().properties.templateLink.uri, 'deploy-owner-perm.json')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deploySharedServicesPerm')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "subscriptionId": "[parameters('sharedServicesSubId')]",
-            "resourceGroup": "[parameters('sharedServicesRgName')]",
-            "dependsOn": [
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "principalId": {
-                        "value": "[parameters('deploymentScriptUmiPrincipleId')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[uri(deployment().properties.templateLink.uri, 'deploy-owner-perm.json')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deployWorkloadPerm')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "subscriptionId": "[parameters('workloadSubId')]",
-            "resourceGroup": "[parameters('workloadRgName')]",
             "dependsOn": [
             ],
             "properties": {
