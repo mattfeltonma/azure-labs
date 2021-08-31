@@ -909,7 +909,8 @@
             "resourceGroup": "[parameters('sharedSvcRgName')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/',variables('deployAppGwRt'))]",
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]"
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('dsScriptUmiDeploy'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -989,7 +990,7 @@
                         "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
                     },
                     "objectId": {
-                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
+                        "value": "[reference(variables('dsScriptUmiDeploy')).outputs.dsUmiPrincipleId]"
                     },
                     "secretPermissions": {
                         "value": [
