@@ -82,6 +82,10 @@
         }
     ],
     "outputs": {
+        "fullResult": {
+            "value": "[reference(variables('deployScriptName')).outputs]",
+            "type": "object"
+        },
         "result": {
             "value": "[reference(variables('deployScriptName')).outputs.CERT_SECRET]",
             "type": "string"
