@@ -987,7 +987,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "defaultAction": {
-                        "value": "Deny"
+                        "value": "Allow"
                     },
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdminObjectId')]"
@@ -1182,7 +1182,7 @@
                 ],
                 "requestRoutingRules": [
                     {
-                        "Name": "placeholder",
+                        "Name": "sampleapp",
                         "properties": {
                             "RuleType": "Basic",
                             "httpListener": {
