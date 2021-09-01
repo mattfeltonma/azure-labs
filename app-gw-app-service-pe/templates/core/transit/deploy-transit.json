@@ -904,8 +904,8 @@
             "resourceGroup": "[parameters('sharedSvcRgName')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/',variables('deployAppGwRt'))]",
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]",
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('dsScriptUmiDeploy'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('dsScriptUmiDeploy'))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]"
             ],
             "properties": {
                 "mode": "Incremental",
