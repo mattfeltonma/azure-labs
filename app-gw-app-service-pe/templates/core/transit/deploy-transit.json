@@ -131,7 +131,8 @@
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployFirewallPolicy": "deploy-firewallpolicy",
-        "deployKeyVault": "deploy-keyvault-central",
+        "deployKeyVaultInitial": "deploy-keyvault-central-initial",
+        "deployKeyVaultLockdown": "deploy-keyvault-central-lockdown",
         "deploymentScriptUmi": "[concat('armumi',parameters('uniqueData'))]",
         "deployLaw": "deploy-sharedsvclaw",
         "firewallAz": [
@@ -865,7 +866,7 @@
             }
         },
         {
-            "name": "[variables('deployKeyVault')]",
+            "name": "[variables('deployKeyVaultInitial')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
@@ -907,13 +908,13 @@
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "resourceGroup": "[parameters('sharedSvcRgName')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deployKeyVault'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deployKeyVaultInitial'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
+                        "value": "[reference(variables('deployKeyVaultInitial')).outputs.keyVaultName.value]"
                     },
                     "objectId": {
                         "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
@@ -950,7 +951,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
+                        "value": "[reference(variables('deployKeyVaultInitial')).outputs.keyVaultName.value]"
                     },
                     "objectId": {
                         "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
@@ -995,7 +996,7 @@
                         "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('deploymentScriptUmi'))]"
                     },
                     "keyVaultName": {
-                        "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
+                        "value": "[reference(variables('deployKeyVaultInitial')).outputs.keyVaultName.value]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -1008,13 +1009,50 @@
             }
         },
         {
+            "name": "[variables('deployKeyVaultLockdown')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
+            "resourceGroup": "[parameters('sharedSvcRgName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('appGwCertCreate'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "defaultAction": {
+                        "value": "Deny"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
+                    },
+                    "keyVaultNamePrefix": {
+                        "value": "kvcnt"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "name": "[variables('appGwName')]",
             "type": "Microsoft.Network/applicationGateways",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('appGwCertCreate'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultLockdown'))]",
                 "[resourceId('Microsoft.Network/publicIpAddresses',variables('appGwPublicIpName'))]"
             ],
             "properties": {
@@ -1196,11 +1234,11 @@
         },
         "centralKeyVaultName": {
             "type": "string",
-            "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
+            "value": "[reference(variables('deployKeyVaultInitial')).outputs.keyVaultName.value]"
         },
         "centralKeyVaultResourceId": {
             "type": "string",
-            "value": "[reference(variables('deployKeyVault')).outputs.KeyVaultResourceId.value]"
+            "value": "[reference(variables('deployKeyVaultInitial')).outputs.KeyVaultResourceId.value]"
         },
         "firewallIp": {
             "type": "string",

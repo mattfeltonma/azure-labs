@@ -2,6 +2,16 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "defaultAction": {
+            "type": "string",
+            "metadata": {
+                "description": "Set the default network rule to allow all traffic or deny all traffic"
+            },
+            "allowedValues": [
+                "Allow",
+                "Deny"
+            ]
+        },
         "keyVaultAdminObjectId": {
             "type": "string",
             "metadata": {
@@ -121,7 +131,7 @@
                     "bypass": "AzureServices",
                     "virtualNetworkRules": [],
                     "ipRules": [],
-                    "defaultAction": "Deny"
+                    "defaultAction": "[parameters('defaultAction')]"
                 },
                 "sku": {
                     "family": "A",
