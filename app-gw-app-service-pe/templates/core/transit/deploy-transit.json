@@ -905,50 +905,13 @@
             }
         },
         {
-            "name": "[variables('keyVaultAgwPermDeploymentName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
-            "resourceGroup": "[parameters('sharedSvcRgName')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deployKeyVaultInitial'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[reference(variables('deployKeyVaultInitial')).outputs.keyVaultName.value]"
-                    },
-                    "objectId": {
-                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
-                    },
-                    "secretPermissions": {
-                        "value": [
-                            "get",
-                            "list"
-                        ]
-                    },
-                    "certPermissions": {
-                        "value": [
-                            "get",
-                            "list"
-                        ]
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('keyVaultPermDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
             "name": "[variables('keyVaultDsPermDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "resourceGroup": "[parameters('sharedSvcRgName')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('keyVaultAgwPermDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deployKeyVaultInitial'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1044,6 +1007,43 @@
                 },
                 "templateLink": {
                     "uri": "[variables('keyVaultDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('keyVaultAgwPermDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
+            "resourceGroup": "[parameters('sharedSvcRgName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deployKeyVaultLockdown'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('deployKeyVaultLockdown')).outputs.keyVaultName.value]"
+                    },
+                    "objectId": {
+                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
+                    },
+                    "secretPermissions": {
+                        "value": [
+                            "get",
+                            "list"
+                        ]
+                    },
+                    "certPermissions": {
+                        "value": [
+                            "get",
+                            "list"
+                        ]
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultPermDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
