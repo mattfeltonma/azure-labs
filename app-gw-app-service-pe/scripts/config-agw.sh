@@ -61,7 +61,7 @@ az keyvault certificate create \
 # Get the certificate secret id
 AGW_CERT_SECRET_ID=$(az keyvault certificate show \
 --name=$AGW_CERT_NAME \
---vault-name=$WORKLOAD_KV_NAME \
+--vault-name=$KV_NAME \
 --query=sid \
 --output=tsv)
 
