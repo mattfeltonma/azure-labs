@@ -879,6 +879,9 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "defaultAction": {
+                        "value": "Allow"
+                    },
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdminObjectId')]"
                     },
