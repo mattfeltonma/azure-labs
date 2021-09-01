@@ -33,13 +33,6 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
-        "roleNameGuid": {
-            "type": "string",
-            "defaultValue": "[newGuid()]",
-            "metadata": {
-                "description": "A new GUID used to identify the role assignment"
-            }
-        },
         "sharedServicesVnetCidr": {
             "type": "string",
             "metadata": {
@@ -117,7 +110,6 @@
         "managedIdentityApiVersion": "2018-11-30",
         "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
-        "roleAssignmentApiVersion": "2020-08-01-preview",
         "storageApiVersion": "2019-06-01",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "appGwCertCreate": "deploy-script-agw-create",
@@ -984,23 +976,11 @@
             }
         },
         {
-            "name": "[parameters('roleNameGuid')]",
-            "type": "Microsoft.Authorization/roleAssignments",
-            "apiVersion": "[variables('roleAssignmentApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('keyVaultDsPermDeploymentName'))]"
-            ],
-            "properties": {
-                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
-            }
-        },
-        {
             "name": "[variables('appGwCertCreate')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Authorization/roleAssignments',parameters('roleNameGuid'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('keyVaultDsPermDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
