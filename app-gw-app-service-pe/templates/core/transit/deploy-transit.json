@@ -1092,8 +1092,10 @@
                         "name": "sample_app",
                         "properties": {
                             "backendAddresses": [
-                                "[concat(variables('uniqueWebAppName'),'.azurewebsites.net')]"
-                            ]
+                                {
+                                    "fqdn": "[concat(variables('uniqueWebAppName'),'.azurewebsites.net')]"
+                                }
+                            ] 
                         }
                     }
                 ],
