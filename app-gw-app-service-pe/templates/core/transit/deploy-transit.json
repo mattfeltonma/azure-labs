@@ -127,7 +127,7 @@
         "appGwPublicIpName": "[concat('pip-agw', parameters('uniqueData'))]",
         "appGwRouteTableName": "rt-agw",
         "appGwSubnetName": "snet-agw",
-        "appGwUmi": "[concat('agw-umi',parameters('uniqueData'))]",
+        "appGwUmi": "[concat('agwumi',parameters('uniqueData'))]",
         "appServicesPrivateDnsZoneName": "privatelink.azurewebsites.net",
         "appServicesPlLinkName": "[concat(variables('appServicesPrivateDnsZoneName'), '-link')]",
         "applicationGatewayId": "[resourceId('Microsoft.Network/applicationGateways', variables('appGwName'))]",
@@ -140,8 +140,8 @@
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployFirewallPolicy": "deploy-firewallpolicy",
         "deployKeyVault": "deploy-keyvault-central",
-        "deploymentScriptUmi": "[concat('arm-umi',parameters('uniqueData'))]",
-        "dsScriptUmiDeploy": "deploy-ds-umi",
+        "deploymentScriptUmi": "[concat('armumi',parameters('uniqueData'))]",
+        "dsUmiDeployment": "deploy-ds-umi",
         "deployLaw": "deploy-sharedsvclaw",
         "firewallAz": [
             "1"
@@ -166,6 +166,23 @@
         "vnetStandardDdosProtection": false
     },
     "resources": [
+        {
+            "name": "[variables('appGwUmi')]",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "[variables('managedIdentityApiVersion')]",
+            "tags": "[parameters('tags')]",
+            "location": "[variables('location')]"
+        },
+        {
+            "name": "[variables('deploymentScriptUmi')]",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "[variables('managedIdentityApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "location": "[variables('location')]"
+        },
         {
             "name": "[variables('deployLaw')]",
             "type": "Microsoft.Resources/deployments",
@@ -857,16 +874,12 @@
             }
         },
         {
-            "name": "[variables('appGwUmi')]",
-            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-            "apiVersion": "[variables('managedIdentityApiVersion')]",
-            "tags": "[parameters('tags')]",
-            "location": "[variables('location')]"
-        },
-        {
-            "name": "[variables('dsScriptUmiDeploy')]",
+            "name": "[variables('dsUmiDeployment')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))]"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -890,7 +903,7 @@
                         },
                         "dsUmiPrincipleId": {
                             "type": "string",
-                            "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi')),'2018-11-30').principalId]"
+                            "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
                         }
                     }
                 }
@@ -904,8 +917,8 @@
             "resourceGroup": "[parameters('sharedSvcRgName')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/',variables('deployAppGwRt'))]",
-                "[concat('Microsoft.Resources/deployments/',variables('dsScriptUmiDeploy'))]",
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]"
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('deploymentScriptUmi'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -985,7 +998,7 @@
                         "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
                     },
                     "objectId": {
-                        "value": "[reference(variables('dsScriptUmiDeploy')).outputs.dsUmiPrincipleId]"
+                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
                     },
                     "secretPermissions": {
                         "value": [
@@ -1016,7 +1029,7 @@
             ],
             "properties": {
                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-                "principalId": "[reference(variables('dsScriptUmiDeploy')).outputs.dsUmiPrincipleId]"
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
             }
         },
         {
@@ -1036,7 +1049,7 @@
                         "value": "[parameters('customWebDomain')]"
                     },
                     "deploymentScriptUmiResId": {
-                        "value": "[reference(variables('dsScriptUmiDeploy')).outputs.dsUmiResourceId.value]"
+                        "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('deploymentScriptUmi'))]"
                     },
                     "keyVaultName": {
                         "value": "[reference(variables('deployKeyVault')).outputs.keyVaultName.value]"
