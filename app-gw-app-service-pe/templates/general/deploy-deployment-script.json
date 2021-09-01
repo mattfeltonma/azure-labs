@@ -82,7 +82,7 @@
         }
     ],
     "outputs": {
-            "result": {
+        "result": {
             "value": "[reference(variables('deployScriptName')).outputs.CERT_SECRET]",
             "type": "string"
         }

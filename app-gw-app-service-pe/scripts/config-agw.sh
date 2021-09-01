@@ -72,3 +72,6 @@ RESULT=$(cat << EOF
 }
 EOF
 )
+
+# Send result to output
+echo $RESULT > $AZ_SCRIPTS_OUTPUT_PATH
