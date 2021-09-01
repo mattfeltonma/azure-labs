@@ -58,6 +58,9 @@ az keyvault certificate create \
 --policy=@./policy.json \
 --vault-name=$KV_NAME
 
+# Add pause to allow for cert to fully be created
+sleep 20
+
 # Get the certificate secret id
 AGW_CERT_SECRET_ID=$(az keyvault certificate show \
 --name=$AGW_CERT_NAME \
