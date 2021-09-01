@@ -141,7 +141,6 @@
         "deployFirewallPolicy": "deploy-firewallpolicy",
         "deployKeyVault": "deploy-keyvault-central",
         "deploymentScriptUmi": "[concat('armumi',parameters('uniqueData'))]",
-        "dsUmiDeployment": "deploy-ds-umi",
         "deployLaw": "deploy-sharedsvclaw",
         "firewallAz": [
             "1"
@@ -870,42 +869,6 @@
                             ]
                         }
                     ]
-                }
-            }
-        },
-        {
-            "name": "[variables('dsUmiDeployment')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {},
-                    "variables": {},
-                    "resources": [
-                        {
-                            "name": "[variables('deploymentScriptUmi')]",
-                            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-                            "apiVersion": "[variables('managedIdentityApiVersion')]",
-                            "tags": "[parameters('tags')]",
-                            "location": "[variables('location')]"
-                        }
-                    ],
-                    "outputs": {
-                        "dsUmiResourceId": {
-                            "type": "string",
-                            "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))]"
-                        },
-                        "dsUmiPrincipleId": {
-                            "type": "string",
-                            "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
-                        }
-                    }
                 }
             }
         },
