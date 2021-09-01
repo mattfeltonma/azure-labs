@@ -421,7 +421,7 @@
         },
         "workloadKeyVaultName": {
             "type": "string",
-            "value": "[reference(variables('workloadRgDeploymentName')).outputs.workloadKeyVaultName.value]"
+            "value": "[reference(variables('transitRgDeploymentName')).outputs.centralKeyVaultName.value]"
         }
     }
 }
