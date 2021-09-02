@@ -910,16 +910,14 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "allowedIps": [
-                        {
-                            "value": "[parameters('deploymentMachineIpAddress')]"
-                        },
-                        {
-                            "value": "[reference(variables('appGwPublicIpName')).ipAddress]"
-                        }
-                    ],
+                    "agwPublicIp": {
+                         "value": "[reference(variables('appGwPublicIpName')).ipAddress]"
+                    },
                     "defaultAction": {
                         "value": "Allow"
+                    },
+                    "deploymentMachineIp": {
+                        "value": "[parameters('deploymentMachineIpAddress')]"
                     },
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdminObjectId')]"
@@ -1023,7 +1021,7 @@
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "[variables('deployScriptApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('keyVaultAgwPermDeploymentName'))]" 
+                "[concat('Microsoft.Resources/deployments/',variables('keyVaultAgwPermDeploymentName'))]"
             ],
             "identity": {
                 "type": "UserAssigned",
