@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "agwPublicIp": {
-            "type": "object",
+            "type": "string",
             "metadata": {
                 "description": "The public IP address of the Application Gateway"
             }
