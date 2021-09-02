@@ -912,7 +912,7 @@
                 "parameters": {
                     "allowedIps": [
                         "[parameters('deploymentMachineIpAddress')]",
-                        "[reference(variables('appGwPublicIpName')).properties.ipAdress]"
+                        "[reference(variables('appGwPublicIpName')).publicIpAddress]"
                     ],
                     "defaultAction": {
                         "value": "Allow"
