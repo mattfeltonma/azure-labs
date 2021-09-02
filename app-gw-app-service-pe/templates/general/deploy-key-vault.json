@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "allowedIps": {
-            "type": "array",
+            "type": "object",
             "metadata": {
                 "description": "The IP addresses that should be allowed to access the Key Vault"
             }
