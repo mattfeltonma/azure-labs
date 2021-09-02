@@ -117,7 +117,7 @@
         "managedIdentityApiVersion": "2018-11-30",
         "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
-        "roleAssignmentApiVersion": "2020-10-01-preview",
+        "roleAssignmentApiVersion": "2020-08-01-preview",
         "storageApiVersion": "2019-06-01",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "_scriptsUri": "[uri(deployment().properties.templateLink.uri, '../../../scripts/')]",
