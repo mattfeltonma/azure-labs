@@ -911,8 +911,12 @@
                 "mode": "Incremental",
                 "parameters": {
                     "allowedIps": [
-                        "[parameters('deploymentMachineIpAddress')]",
-                        "[reference(variables('appGwPublicIpName')).ipAddress]"
+                        {
+                            "value": "[parameters('deploymentMachineIpAddress')]"
+                        },
+                        {
+                            "value": "[reference(variables('appGwPublicIpName')).ipAddress]"
+                        }
                     ],
                     "defaultAction": {
                         "value": "Allow"
