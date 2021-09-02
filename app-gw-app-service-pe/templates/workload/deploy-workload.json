@@ -147,6 +147,7 @@
         "peDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-private-endpoint.json')]",
         "peeringTransitToWorkloadName": "peertransittoworkload",
         "peeringWorkloadToTransitName": "peerworkloadtotransit",
+        "postAgwDeploymentName": "deploy-agw-post-config",
         "repoUrl": "https://github.com/mattfeltonma/python-sample-web-app.git",
         "rviNsgFlowLogDeploymentName": "deploy-rviflowlog",
         "rviNsgName": "[concat('nsg-rvi', parameters('uniqueData'))]",
@@ -612,49 +613,70 @@
             }
         },
         {
-            "name": "[variables('deployScriptAgwPost')]",
-            "type": "Microsoft.Resources/deploymentScripts",
-            "apiVersion": "[variables('deployScriptApiVersion')]",
+            "name": "[variables('postAgwDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('transitVnetSubscriptionId')]",
+            "resourceGroup": "[parameters('transitVnetResourceGroupName')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('appGwRouteTableUpdateDeploymentName'))]" 
+                "[concat('Microsoft.Resources/deployments/',variables('appGwRouteTableUpdateDeploymentName'))]"
             ],
-            "identity": {
-                "type": "UserAssigned",
-                "userAssignedIdentities": {
-                    "[parameters('dsScriptUmiResourceId')]": {}
-                }
-            },
-            "location": "[variables('location')]",
-            "kind": "AzureCLI",
-            "tags": "[parameters('tags')]",
             "properties": {
-                "azCliVersion": "2.24.2",
-                "cleanupPreference": "OnSuccess",
-                "primaryScriptUri": "[variables('appGwPostConfigScript')]",
-                "environmentVariables": [
-                    {
-                        "name": "AGW_CERT_NAME",
-                        "value": "[parameters('appGwCertName')]"
-                    },
-                    {
-                        "name": "AGW_NAME",
-                        "value": "[parameters('appGwName')]"
-                    },
-                    {
-                        "name": "APP_FQDN",
-                        "value": "[concat(variables('uniqueWebAppName'), '.azurewebsites.net')]"
-                    },
-                    {
-                        "name": "DOMAIN_NAME",
-                        "value": "[parameters('customWebDomain')]"
-                    },
-                    {
-                        "name": "TRANSIT_RG",
-                        "value": "[parameters('transitVnetResourceGroupName')]"
-                    }
-                ],
-                "retentionInterval": "P1D",
-                "timeout": "PT10M"
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[variables('deployScriptAgwPost')]",
+                            "type": "Microsoft.Resources/deploymentScripts",
+                            "apiVersion": "[variables('deployScriptApiVersion')]",
+                            "dependsOn": [
+                                "[concat('Microsoft.Resources/deployments/',variables('appGwRouteTableUpdateDeploymentName'))]"
+                            ],
+                            "identity": {
+                                "type": "UserAssigned",
+                                "userAssignedIdentities": {
+                                    "[parameters('dsScriptUmiResourceId')]": {}
+                                }
+                            },
+                            "location": "[variables('location')]",
+                            "kind": "AzureCLI",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                                "azCliVersion": "2.24.2",
+                                "cleanupPreference": "OnSuccess",
+                                "primaryScriptUri": "[variables('appGwPostConfigScript')]",
+                                "environmentVariables": [
+                                    {
+                                        "name": "AGW_CERT_NAME",
+                                        "value": "[parameters('appGwCertName')]"
+                                    },
+                                    {
+                                        "name": "AGW_NAME",
+                                        "value": "[parameters('appGwName')]"
+                                    },
+                                    {
+                                        "name": "APP_FQDN",
+                                        "value": "[concat(variables('uniqueWebAppName'), '.azurewebsites.net')]"
+                                    },
+                                    {
+                                        "name": "DOMAIN_NAME",
+                                        "value": "[parameters('customWebDomain')]"
+                                    },
+                                    {
+                                        "name": "TRANSIT_RG",
+                                        "value": "[parameters('transitVnetResourceGroupName')]"
+                                    }
+                                ],
+                                "retentionInterval": "P1D",
+                                "timeout": "PT10M"
+                            }
+                        }
+                    ]
+                }
             }
         }
     ],
