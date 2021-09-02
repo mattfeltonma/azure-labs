@@ -20,6 +20,12 @@
                 "description": "The custom domain name to be used for internal access to the application via the Application Gateway"
             }
         },
+        "deploymentMachineIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the machine running the deployment"
+            }
+        },
         "keyVaultAdminObjectId": {
             "type": "string",
             "metadata": {
@@ -105,17 +111,19 @@
         }
     },
     "variables": {
+        "deployScriptApiVersion": "2020-10-01",
         "diagnosticApiVersion": "2017-05-01-preview",
         "dnsApiVersion": "2018-09-01",
         "managedIdentityApiVersion": "2018-11-30",
         "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
+        "roleAssignmentApiVersion": "2020-10-01-preview",
         "storageApiVersion": "2019-06-01",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
-        "appGwCertCreate": "deploy-script-agw-create",
+        "_scriptsUri": "[uri(deployment().properties.templateLink.uri, '../../../scripts/')]",
+        "appGwCertCreateScript": "[concat(variables('_scriptsUri'),'create-agw-cert.sh')]",
         "appGwCertName": "[concat('agw', parameters('uniqueData'))]",
         "appGwName": "[concat('agw',parameters('uniqueData'))]",
-        "appGwPostDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-deployment-script.json')]",
         "appGwPublicIpName": "[concat('pip-agw', parameters('uniqueData'))]",
         "appGwRouteTableName": "rt-agw",
         "appGwSubnetName": "snet-agw",
@@ -129,12 +137,13 @@
         "bastionSubnetName": "AzureBastionSubnet",
         "deployAppGwRt": "deploy-appgwroutetable",
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
+        "deployCentralKeyVault": "deploy-central-keyvault",
         "deployDnsServerSettings": "deploy-dnsserversettings",
+        "deployDsRoleAssign": "deploy-ds-role-assignment",
         "deployFirewallPolicy": "deploy-firewallpolicy",
-        "deployKeyVaultInitial": "deploy-keyvault-central-initial",
-        "deployKeyVaultLockdown": "deploy-keyvault-central-lockdown",
         "deploymentScriptUmi": "[concat('armumi',parameters('uniqueData'))]",
         "deployLaw": "deploy-sharedsvclaw",
+        "deployScriptAgwCert": "ds-agwcert",
         "firewallAz": [
             "1"
         ],
@@ -154,7 +163,6 @@
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
         "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
         "location": "[resourceGroup().location]",
-        "uniqueWebAppName": "[concat('app',parameters('uniqueData'))]",
         "vnetStandardDdosProtection": false
     },
     "resources": [
@@ -269,9 +277,6 @@
                 "parameters": {
                     "appGatewayCidr": {
                         "value": "[parameters('transitAppGwSubnetCidr')]"
-                    },
-                    "appServicesFqdn": {
-                        "value": "[concat(variables('uniqueWebAppName'),'.azurewebsites.net')]"
                     },
                     "cloudAddressSpace": {
                         "value": "[parameters('cloudAddressSpace')]"
@@ -605,6 +610,32 @@
             ]
         },
         {
+            "name": "[variables('deployDsRoleAssign')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/azureFirewalls', variables('firewallName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "[variables('roleAssignmentApiVersion')]",
+                            "name": "9d7a55e8-50f5-428f-b7fb-cb3e6fe0174f",
+                            "properties": {
+                                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
+                                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
             "type": "Microsoft.Network/privateDnsZones",
             "apiVersion": "[variables('dnsApiVersion')]",
             "name": "[variables('keyVaultPrivateDnsZoneName')]",
@@ -866,7 +897,7 @@
             }
         },
         {
-            "name": "[variables('deployKeyVaultInitial')]",
+            "name": "[variables('deployCentralKeyVault')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
@@ -879,6 +910,10 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "allowedIps": [
+                        "[parameters('deploymentMachineIpAddress')]",
+                        "[reference(variables('appGwPublicIpName')).properties.ipAdress]"
+                    ],
                     "defaultAction": {
                         "value": "Allow"
                     },
@@ -911,13 +946,13 @@
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "resourceGroup": "[parameters('sharedSvcRgName')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deployKeyVaultInitial'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deployCentralKeyVault'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[reference(variables('deployKeyVaultInitial')).outputs.keyVaultName.value]"
+                        "value": "[reference(variables('deployCentralKeyVault')).outputs.keyVaultName.value]"
                     },
                     "objectId": {
                         "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
@@ -943,88 +978,19 @@
             }
         },
         {
-            "name": "[variables('appGwCertCreate')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('keyVaultDsPermDeploymentName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "appGwCertName": {
-                        "value": "[variables('appGwCertName')]"
-                    },
-                    "customWebDomain": {
-                        "value": "[parameters('customWebDomain')]"
-                    },
-                    "deploymentScriptUmiResId": {
-                        "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('deploymentScriptUmi'))]"
-                    },
-                    "keyVaultName": {
-                        "value": "[reference(variables('deployKeyVaultInitial')).outputs.keyVaultName.value]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('appGwPostDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deployKeyVaultLockdown')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
-            "resourceGroup": "[parameters('sharedSvcRgName')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('appGwCertCreate'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "defaultAction": {
-                        "value": "Allow"
-                    },
-                    "keyVaultAdminObjectId": {
-                        "value": "[parameters('keyVaultAdminObjectId')]"
-                    },
-                    "keyVaultNamePrefix": {
-                        "value": "kvcnt"
-                    },
-                    "laWorkspaceResourceId": {
-                        "value": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('keyVaultDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
             "name": "[variables('keyVaultAgwPermDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "resourceGroup": "[parameters('sharedSvcRgName')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deployKeyVaultLockdown'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('keyVaultDsPermDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[reference(variables('deployKeyVaultLockdown')).outputs.keyVaultName.value]"
+                        "value": "[reference(variables('deployCentralKeyVault')).outputs.keyVaultName.value]"
                     },
                     "objectId": {
                         "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
@@ -1046,6 +1012,44 @@
                     "uri": "[variables('keyVaultPermDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
+            }
+        },
+        {
+            "name": "[variables('deployScriptAgwCert')]",
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "[variables('deployScriptApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('keyVaultAgwPermDeploymentName'))]" 
+            ],
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('deploymentScriptUmi'))]": {}
+                }
+            },
+            "location": "[variables('location')]",
+            "kind": "AzureCLI",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "azCliVersion": "2.24.2",
+                "cleanupPreference": "OnSuccess",
+                "primaryScriptUri": "[variables('appGwCertCreateScript')]",
+                "environmentVariables": [
+                    {
+                        "name": "AGW_CERT_NAME",
+                        "value": "[variables('appGwCertName')]"
+                    },
+                    {
+                        "name": "DOMAIN_NAME",
+                        "value": "[parameters('customWebDomain')]"
+                    },
+                    {
+                        "name": "KV_NAME",
+                        "value": "[reference(variables('deployCentralKeyVault')).outputs.keyVaultName.value]"
+                    }
+                ],
+                "retentionInterval": "P1D",
+                "timeout": "PT10M"
             }
         },
         {
@@ -1100,23 +1104,16 @@
                         "properties": {
                             "Port": 80
                         }
-                    },
-                    {
-                        "name": "https_port",
-                        "properties": {
-                            "Port": 443
-                        }
                     }
                 ],
                 "backendAddressPools": [
                     {
-                        "name": "sample_app",
+                        "name": "empty",
                         "properties": {
                             "backendAddresses": [
                                 {
-                                    "fqdn": "[concat(variables('uniqueWebAppName'),'.azurewebsites.net')]"
                                 }
-                            ] 
+                            ]
                         }
                     }
                 ],
@@ -1126,16 +1123,6 @@
                         "properties": {
                             "Port": 80,
                             "Protocol": "Http",
-                            "cookieBasedAffinity": "Disabled",
-                            "requestTimeout": 20,
-                            "pickHostNameFromBackendAddress": true
-                        }
-                    },
-                    {
-                        "name": "https_httpsetting",
-                        "properties": {
-                            "Port": 443,
-                            "Protocol": "Https",
                             "cookieBasedAffinity": "Disabled",
                             "requestTimeout": 20,
                             "pickHostNameFromBackendAddress": true
@@ -1159,40 +1146,21 @@
                             ],
                             "requireServerNameIndication": false
                         }
-                    },
-                    {
-                        "name": "https_listener",
-                        "properties": {
-                            "frontendIPConfiguration": {
-                                "id": "[concat(variables('applicationGatewayId'), '/frontendIPConfigurations/appGwPubFrontEnd')]"
-                            },
-                            "frontendPort": {
-                                "id": "[concat(variables('applicationGatewayId'), '/frontendPorts/https_port')]"
-                            },
-                            "protocol": "Https",
-                            "sslCertificate": {
-                                "id": "[concat(variables('applicationGatewayId'), '/sslCertificates/', variables('appGwCertName'))]"
-                            },
-                            "hostNames": [
-                                "[concat('*.',parameters('customWebDomain'))]"
-                            ],
-                            "requireServerNameIndication": false
-                        }
                     }
                 ],
                 "requestRoutingRules": [
                     {
-                        "Name": "sampleapp",
+                        "Name": "empty",
                         "properties": {
                             "RuleType": "Basic",
                             "httpListener": {
-                                "id": "[concat(variables('applicationGatewayId'), '/httpListeners/https_listener')]"
+                                "id": "[concat(variables('applicationGatewayId'), '/httpListeners/http_listener')]"
                             },
                             "backendAddressPool": {
-                                "id": "[concat(variables('applicationGatewayId'), '/backendAddressPools/sample_app')]"
+                                "id": "[concat(variables('applicationGatewayId'), '/backendAddressPools/empty')]"
                             },
                             "backendHttpSettings": {
-                                "id": "[concat(variables('applicationGatewayId'), '/backendHttpSettingsCollection/https_httpsetting')]"
+                                "id": "[concat(variables('applicationGatewayId'), '/backendHttpSettingsCollection/http_httpsetting')]"
                             }
                         }
                     }
@@ -1201,7 +1169,7 @@
                     {
                         "name": "[variables('appGwCertName')]",
                         "properties": {
-                            "keyVaultSecretId": "[reference(variables('appGwCertCreate')).outputs.result.value]"
+                            "keyVaultSecretId": "[reference(variables('deployScriptAgwCert')).outputs.CERT_SECRET]"
                         }
                     }
                 ],
@@ -1227,21 +1195,25 @@
             "type": "string",
             "value": "[variables('appGwName')]"
         },
+        "appGwCertName": {
+            "type": "string",
+            "value": "[variables('appGwCertName')]"
+        },
         "appGwRouteTableName": {
             "type": "string",
             "value": "[variables('appGwRouteTableName')]"
         },
-        "appServicesWebAppName": {
-            "type": "string",
-            "value": "[variables('uniqueWebAppName')]"
-        },
         "centralKeyVaultName": {
             "type": "string",
-            "value": "[reference(variables('deployKeyVaultInitial')).outputs.keyVaultName.value]"
+            "value": "[reference(variables('deployCentralKeyVault')).outputs.keyVaultName.value]"
         },
         "centralKeyVaultResourceId": {
             "type": "string",
-            "value": "[reference(variables('deployKeyVaultInitial')).outputs.KeyVaultResourceId.value]"
+            "value": "[reference(variables('deployCentralKeyVault')).outputs.KeyVaultResourceId.value]"
+        },
+        "dsScriptUmiResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('deploymentScriptUmi'))]"
         },
         "firewallIp": {
             "type": "string",

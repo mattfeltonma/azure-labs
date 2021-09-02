@@ -2,6 +2,12 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "allowedIps": {
+            "type": "array",
+            "metadata": {
+                "description": "The IP addresses that should be allowed to access the Key Vault"
+            }
+        },
         "defaultAction": {
             "type": "string",
             "metadata": {
@@ -10,7 +16,8 @@
             "allowedValues": [
                 "Allow",
                 "Deny"
-            ]
+            ],
+            "defaultValue": "Deny"
         },
         "keyVaultAdminObjectId": {
             "type": "string",
@@ -130,7 +137,7 @@
                 "networkAcls": {
                     "bypass": "AzureServices",
                     "virtualNetworkRules": [],
-                    "ipRules": [],
+                    "ipRules": "[parameters('allowedIps')]",
                     "defaultAction": "[parameters('defaultAction')]"
                 },
                 "sku": {

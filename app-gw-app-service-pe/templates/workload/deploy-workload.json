@@ -2,22 +2,40 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "appGwCertName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the certificate to be used in the new Application Gateway listener"
+            }
+        },
+        "appGwName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the application gateway"
+            }
+        },
         "appGwRouteTableName": {
             "type": "string",
             "metadata": {
                 "description": "The application gateway route table name"
             }
         },
-        "appGwSubnetCidr": {
+        "customWebDomain": {
             "type": "string",
             "metadata": {
-                "description": "The CIDR block assigned to the Application Gateway subnet"
+                "description": "The custom domain name to be used for internal access to the application via the Application Gateway"
             }
         },
         "dnsServerIp": {
             "type": "string",
             "metadata": {
                 "description": "The IP address set for the DNS Server of the Virtual Network"
+            }
+        },
+        "dsScriptUmiResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the deployment script user-assigned managed identity"
             }
         },
         "firewallIp": {
@@ -103,19 +121,16 @@
                 "description": "Data used to append to resources to ensure uniqueness"
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
-        },
-        "uniqueWebAppName": {
-            "type": "string",
-            "metadata": {
-                "description": "The unique name assigned to the application deployed to app services"
-            }
         }
     },
     "variables": {
+        "deployScriptApiVersion": "2020-10-01",
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
         "webApiVersion": "2020-12-01",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../general/')]",
+        "_scriptsUri": "[uri(deployment().properties.templateLink.uri, '../../scripts/')]",
+        "appGwPostConfigScript": "[concat(variables('_scriptsUri'), 'post-config-agw.sh')]",
         "appGwRouteTableUpdateDeploymentName": "deploy-appgwrt-update",
         "appNsgFlowLogDeploymentName": "deploy-appflowlog",
         "appNsgName": "[concat('nsg-app', parameters('uniqueData'))]",
@@ -125,6 +140,7 @@
         "appServicePrivateDnsZoneName": "privatelink.azurewebsites.net",
         "appSvcPeDeploymentName": "deploy-appsvc-pe",
         "branch": "master",
+        "deployScriptAgwPost": "ds-agwpost",
         "linuxFxVersion": "PYTHON|3.8",
         "location": "[resourceGroup().location]",
         "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
@@ -137,6 +153,7 @@
         "supportNsgFlowLogDeploymentName": "deploy-supportflowlog",
         "supportNsgName": "[concat('nsg-support', parameters('uniqueData'))]",
         "transitPeeringDeploymentName": "deploy-peering",
+        "uniqueWebAppName": "[concat('app', parameters('uniqueData'))]",
         "workloadAppSubnetName": "snet-app",
         "workloadRviSubnetName": "snet-rvi",
         "workloadSupportSvcSubnetName": "snet-support",
@@ -303,14 +320,6 @@
                             "nextHopType": "VirtualAppliance",
                             "nextHopIpAddress": "[parameters('firewallIp')]"
                         }
-                    },
-                    {
-                        "name": "udr-appgw",
-                        "properties": {
-                            "addressPrefix":"[parameters('appGwSubnetCidr')]",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[parameters('firewallIp')]"
-                        }
                     }
                 ],
                 "disableBgpRoutePropagation": "False"
@@ -341,9 +350,6 @@
                         "name": "[variables('workloadAppSubnetName')]",
                         "properties": {
                             "addressPrefix": "[parameters('workloadVnetSubnetAppCidr')]",
-                            "routeTable": {
-                                "id": "[resourceId('Microsoft.Network/routeTables',variables('workloadRouteTableName'))]"
-                            },
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appNsgName'))]"
                             }
@@ -462,7 +468,7 @@
         {
             "type": "Microsoft.Web/sites",
             "apiVersion": "[variables('webApiVersion')]",
-            "name": "[parameters('uniqueWebAppName')]",
+            "name": "[variables('uniqueWebAppName')]",
             "location": "[variables('location')]",
             "kind": "app",
             "dependsOn": [
@@ -482,7 +488,7 @@
                     "apiVersion": "[variables('webApiVersion')]",
                     "name": "web",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', parameters('uniqueWebAppName'))]"
+                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]"
                     ],
                     "properties": {
                         "repoUrl": "[variables('repoUrl')]",
@@ -498,8 +504,8 @@
                     "type": "networkConfig",
                     "apiVersion": "[variables('webApiVersion')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', parameters('uniqueWebAppName'))]",
-                        "[concat('Microsoft.Web/sites/', parameters('uniqueWebAppName'),'/sourcecontrols/web')]"
+                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
+                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]"
                     ],
                     "properties": {
                         "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('workloadVnetName'), variables('workloadRviSubnetName'))]",
@@ -507,13 +513,13 @@
                     }
                 },
                 {
-                    "name": "[concat(parameters('uniqueWebAppName'),'/appsettings')]",
+                    "name": "[concat(variables('uniqueWebAppName'),'/appsettings')]",
                     "type": "Microsoft.Web/sites/config",
                     "apiVersion": "[variables('webApiVersion')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', parameters('uniqueWebAppName'))]",
-                        "[concat('Microsoft.Web/sites/', parameters('uniqueWebAppName'),'/sourcecontrols/web')]",
-                        "[concat('Microsoft.Web/sites/', parameters('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"
+                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
+                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]",
+                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"
                     ],
                     "properties": {
                         "WEBSITE_VNET_ROUTE_ALL": "1"
@@ -527,9 +533,9 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites',parameters('uniqueWebAppName'))]",
-                "[concat('Microsoft.Web/sites/', parameters('uniqueWebAppName'),'/sourcecontrols/web')]",
-                "[concat('Microsoft.Web/sites/', parameters('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"
+                "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
+                "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]",
+                "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -556,10 +562,10 @@
                         "value": "[variables('workloadVnetName')]"
                     },
                     "resourceIdentifier": {
-                        "value": "[resourceId('Microsoft.Web/sites',parameters('uniqueWebAppName'))]"
+                        "value": "[resourceId('Microsoft.Web/sites',variables('uniqueWebAppName'))]"
                     },
                     "resourceName": {
-                        "value": "[parameters('uniqueWebAppName')]"
+                        "value": "[variables('uniqueWebAppName')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -604,12 +610,58 @@
                     ]
                 }
             }
+        },
+        {
+            "name": "[variables('deployScriptAgwPost')]",
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "[variables('deployScriptApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('appGwRouteTableUpdateDeploymentName'))]" 
+            ],
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[parameters('dsScriptUmiResourceId')]": {}
+                }
+            },
+            "location": "[variables('location')]",
+            "kind": "AzureCLI",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "azCliVersion": "2.24.2",
+                "cleanupPreference": "OnSuccess",
+                "primaryScriptUri": "[variables('appGwPostConfigScript')]",
+                "environmentVariables": [
+                    {
+                        "name": "AGW_CERT_NAME",
+                        "value": "[parameters('appGwCertName')]"
+                    },
+                    {
+                        "name": "AGW_NAME",
+                        "value": "[parameters('appGwName')]"
+                    },
+                    {
+                        "name": "APP_FQDN",
+                        "value": "[concat(variables('uniqueWebAppName'), '.azurewebsites.net')]"
+                    },
+                    {
+                        "name": "DOMAIN_NAME",
+                        "value": "[parameters('customWebDomain')]"
+                    },
+                    {
+                        "name": "TRANSIT_RG",
+                        "value": "[parameters('transitVnetResourceGroupName')]"
+                    }
+                ],
+                "retentionInterval": "P1D",
+                "timeout": "PT10M"
+            }
         }
     ],
     "outputs": {
         "appSvcDnsName": {
             "type": "string",
-            "value": "[concat(parameters('uniqueWebAppName'), '.azurewebsites.net')]"
+            "value": "[concat(variables('uniqueWebAppName'), '.azurewebsites.net')]"
         }
     }
 }

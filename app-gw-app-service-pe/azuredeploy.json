@@ -2,6 +2,45 @@
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "machineIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the machine performing the deployment"
+            }
+        },
+        "customWebDomain": {
+            "type": "string",
+            "metadata": {
+                "description": "Specify a custom domain name to be used for private access to the application via the Application Gateway. This will be created as an Azure Private DNS Zone"
+            }
+        },
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location to deploy the resources. Modify template to allow additional regions"
+            },
+            "allowedValues": [
+                "centralus",
+                "eastus",
+                "eastus2",
+                "southcentralus",
+                "westus",
+                "westus2"
+            ]
+        },
+        "networkWatcherResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where Network Watcher resources exist"
+            },
+            "defaultValue": "NetworkWatcherRG"
+        },
         "sharedServicesSubId": {
             "type": "string",
             "metadata": {
@@ -20,26 +59,6 @@
                 "description": "The subscription id to deploy the Workload resources"
             }
         },
-        "customWebDomain": {
-            "type": "string",
-            "metadata": {
-                "description": "Specify a custom domain name to be used for private access to the application via the Application Gateway. This will be created as an Azure Private DNS Zone"
-            }
-        },
-        "location": {
-            "type": "string",
-            "metadata": {
-                "description": "The location to deploy the resources. Modify template to allow additional regions"
-            },
-            "allowedValues": [
-                "centralus",
-                "eastus",
-                "eastus2",
-                "southcentralus",
-                "westus",
-                "westus2"
-            ]
-        },
         "vmAdminUsername": {
             "type": "string",
             "metadata": {
@@ -52,12 +71,6 @@
                 "description": "Password for the VMs that are created"
             }
         },
-        "keyVaultAdmin": {
-            "type": "string",
-            "metadata": {
-                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
-            }
-        },
         "tags": {
             "type": "object",
             "metadata": {
@@ -66,13 +79,6 @@
             "defaultValue": {
                 "environment": "lab"
             }
-        },
-        "networkWatcherResourceGroup": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource group where Network Watcher resources exist"
-            },
-            "defaultValue": "NetworkWatcherRG"
         },
         "uniqueData": {
             "type": "string",
@@ -214,6 +220,9 @@
                     "customWebDomain": {
                         "value": "[parameters('customWebDomain')]"
                     },
+                    "deploymentMachineIpAddress": {
+                        "value": "[parameters('machineIp')]"
+                    },
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdmin')]"
                     },
@@ -347,11 +356,20 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "appGwCertName": {
+                        "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwCertName.value]"
+                    },
+                    "appGwName": {
+                        "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwName.value]"
+                    },
                     "appGwRouteTableName": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwRouteTableName.value]"
                     },
                     "appGwSubnetCidr": {
                         "value": "[variables('transitAppGwSubnetCidr')]"
+                    },
+                    "customWebDomain": {
+                        "value": "[parameters('customWebDomain')]"
                     },
                     "dnsServerIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
@@ -394,9 +412,6 @@
                     },
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
-                    },
-                    "uniqueWebAppName": {
-                        "value": "[reference(variables('transitRgDeploymentName')).outputs.appServicesWebAppName.value]"
                     }
                 },
                 "templateLink": {

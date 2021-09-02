@@ -8,12 +8,6 @@
                 "description": "The CIDR assigned to the App Gateway subnet"
             }
         },
-        "appServicesFqdn": {
-            "type": "string",
-            "metadata": {
-                "description": "The FQDN of the App Services instance"
-            }
-        },
         "cloudAddressSpace": {
             "type": "string",
             "metadata": {
@@ -212,7 +206,8 @@
                                         ],
                                         "sourceIpGroups": [],
                                         "targetFqdns": [
-                                            "[parameters('appServicesFqdn')]"
+                                            "*.azurewebsites.net",
+                                            "*.appserviceenvironment.net"
                                         ],
                                         "fqdnTags": [],
                                         "ruleType": "ApplicationRule"
