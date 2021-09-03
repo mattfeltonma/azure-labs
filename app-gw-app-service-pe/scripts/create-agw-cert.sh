@@ -68,6 +68,9 @@ AGW_CERT_SECRET_ID=$(az keyvault certificate show \
 --query=sid \
 --output=tsv)
 
+# Lock down the Key Vault instance
+az keyvault update --name $KV_NAME --default-action=Deny
+
 # Write the result to output
 RESULT=$(cat << EOF
 {
