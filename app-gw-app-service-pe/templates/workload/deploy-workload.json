@@ -633,9 +633,6 @@
                             "name": "[variables('deployScriptAgwPost')]",
                             "type": "Microsoft.Resources/deploymentScripts",
                             "apiVersion": "[variables('deployScriptApiVersion')]",
-                            "dependsOn": [
-                                "[concat('Microsoft.Resources/deployments/',variables('appGwRouteTableUpdateDeploymentName'))]"
-                            ],
                             "identity": {
                                 "type": "UserAssigned",
                                 "userAssignedIdentities": {
