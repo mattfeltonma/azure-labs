@@ -365,14 +365,14 @@
                     "appGwRouteTableName": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwRouteTableName.value]"
                     },
-                    "appGwSubnetCidr": {
-                        "value": "[variables('transitAppGwSubnetCidr')]"
-                    },
                     "customWebDomain": {
                         "value": "[parameters('customWebDomain')]"
                     },
                     "dnsServerIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
+                    },
+                    "dsScriptUmiResourceId": {
+                        "value": "[reference(variables('transitRgDeploymentName')).outputs.dsScriptUmiResourceId.value]"
                     },
                     "firewallIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"

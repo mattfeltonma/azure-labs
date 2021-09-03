@@ -39,6 +39,13 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
+        "roleNameGuid": {
+            "type": "string",
+            "defaultValue": "[newGuid()]",
+            "metadata": {
+                "description": "A new GUID used to identify the role assignment"
+            }
+        },
         "sharedServicesVnetCidr": {
             "type": "string",
             "metadata": {
@@ -625,7 +632,7 @@
                         {
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "[variables('roleAssignmentApiVersion')]",
-                            "name": "9d7a55e8-50f5-428f-b7fb-cb3e6fe0174f",
+                            "name": "[parameters('roleNameGuid')]",
                             "properties": {
                                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
                                 "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
