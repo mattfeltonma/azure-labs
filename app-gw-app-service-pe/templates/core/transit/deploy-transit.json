@@ -914,7 +914,7 @@
                          "value": "[reference(variables('appGwPublicIpName')).ipAddress]"
                     },
                     "defaultAction": {
-                        "value": "Allow"
+                        "value": "Deny"
                     },
                     "deploymentMachineIp": {
                         "value": "[parameters('deploymentMachineIpAddress')]"
