@@ -1098,7 +1098,7 @@
             "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployAgwKeyVaultpPerm'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployScriptAgwCert'))]",
+                "[resourceId('Microsoft.Resources/deploymentScripts', variables('deployScriptAgwCert'))]",
                 "[resourceId('Microsoft.Network/publicIpAddresses',variables('appGwPublicIpName'))]"
             ],
             "properties": {
