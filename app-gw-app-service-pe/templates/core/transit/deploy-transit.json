@@ -143,10 +143,13 @@
         "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
         "bastionSubnetName": "AzureBastionSubnet",
         "deployAppGwRt": "deploy-appgwroutetable",
+        "deployAgwKeyVaultpPerm": "deploy-agw-kv-perm",
+        "deployDsUmiKvPerm": "deploy-dsumi-kv-perm",
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
         "deployCentralKeyVault": "deploy-central-keyvault",
         "deployDnsServerSettings": "deploy-dnsserversettings",
-        "deployDsRoleAssign": "deploy-ds-role-assignment",
+        "deployDsRoleAssignAgw": "deploy-ds-role-assignment-agw",
+        "deployDsRoleAssignMi": "deploy-ds-role-assignment-mi",
         "deployFirewallPolicy": "deploy-firewallpolicy",
         "deploymentScriptUmi": "[concat('armumi',parameters('uniqueData'))]",
         "deployLaw": "deploy-sharedsvclaw",
@@ -160,8 +163,6 @@
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
         "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
-        "keyVaultAgwPermDeploymentName": "deploy-kv-agw-perm",
-        "keyVaultDsPermDeploymentName": "deploy-kv-ds-perm",
         "keyVaultPermDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault-permissions.json')]",
         "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultPlLinkName": "[concat(variables('keyVaultPrivateDnsZoneName'), '-link')]",
@@ -617,11 +618,37 @@
             ]
         },
         {
-            "name": "[variables('deployDsRoleAssign')]",
+            "name": "[variables('deployDsRoleAssignAgw')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/azureFirewalls', variables('firewallName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "[variables('roleAssignmentApiVersion')]",
+                            "name": "[parameters('roleNameGuid')]",
+                            "properties": {
+                                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
+                                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('deployDsRoleAssignMi')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deployDsRoleAssignAgw'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -949,7 +976,7 @@
             }
         },
         {
-            "name": "[variables('keyVaultDsPermDeploymentName')]",
+            "name": "[variables('deployDsUmiKvPerm')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
@@ -987,13 +1014,13 @@
             }
         },
         {
-            "name": "[variables('keyVaultAgwPermDeploymentName')]",
+            "name": "[variables('deployAgwKeyVaultpPerm')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "resourceGroup": "[parameters('sharedSvcRgName')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('keyVaultDsPermDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deployDsUmiKvPerm'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -1028,7 +1055,9 @@
             "type": "Microsoft.Resources/deploymentScripts",
             "apiVersion": "[variables('deployScriptApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('keyVaultAgwPermDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deployDsRoleAssignAgw'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deployDsRoleAssignMi'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deployAgwKeyVaultpPerm'))]"
             ],
             "identity": {
                 "type": "UserAssigned",
@@ -1068,7 +1097,8 @@
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('keyVaultAgwPermDeploymentName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployAgwKeyVaultpPerm'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployScriptAgwCert'))]",
                 "[resourceId('Microsoft.Network/publicIpAddresses',variables('appGwPublicIpName'))]"
             ],
             "properties": {
