@@ -39,13 +39,6 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
-        "roleNameGuid": {
-            "type": "string",
-            "defaultValue": "[newGuid()]",
-            "metadata": {
-                "description": "A new GUID used to identify the role assignment"
-            }
-        },
         "sharedServicesVnetCidr": {
             "type": "string",
             "metadata": {
@@ -132,6 +125,7 @@
         "appGwCertName": "[concat('agw', parameters('uniqueData'))]",
         "appGwName": "[concat('agw',parameters('uniqueData'))]",
         "appGwPublicIpName": "[concat('pip-agw', parameters('uniqueData'))]",
+        "appGwRoleAssignGuid": "[guid('january')]",
         "appGwRouteTableName": "rt-agw",
         "appGwSubnetName": "snet-agw",
         "appGwUmi": "[concat('agwumi',parameters('uniqueData'))]",
@@ -149,8 +143,11 @@
         "deployCentralKeyVault": "deploy-central-keyvault",
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployDsRoleAssignAgw": "deploy-ds-role-assignment-agw",
-        "deployDsRoleAssignMi": "deploy-ds-role-assignment-mi",
+        "deployDsRoleAssignMiNc": "deploy-ds-role-assignment-network-contrib",
+        "deployDsRoleAssignMiMiC": "deploy-ds-role-assignment-mi-contrib",
         "deployFirewallPolicy": "deploy-firewallpolicy",
+        "deploymentScriptRoleAssignNc": "[guid('February')]",
+        "deploymentScriptRoleAssignMiC": "[guid('March')]",
         "deploymentScriptUmi": "[concat('armumi',parameters('uniqueData'))]",
         "deployLaw": "deploy-sharedsvclaw",
         "deployScriptAgwCert": "ds-agwcert",
@@ -633,18 +630,9 @@
                         {
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "[variables('roleAssignmentApiVersion')]",
-                            "name": "[parameters('roleNameGuid')]",
+                            "name": "[variables('appGwRoleAssignGuid')]",
                             "properties": {
                                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
-                                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
-                            }
-                        },
-                        {
-                            "type": "Microsoft.Authorization/roleAssignments",
-                            "apiVersion": "[variables('roleAssignmentApiVersion')]",
-                            "name": "[parameters('roleNameGuid')]",
-                            "properties": {
-                                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'e40ec5ca-96e0-45a2-b4ff-59039f2c2b59')]",
                                 "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
                             }
                         }
@@ -653,7 +641,7 @@
             }
         },
         {
-            "name": "[variables('deployDsRoleAssignMi')]",
+            "name": "[variables('deployDsRoleAssignMiNc')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
@@ -668,9 +656,35 @@
                         {
                             "type": "Microsoft.Authorization/roleAssignments",
                             "apiVersion": "[variables('roleAssignmentApiVersion')]",
-                            "name": "[parameters('roleNameGuid')]",
+                            "name": "[variables('deploymentScriptRoleAssignNc')]",
                             "properties": {
                                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
+                                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('deployDsRoleAssignMiMiC')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deployDsRoleAssignMiNc'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "[variables('roleAssignmentApiVersion')]",
+                            "name": "[variables('deploymentScriptRoleAssignMiC')]",
+                            "properties": {
+                                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'e40ec5ca-96e0-45a2-b4ff-59039f2c2b59')]",
                                 "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('deploymentScriptUmi'))).principalId]"
                             }
                         }
@@ -1065,7 +1079,8 @@
             "apiVersion": "[variables('deployScriptApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/',variables('deployDsRoleAssignAgw'))]",
-                "[concat('Microsoft.Resources/deployments/',variables('deployDsRoleAssignMi'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deployDsRoleAssignMiNc'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deployDsRoleAssignMiMic'))]",
                 "[concat('Microsoft.Resources/deployments/',variables('deployAgwKeyVaultpPerm'))]"
             ],
             "identity": {
