@@ -141,7 +141,6 @@
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
         "deployCentralKeyVault": "deploy-central-keyvault",
         "deployDnsServerSettings": "deploy-dnsserversettings",
-        "deployDsRoleAssignAgw": "deploy-ds-role-assignment-agw",
         "deployDsRoleAssignMiNc": "deploy-ds-role-assignment-network-contrib",
         "deployDsRoleAssignMiMiC": "deploy-ds-role-assignment-mi-contrib",
         "deployFirewallPolicy": "deploy-firewallpolicy",
@@ -618,7 +617,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deployDsRoleAssignAgw'))]"
+                "[resourceId('Microsoft.Network/azureFirewalls',variables('firewallName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
