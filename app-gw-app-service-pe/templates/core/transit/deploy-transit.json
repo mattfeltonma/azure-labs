@@ -1130,6 +1130,16 @@
                             "requestTimeout": 20,
                             "pickHostNameFromBackendAddress": true
                         }
+                    },
+                    {
+                        "name": "https_httpsetting",
+                        "properties": {
+                            "Port": 443,
+                            "Protocol": "Https",
+                            "cookieBasedAffinity": "Disabled",
+                            "requestTimeout": 20,
+                            "pickHostNameFromBackendAddress": true
+                        }
                     }
                 ],
                 "httpListeners": [
