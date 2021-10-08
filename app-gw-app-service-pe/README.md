@@ -1,19 +1,18 @@
-# Mediating traffic between Application Gateway and App Service Enabled for Private Endpoints
+# Mediation Pattern for Application Gateway and App Services
 
 ## Overview
 Organizations in regulated industries are typically required to mediate and inspect traffic between users and applications when the application provides access to sensitive data. For web-based traffic mediation and inspect can sometimes be satisifed with a combination of a WAF (Web Application Firewall) and virtual firewalls provided by public cloud providers, such as Network Security Groups in Microsoft Azure. While this is the preferred pattern due to its simplicity, the controls provided by a particular WAF and the challenges around the distributed nature of Network Security Group Flow Logs may not be sufficient for some organizations. In those instances there is typically a desire to insert a security appliance in the middle of the communication path to provide centralized logging and additional security controls and IDS/IPS capabilities that may not be available in the WAF being used by the organization.
 
-Using a hub and spoke architecture, this lab environment demonstrates a pattern where a publicly-facing Application Gateway exposes an application running in a multi-tenant Azure App Service Plan which has been configured with a [Private Endpoint](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) and [Regional VNet (Virtual Network) Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration). Routing and SNAT has been configured so that traffic between the Application Gateway and App Service Private Endpoint is mediated and optionally inspected by an [Azure Firewall Premium](https://docs.microsoft.com/en-us/azure/firewall/premium-features) instance.
+Using a hub and spoke architecture, this lab environment demonstrates a pattern where a publicly-facing Application Gateway exposes an application running in a multi-tenant Azure App Service Plan which has been configured with a [Private Endpoint](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) and [Regional VNet (Virtual Network) Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration). Routing and SNAT has been configured so that traffic between the Application Gateway and App Service Private Endpoint is mediated and by an [Azure Firewall Premium](https://docs.microsoft.com/en-us/azure/firewall/premium-features) instance.
 
 In addition to the above, the lab comes with the following features:
 
 1. A [simple Python Web App](https://github.com/mattfeltonma/python-sample-web-app) deployed to App Services which pulls data from two public APIs. One API returns the current time and the other API returns a random quote from the greatest TV show of all time, Breaking Bad.
 2. Azure Firewall is configured to send logs to a Log Analytics Workspace.
 3. Windows Server 2019 VM instance deployed with Azure CLI, Az PowerShell, Visual Studio Code, Google Chrome, and Windows RSAT (Remote Server Administration Tools).
-4. Centralized Key Vault behind a private endpoint containing the username and password configured for the Windows Server 2019 VM.
-5. Workload Key Vault behind a private endpoint that can be used to store the Application Gateway certificate for the App Service.
-6. [Application Gateway is configured with a User-Assigned Managed Identity](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs) which has been granted appropriate permissions to access certificates stored in the workload Key Vault instance.
-7. Uses the support for ]wildcard certificates currently in preview](https://docs.microsoft.com/en-us/azure/application-gateway/multiple-site-overview#wildcard-host-names-in-listener-preview) for Application Gateway.
+4. Centralized Key Vault behind a private endpoint containing the username and password configured for the Windows Server 2019 VM and the certificate served up by the Application Gateway.
+5. [Application Gateway is configured with a User-Assigned Managed Identity](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs) which has been granted appropriate permissions to access certificates stored in the workload Key Vault instance.
+7. Uses the support for [wildcard certificates currently in preview](https://docs.microsoft.com/en-us/azure/application-gateway/multiple-site-overview#wildcard-host-names-in-listener-preview) for Application Gateway.
 
 ![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/app-gw-app-service-pe/images/app-gw-app-svc-pe.png)
 
@@ -40,12 +39,12 @@ In addition to the above, the lab comes with the following features:
 5. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in [this link](https://docs.microsoft.com/en-us/azure/network-watcher/network-watcher-create#create-a-network-watcher-in-the-portal). Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 which will cause the deployment of the environment to fail.
 
 ## Deployment
-1. Use the Deploy to Azure button below. Note that the template will take about 1 hour to fully deploy. 
+Use the Deploy to Azure button below. Note that the template will take about 1 hour to fully deploy. 
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fmaster%2Fapp-gw-app-service-pe%2Fazuredeploy.json)
 
 **The template allows for the following parameters**
-* customWebDomain - The domain you'll be using to access the application publicly. The Application Gateway will be configured with an http listener for this domain. If this is a zone you do not own and do not have access to administer DNS you will need to modify the host file of the machine you are using the test the solution as described later in this document. For example, it could be mydomain.com.
+* customWebDomain - The domain you'll be using to access the application publicly. The Application Gateway will be configured with an https listener for this domain. If this is a zone you do not own and do not have access to administer DNS you will need to modify the host file of the machine you are using the test the solution.
 * sharedServicesSubId - The subscription id of the subscription to deploy the Shared Services resources to
 * transitServicesSubId - The subscription id of the subscription to deploy the Transit resources to
 * workloadSubId - The subscription id of the subscription to deploy the Workload resources to 
@@ -54,30 +53,7 @@ In addition to the above, the lab comes with the following features:
 * vmAdminUsername - The username for the local administrators of the two virtual machines provisioned. This will also be the name of the built-in Domain Administrator in the Active Directory domain.
 * vmAdminPassword - The password assigned to the local administrator account of the virtual machines, the Active Directory domain administrator account, and the sample Active Directory user accounts. You can change these later on to improve the security posture of the environment. This must be supplied as a secure string.
 
-2. After the template deploys it will provide the [outputs below](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/outputs?tabs=azure-powershell#get-output-values). These outputs will need to be provided to the bash script. Record these values.
-
-* applicationGatewayName - The name assigned to the Application Gateway provisioned in the transit virtual network.
-* appServiceDnsName - The FQDN of the App Service instance provisioned into the workload resource group.
-* transitResourceGroupName - The name assigned to the resource group containing the transit resources such as the Application Gateway and Azure Firewall.
-* workloadKeyVaultName - The name assigned to the Key Vault instance provisioned in the workload resource group.
-
 ## Post Deployment Steps
-
-At this point you need to perform the post-deployment task of creating a certificate for the Application Gateway and setting up a https listener on the public IP. I have created both a PowerShell (for Windows users) and Bash script (for OSX and Linux users) that will perform the post-installation steps for you. 
-
-The PowerShell script can be run on the development machine deployed as part of the template. You can log into the machine using the username and password you configured at deployment. Alternatively, if your Azure AD tenant has conditional access policies in place restricting where and from you can authenticate from, you can run the script from your machine. Note that you will need to [allow your IP address through the Key Vault instance](https://docs.microsoft.com/en-us/azure/key-vault/general/network-security) deployed into the workload resource group if you run the script from your machine.
-
-Follow the steps below to run the script:
-
-1. Open a shell or command prompt and create the following variables:
-
-* AGW_NAME - Set to the value of the applicationGatewayName output from the deployment.
-* APP_FQDN - Set to the value of the appServiceDnsName output from the deployment.
-* DOMAIN_NAME - Set to the domain name you want the application to have over the public interface of the Application Gateway. This domain name should be prefixed with a wildcard such as *.mydomain.com. Ensure you use the same domain that you used for the customWebDomain parameter of the Azure deployment.
-* TRANSIT_RG - Set to the value of the transitResourceGroupName output from the template.
-* WORKLOAD_KV_NAME - Set to the value of the workloadKeyVaultName.
-
-2. Run the app-gateway-configure.ps1 or app-gateway-configure.sh script to complete the setup. 
 
 At this point your application is good to go to be accessed over the public Internet from your own machine. If you own the domain you used for the DOMAIN_NAME value you can go about setting up the appropriate DNS records with your DNS provider. If you do not own the domain, then you can optionally [modify the hosts file](https://www.groovypost.com/howto/edit-hosts-file-windows-10/) on your machine to resolve the record to the public IP address of the Application Gateway, such as www.mydomain.com.
 

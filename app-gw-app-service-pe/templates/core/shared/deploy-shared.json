@@ -145,7 +145,7 @@
         "userNameSecretName": "domainadminusername",
         "userPasswordSecretDeploymentName": "deploy-userpasswordsecret",
         "userPasswordSecretName": "domainadminpassword",
-        "vmSku": "Standard_D2s_v4",
+        "vmSku": "Standard_D4_v4",
         "vnetStandardDdosProtection": false
     },
     "resources": [
