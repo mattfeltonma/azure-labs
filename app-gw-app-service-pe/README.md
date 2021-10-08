@@ -14,7 +14,7 @@ In addition to the above, the lab comes with the following features:
 5. [Application Gateway is configured with a User-Assigned Managed Identity](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs) which has been granted appropriate permissions to access certificates stored in the workload Key Vault instance.
 7. Uses the support for [wildcard certificates currently in preview](https://docs.microsoft.com/en-us/azure/application-gateway/multiple-site-overview#wildcard-host-names-in-listener-preview) for Application Gateway.
 
-![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/app-gw-app-service-pe/images/app-gw-app-svc-pe.png)
+![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/app-gw-app-service-pe/images/lab.png)
 
 ## Prerequisites
 1. You must hold at least the Contributor role within each Azure subscription you configure the template to deploy resources to. 
