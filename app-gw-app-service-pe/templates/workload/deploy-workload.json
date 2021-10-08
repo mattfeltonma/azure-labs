@@ -353,7 +353,8 @@
                             "addressPrefix": "[parameters('workloadVnetSubnetAppCidr')]",
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appNsgName'))]"
-                            }
+                            },
+                            "privateEndpointNetworkPolicies": "Disabled"
                         }
                     },
                     {
