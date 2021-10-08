@@ -136,7 +136,7 @@
         "appNsgName": "[concat('nsg-app', parameters('uniqueData'))]",
         "appServiceKind": "Linux",
         "appServicePlanName": "sp-app",
-        "appServicePlanSku": "P1v2",
+        "appServicePlanSku": "P1v3",
         "appServicePrivateDnsZoneName": "privatelink.azurewebsites.net",
         "appSvcPeDeploymentName": "deploy-appsvc-pe",
         "branch": "master",
