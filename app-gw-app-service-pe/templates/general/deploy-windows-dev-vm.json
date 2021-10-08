@@ -16,7 +16,7 @@
         },
         "availabilityZone": {
             "type": "int",
-            "defaultValue": 1,
+            "defaultValue": 2,
             "metadata": {
                 "description": "The availability zone number you want to place the VM into"
             },
