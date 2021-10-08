@@ -2,12 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "agwPublicIp": {
-            "type": "string",
-            "metadata": {
-                "description": "The public IP address of the Application Gateway"
-            }
-        },
         "defaultAction": {
             "type": "string",
             "metadata": {
@@ -18,12 +12,6 @@
                 "Deny"
             ],
             "defaultValue": "Deny"
-        },
-        "deploymentMachineIp": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address of the machine performing the deployment"
-            }
         },
         "keyVaultAdminObjectId": {
             "type": "string",
@@ -144,12 +132,6 @@
                     "bypass": "AzureServices",
                     "virtualNetworkRules": [],
                     "ipRules": [
-                        {
-                            "value": "[parameters('deploymentMachineIp')]"
-                        },
-                        {
-                            "value": "[parameters('agwPublicIp')]"
-                        }
                     ],
                     "defaultAction": "[parameters('defaultAction')]"
                 },

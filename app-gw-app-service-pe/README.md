@@ -10,7 +10,7 @@ In addition to the above, the lab comes with the following features:
 1. A [simple Python Web App](https://github.com/mattfeltonma/python-sample-web-app) deployed to App Services which pulls data from two public APIs. One API returns the current time and the other API returns a random quote from the greatest TV show of all time, Breaking Bad.
 2. Azure Firewall is configured to send logs to a Log Analytics Workspace.
 3. Windows Server 2019 VM instance deployed with Azure CLI, Az PowerShell, Visual Studio Code, Google Chrome, and Windows RSAT (Remote Server Administration Tools).
-4. Centralized Key Vault behind a private endpoint containing the username and password configured for the Windows Server 2019 VM and the certificate served up by the Application Gateway.
+4. Centralized Key Vault configured with a Private Endpoint. The Key Vault stores the username and password of the Dev VM and Application Gateway certificate. Note that the Key Vault is open to all networks because ARM deployment scripts use Azure Container Services, but do not yet support being run within the customer's Virtual Network.
 5. [Application Gateway is configured with a User-Assigned Managed Identity](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs) which has been granted appropriate permissions to access certificates stored in the workload Key Vault instance.
 7. Uses the support for [wildcard certificates currently in preview](https://docs.microsoft.com/en-us/azure/application-gateway/multiple-site-overview#wildcard-host-names-in-listener-preview) for Application Gateway.
 
@@ -44,6 +44,7 @@ Use the Deploy to Azure button below. Note that the template will take about 1 h
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fmaster%2Fapp-gw-app-service-pe%2Fazuredeploy.json)
 
 **The template allows for the following parameters**
+* machineIp - The IP address of our machine. This is used in a Key Vault network rule to ensure the certificate created for Application Gateway can be used in the deployment.
 * customWebDomain - The domain you'll be using to access the application publicly. The Application Gateway will be configured with an https listener for this domain. If this is a zone you do not own and do not have access to administer DNS you will need to modify the host file of the machine you are using the test the solution.
 * sharedServicesSubId - The subscription id of the subscription to deploy the Shared Services resources to
 * transitServicesSubId - The subscription id of the subscription to deploy the Transit resources to

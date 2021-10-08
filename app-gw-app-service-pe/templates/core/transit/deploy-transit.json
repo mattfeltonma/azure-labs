@@ -20,12 +20,6 @@
                 "description": "The custom domain name to be used for internal access to the application via the Application Gateway"
             }
         },
-        "deploymentMachineIpAddress": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address of the machine running the deployment"
-            }
-        },
         "keyVaultAdminObjectId": {
             "type": "string",
             "metadata": {
@@ -916,9 +910,6 @@
                     },
                     "defaultAction": {
                         "value": "Allow"
-                    },
-                    "deploymentMachineIp": {
-                        "value": "[parameters('deploymentMachineIpAddress')]"
                     },
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdminObjectId')]"

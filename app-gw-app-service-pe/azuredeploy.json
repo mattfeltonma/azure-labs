@@ -2,12 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "machineIp": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address of the machine performing the deployment"
-            }
-        },
         "customWebDomain": {
             "type": "string",
             "metadata": {
@@ -219,9 +213,6 @@
                     },
                     "customWebDomain": {
                         "value": "[parameters('customWebDomain')]"
-                    },
-                    "deploymentMachineIpAddress": {
-                        "value": "[parameters('machineIp')]"
                     },
                     "keyVaultAdminObjectId": {
                         "value": "[parameters('keyVaultAdmin')]"
