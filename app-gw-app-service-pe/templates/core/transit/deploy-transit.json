@@ -756,6 +756,14 @@
             ],
             "properties": {
                 "routes": [
+                        {
+                        "name": "udr-default",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                        }
+                    }
                 ],
                 "disableBgpRoutePropagation": "True"
             },
