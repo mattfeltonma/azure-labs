@@ -10,7 +10,7 @@ In addition to the above, the lab comes with the following features:
 1. A [simple Python Web App](https://github.com/mattfeltonma/python-sample-web-app) deployed to App Services which pulls data from two public APIs. One API returns the current time and the other API returns a random quote from the greatest TV show of all time, Breaking Bad.
 2. Azure Firewall is configured to send logs to a Log Analytics Workspace.
 3. Windows Server 2019 VM instance deployed with Azure CLI, Az PowerShell, Visual Studio Code, Google Chrome, and Windows RSAT (Remote Server Administration Tools).
-4. Centralized Key Vault behind a private endpoint containing the username and password configured for the Windows Server 2019 VM and the certificate served up by the Application Gateway.
+4. Centralized Key Vault configured with a Private Endpoint. The Key Vault stores the username and password of the Dev VM and Application Gateway certificate. Note that the Key Vault is open to all networks because ARM deployment scripts use Azure Container Services, but do not yet support being run within the customer's Virtual Network.
 5. [Application Gateway is configured with a User-Assigned Managed Identity](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs) which has been granted appropriate permissions to access certificates stored in the workload Key Vault instance.
 7. Uses the support for [wildcard certificates currently in preview](https://docs.microsoft.com/en-us/azure/application-gateway/multiple-site-overview#wildcard-host-names-in-listener-preview) for Application Gateway.
 
