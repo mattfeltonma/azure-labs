@@ -3,7 +3,7 @@
 ## Overview
 Organizations in regulated industries are typically required to mediate and inspect traffic between users and applications when the application provides access to sensitive data. While the capabilities in Web Application Firewalls are becoming more robust, many organizations still prefer to pass the traffic through a traditional firewall for additional IDS/IPS and centralized logging of all network traffic.
 
-Using a hub and spoke architecture, this lab environment demonstrates a pattern where a publicly-facing Application Gateway exposes an application running in a multi-tenant Azure App Service Plan which has been configured with a [Private Endpoint](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) and [Regional VNet (Virtual Network) Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration). Routing and SNAT has been configured so that traffic between the Application Gateway and App Service Private Endpoint is mediated and by an [Azure Firewall Premium](https://docs.microsoft.com/en-us/azure/firewall/premium-features) instance.
+Using a hub and spoke architecture, this lab environment demonstrates a pattern where a publicly-facing Application Gateway exposes an application running in a multi-tenant Azure App Service Plan which has been configured with a [Private Endpoint](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) and [Regional VNet (Virtual Network) Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration). Routing and SNAT has been configured so that traffic between the Application Gateway and App Service Private Endpoint is mediated by an [Azure Firewall Premium](https://docs.microsoft.com/en-us/azure/firewall/premium-features) instance.
 
 In addition to the above, the lab comes with the following features:
 
@@ -11,7 +11,7 @@ In addition to the above, the lab comes with the following features:
 2. Azure Firewall is configured to send logs to a Log Analytics Workspace.
 3. Windows Server 2019 VM instance deployed with Azure CLI, Az PowerShell, Visual Studio Code, Google Chrome, and Windows RSAT (Remote Server Administration Tools).
 4. Centralized Key Vault configured with a Private Endpoint. The Key Vault stores the username and password of the Dev VM and Application Gateway certificate. Note that the Key Vault is open to all networks because ARM deployment scripts use Azure Container Services, but do not yet support being run within the customer's Virtual Network.
-5. [Application Gateway is configured with a User-Assigned Managed Identity](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs) which has been granted appropriate permissions to access certificates stored in the workload Key Vault instance.
+5. [Application Gateway is configured with a User-Assigned Managed Identity](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs) which has been granted appropriate permissions to access certificates stored in the Key Vault instance.
 7. Uses the support for [wildcard certificates currently in preview](https://docs.microsoft.com/en-us/azure/application-gateway/multiple-site-overview#wildcard-host-names-in-listener-preview) for Application Gateway.
 
 ![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/app-gw-app-service-pe/images/lab.png)
