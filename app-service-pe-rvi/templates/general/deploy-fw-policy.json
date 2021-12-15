@@ -49,7 +49,6 @@
                 },
                 "snat": {
                     "privateRanges": [
-                        "[parameters('transitVnetCidr')]"
                     ]
                 },
                 "sku": {
