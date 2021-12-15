@@ -813,7 +813,7 @@
         }
     ],
     "outputs": {
-        "devSeverRouteTableName": {
+        "devServerRouteTableName": {
             "type": "string",
             "value": "[variables('devServerRouteTableName')]"
         },
