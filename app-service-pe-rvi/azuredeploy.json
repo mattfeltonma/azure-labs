@@ -256,21 +256,5 @@
         }
     ],
     "outputs": {
-        "applicationGatewayName": {
-            "type": "string",
-            "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwName.value]"
-        },
-        "appServiceDnsName": {
-            "type": "string",
-            "value": "[reference(variables('workloadRgDeploymentName')).outputs.appSvcDnsName.value]"
-        },
-        "transitResourceGroupName": {
-            "type": "string",
-            "value": "[variables('transitRgName')]"
-        },
-        "workloadKeyVaultName": {
-            "type": "string",
-            "value": "[reference(variables('transitRgDeploymentName')).outputs.centralKeyVaultName.value]"
-        }
     }
 }
