@@ -505,7 +505,7 @@
                         "[concat('Microsoft.Web/sites/', variables('functionAppName'), '/sourcecontrols/web')]"
                     ],
                     "properties": {
-                        "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('workloadVnetName'), variables('workloadVnetFunctionSubneName'))]",
+                        "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('workloadVnetName'), variables('workloadVnetRviSubneName'))]",
                         "swiftSupported": true
                     }
                 }
