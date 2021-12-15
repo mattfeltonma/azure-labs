@@ -483,10 +483,7 @@
                             }
                         }
                     }
-                ],
-                "sku": {
-                    "tier": "[variables('firewallSkuName')]"
-                }
+                ]
             }
         },
         {
