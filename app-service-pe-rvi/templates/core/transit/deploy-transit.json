@@ -534,7 +534,8 @@
             "name": "[concat(variables('appServicesPrivateDnsZoneName'), '/', variables('appServicesPlLinkName'))]",
             "location": "global",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('appServicesPrivateDnsZoneName'))]"
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('appServicesPrivateDnsZoneName'))]",
+                "[resourceId('Microsoft.Network/azureFirewalls',variables('firewallName'))]"
             ],
             "properties": {
                 "registrationEnabled": false,

@@ -1,0 +1,92 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location of the NSG flow log"
+            }
+        },
+        "logRetention": {
+            "type": "int",
+            "metadata": {
+                "description": "The number of days to retain NSG flow logs"
+            },
+            "defaultValue": 30
+        },
+        "targetNsgName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the NSG flow log to enable logs for"
+            }
+        },
+        "targetLaWorkspaceResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Log Analytics Workspace Traffic Analytics will be configured"
+            }
+        },
+        "targetNsgResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Network Security Group to enable flow logs for"
+            }
+        },
+        "targetStorageResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Storage Account where the NSG flow logs will be stored"
+            }
+        },
+        "trafficAnalyticsInterval": {
+            "type": "int",
+            "metadata": {
+                "description": "The frequency of Traffic Analytics performs flow analytics"
+            },
+            "defaultValue": 10
+        } 
+    },
+    "variables": {
+        "networkApiVersion": "2020-05-01",
+        "networkWatcherName": "[concat('NetworkWatcher_', parameters('location'))]",
+        "nsgFlowLogName": "[substring(concat(parameters('targetNsgName'),parameters('uniqueData')),0,8)]"
+    },
+    "resources": [
+        {
+            "name": "[concat(variables('networkWatcherName'),'/', variables('nsgFlowLogName'))]",
+            "type": "Microsoft.Network/networkWatchers/FlowLogs/",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "targetResourceId": "[parameters('targetNsgResourceId')]",
+                "storageId": "[parameters('targetStorageResourceId')]",
+                "enabled": true,
+                "flowAnalyticsConfiguration": {
+                    "networkWatcherFlowAnalyticsConfiguration": {
+                        "enabled": true,
+                        "workspaceResourceId": "[parameters('targetLaWorkspaceResourceId')]",
+                        "trafficAnalyticsInterval": "[parameters('trafficAnalyticsInterval')]"
+                    }
+                },
+                "retentionPolicy": {
+                    "days": "[parameters('logRetention')]",
+                    "enabled": true
+                },
+                "format": {
+                    "type": "JSON",
+                    "version": 2
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}
