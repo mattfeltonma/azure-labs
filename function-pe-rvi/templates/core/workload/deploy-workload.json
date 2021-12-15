@@ -101,17 +101,23 @@
         "appInsightsAPiVersion": "2015-05-01",
         "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
+        "storageApiVersion": "2019-06-01",
         "webApiVersion": "2020-12-01",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "appInsightsName": "[concat('ai', parameters('uniqueData'))]",
         "appServiceKind": "Linux",
         "appServicePlanName": "[concat('sp-app', parameters('uniqueData'))]",
-        "appServicePlanSku": "P1v3",
-        "appServicePrivateDnsZoneName": "privatelink.azurewebsites.net",
-        "appSvcPeDeploymentName": "deploy-appsvc-pe",
-        "appSvcRviRouteTable": "rt-rvi",
         "codeBranch": "master",
         "devRouteTableUpdateDeploymentName": "deploy-dev-rt",
+        "deployStoragePe": "deploy-st-pe",
+        "functionAppName": "[concat('func', parameters('uniqueData'))]",
+        "functionAppPlanTier": "ElasticPremium",
+        "functionAppPlanSkuName": "EP1",
+        "functionAppKind": "functionapp,linux",
+        "functionAppRuntime": "python",
+        "functionPrivateDnsZoneName": "privatelink.azurewebsites.net",
+        "functionPeDeploymentName": "deploy-function-pe",
+        "functionRviRouteTable": "rt-rvi",
         "linuxFxVersion": "PYTHON|3.8",
         "location": "[resourceGroup().location]",
         "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
@@ -119,9 +125,10 @@
         "repoUrl": "https://github.com/mattfeltonma/python-sample-web-app.git",
         "rviNsgName": "nsg-rvi",
         "rviNsgFlowLogDeploymentName": "deploy-rviflowlog",
-        "uniqueWebAppName": "[concat('app', parameters('uniqueData'))]",
+        "storageAccountName": "[concat('stfunc', parameters('uniqueData'))]",
+        "storageFilesPrivateDnsZoneName": "privatelink.file.core.windows.net",
         "workloadVnetName": "[concat('vnet-workload', parameters('uniqueData'))]",
-        "workloadVnetAppSvcSubneName": "snet-appsvc",
+        "workloadVnetFunctionSubneName": "snet-func",
         "workloadVnetRviSubneName": "snet-rvi",
         "workloadVnetSvcSubneName": "snet-svc",
         "workloadToTransitPeeringName": "peerworkloadtotransit",
@@ -130,7 +137,7 @@
     },
     "resources": [
         {
-            "name": "[variables('appSvcRviRouteTable')]",
+            "name": "[variables('functionRviRouteTable')]",
             "type": "Microsoft.Network/routeTables",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
@@ -222,7 +229,7 @@
                 },
                 "subnets": [
                     {
-                        "name": "[variables('workloadVnetAppSvcSubneName')]",
+                        "name": "[variables('workloadVnetFunctionSubneName')]",
                         "properties": {
                             "addressPrefix": "[parameters('workloadVnetSubnetAppSvcPeCidr')]",
                             "privateEndpointNetworkPolicies": "Disabled"
@@ -241,7 +248,7 @@
                                 }
                             ],
                             "routeTable": {
-                                "id": "[resourceId('Microsoft.Network/routeTables',variables('appSvcRviRouteTable'))]"
+                                "id": "[resourceId('Microsoft.Network/routeTables',variables('functionRviRouteTable'))]"
                             },
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('rviNsgName'))]"
@@ -326,6 +333,7 @@
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('transitToWorkloadPeeringName'))]"
             ],
             "properties": {
                 "ApplicationId": "[variables('appInsightsName')]",
@@ -335,96 +343,50 @@
         {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "[variables('webApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('transitToWorkloadPeeringName'))]"
-            ],
             "name": "[variables('appServicePlanName')]",
             "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('microsoft.insights/components', variables('appInsightsName'))]"
+            ],
             "sku": {
-                "name": "[variables('appServicePlanSku')]"
+                "tier": "[variables('functionAppPlanTier')]",
+                "name": "[variables('functionAppPlanSkuName')]"
             },
             "kind": "[variables('appServiceKind')]",
+    
             "properties": {
                 "reserved": true
             }
         },
         {
-            "type": "Microsoft.Web/sites",
-            "apiVersion": "[variables('webApiVersion')]",
-            "name": "[variables('uniqueWebAppName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "[variables('storageApiVersion')]",
+            "name": "[variables('storageAccountName')]",
             "location": "[variables('location')]",
-            "kind": "app",
+            "tags": "[parameters('tags')]",
+            "kind": "StorageV2",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
             ],
-            "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
-                "clientAffinityEnabled": false,
-                "siteConfig": {
-                    "linuxFxVersion": "[variables('linuxFxVersion')]",
-                    "alwaysOn": true
-                }
+            "sku": {
+                "name": "Standard_LRS"
             },
-            "resources": [
-                {
-                    "type": "sourcecontrols",
-                    "apiVersion": "[variables('webApiVersion')]",
-                    "name": "web",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]"
-                    ],
-                    "properties": {
-                        "repoUrl": "[variables('repoUrl')]",
-                        "branch": "[variables('codeBranch')]",
-                        "isManualIntegration": true,
-                        "isGitHubAction": false,
-                        "deploymentRollbackEnabled": false,
-                        "isMercurial": false
-                    }
-                },
-                {
-                    "name": "virtualNetwork",
-                    "type": "networkConfig",
-                    "apiVersion": "[variables('webApiVersion')]",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]"
-                    ],
-                    "properties": {
-                        "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('workloadVnetName'), variables('workloadVnetRviSubneName'))]",
-                        "swiftSupported": true
-                    }
-                },
-                {
-                    "name": "[concat(variables('uniqueWebAppName'),'/appsettings')]",
-                    "type": "Microsoft.Web/sites/config",
-                    "apiVersion": "[variables('webApiVersion')]",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"
-                    ],
-                    "properties": {
-                        "WEBSITE_VNET_ROUTE_ALL": "1"
-                    }
-                }
-
-            ]
+            "properties": {
+                "supportsHttpsTrafficOnly": true
+            }
         },
         {
-            "name": "[variables('appSvcPeDeploymentName')]",
+            "name": "[variables('deployStoragePe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
-                "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]",
-                "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/networkCOnfig/virtualNetwork')]"
+                    "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "privateDnsZoneName": {
-                        "value": "[variables('appServicePrivateDnsZoneName')]"
+                        "value": "[variables('storageFilesPrivateDnsZoneName')]"
                     },
                     "privateEndpointLocation": {
                         "value": "[variables('location')]"
@@ -436,7 +398,145 @@
                         "value": "[subscription().subscriptionId]"
                     },
                     "privateEndpointSubnetName": {
-                        "value": "[variables('workloadVnetAppSvcSubneName')]"
+                        "value": "[variables('workloadVnetFunctionSubneName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "file"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('workloadVnetName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('storageAccountName'))]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('storageAccountName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "[variables('webApiVersion')]",
+            "name": "[variables('functionAppName')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[resourceId('Microsoft.insights/components', variables('appInsightsName'))]"
+            ],
+            "kind": "[variables('functionAppKind')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "clientAffinityEnabled": false,
+                "siteConfig": {
+                    "linuxFxVersion": "[variables('linuxFxVersion')]",
+                    "appSettings": [
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~3"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "[variables('functionAppRuntime')]"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value, ';EndpointSuffix=','core.windows.net')]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value, ';EndpointSuffix=','core.windows.net')]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTSHARE",
+                            "value": "[toLower(variables('functionAppName'))]"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').ConnectionString]"
+                        },
+                        {
+                            "name": "WEBSITE_VNET_ROUTE_ALL",
+                            "value": "1"
+                        },
+                        {
+                            "name": "WEBSITE_DNS_SERVER",
+                            "value": "[parameters('firewallIp')]"
+                        }
+                    ]
+                }
+            },
+            "resources": [
+                {
+                    "type": "sourcecontrols",
+                    "apiVersion": "[variables('webApiVersion')]",
+                    "name": "web",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+                    ],
+                    "properties": {
+                        "repoUrl": "[variables('repoUrl')]",
+                        "branch": "[variables('codeBranch')]",
+                        "isManualIntegration": true
+                    }
+                },
+                {
+                    "name": "virtualNetwork",
+                    "type": "networkConfig",
+                    "apiVersion": "[variables('webApiVersion')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+                        "[concat('Microsoft.Web/sites/', variables('functionAppName'), '/sourcecontrols/web')]"
+                    ],
+                    "properties": {
+                        "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('workloadVnetName'), variables('workloadVnetFunctionSubneName'))]",
+                        "swiftSupported": true
+                    }
+                }
+            ]
+        },
+        {
+            "name": "[variables('functionPeDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+                "[concat('Microsoft.Web/sites/', variables('functionAppName'),'/sourcecontrols/web')]",
+                "[concat('Microsoft.Web/sites/', variables('functionAppName'),'/networkCOnfig/virtualNetwork')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('functionPrivateDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('transitResourceGroupName')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[subscription().subscriptionId]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('workloadVnetFunctionSubneName')]"
                     },
                     "privateEndpointSubResource": {
                         "value": "sites"
@@ -445,10 +545,10 @@
                         "value": "[variables('workloadVnetName')]"
                     },
                     "resourceIdentifier": {
-                        "value": "[resourceId('Microsoft.Web/sites',variables('uniqueWebAppName'))]"
+                        "value": "[resourceId('Microsoft.Web/sites',variables('functionAppName'))]"
                     },
                     "resourceName": {
-                        "value": "[variables('uniqueWebAppName')]"
+                        "value": "[variables('functionAppName')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -469,7 +569,7 @@
             "apiVersion": "[variables('resourcesApiVersion')]",
             "resourceGroup": "[parameters('transitResourceGroupName')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('appSvcPeDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('functionPeDeploymentName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -484,7 +584,7 @@
                             "type": "Microsoft.Network/routeTables/routes",
                             "apiVersion": "[variables('networkApiVersion')]",
                             "properties": {
-                                "addressPrefix": "[concat(reference(variables('appSvcPeDeploymentName')).outputs.privateEndpointIp.value,'/32')]",
+                                "addressPrefix": "[concat(reference(variables('functionPeDeploymentName')).outputs.privateEndpointIp.value,'/32')]",
                                 "nextHopType": "VirtualAppliance",
                                 "nextHopIpAddress": "[parameters('firewallIp')]"
                             }
