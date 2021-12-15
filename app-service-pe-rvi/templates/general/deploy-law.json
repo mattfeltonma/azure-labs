@@ -49,11 +49,11 @@
             },
             "logAnalyticsResourceId": {
                 "type": "string",
-                "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')),'2015-03-20').customerId]"
+                "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
             },
             "logAnalyticsWorkspaceId": {
                 "type": "string",
-                "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+                "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')),'2015-03-20').customerId]"
             },
             "logAnalyticsWorkspaceKey": {
                 "type": "string",
