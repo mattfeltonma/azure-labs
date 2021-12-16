@@ -18,7 +18,7 @@ Additional features included:
 * Azure Function integrated with an instance of App Insights
 * Azure Key Vault which stores the user configured VM administrator username and password
 
-![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/app-service-force-tunnel/lab_visual.png)
+![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/app-service-force-tunnel/lab_visual.svg)
 
 ## Installation
 1.  Create a resource group.
