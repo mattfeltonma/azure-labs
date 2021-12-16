@@ -182,6 +182,9 @@
                     },
                     "vmAdminPassword": {
                         "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "workloadVnetCidr": {
+                        "value": "[variables('workloadVnetCidr')]"
                     }
                 },
                 "templateLink": {

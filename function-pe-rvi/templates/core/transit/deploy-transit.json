@@ -78,6 +78,12 @@
             "metadata": {
                 "description": "Administrator name for VMs that are created"
             }
+        },
+        "workloadVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the Workload virtual network"
+            }
         }
     },
     "variables": {
@@ -730,6 +736,14 @@
                         "name": "udr-default",
                         "properties": {
                             "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                        }
+                    },
+                    {
+                        "name": "udr-spoke",
+                        "properties": {
+                            "addressPrefix": "[parameters('workloadVnetCidr')]",
                             "nextHopType": "VirtualAppliance",
                             "nextHopIpAddress": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
                         }
