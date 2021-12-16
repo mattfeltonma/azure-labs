@@ -442,6 +442,7 @@
                 "clientAffinityEnabled": false,
                 "siteConfig": {
                     "linuxFxVersion": "[variables('linuxFxVersion')]",
+                    "vnetRouteAllEnabled": true,
                     "appSettings": [
                         {
                             "name": "FUNCTIONS_EXTENSION_VERSION",
@@ -472,10 +473,6 @@
                             "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').ConnectionString]"
                         },
                         {
-                            "name": "WEBSITE_VNET_ROUTE_ALL",
-                            "value": "1"
-                        },
-                        {
                             "name": "WEBSITE_DNS_SERVER",
                             "value": "[parameters('firewallIp')]"
                         }
@@ -484,29 +481,32 @@
             },
             "resources": [
                 {
-                    "type": "sourcecontrols",
-                    "apiVersion": "[variables('webApiVersion')]",
-                    "name": "web",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
-                    ],
-                    "properties": {
-                        "repoUrl": "[variables('repoUrl')]",
-                        "branch": "[variables('codeBranch')]",
-                        "isManualIntegration": true
-                    }
-                },
-                {
                     "name": "virtualNetwork",
                     "type": "networkConfig",
                     "apiVersion": "[variables('webApiVersion')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
-                        "[concat('Microsoft.Web/sites/', variables('functionAppName'), '/sourcecontrols/web')]"
+                        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
                     ],
                     "properties": {
                         "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('workloadVnetName'), variables('workloadVnetRviSubneName'))]",
                         "swiftSupported": true
+                    }
+                },
+                {
+                    "type": "sourcecontrols",
+                    "apiVersion": "[variables('webApiVersion')]",
+                    "name": "web",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+                        "[concat('Microsoft.Web/sites/', variables('functionAppName'), '/networkConfig/virtualNetwork')]"
+                    ],
+                    "properties": {
+                        "repoUrl": "[variables('repoUrl')]",
+                        "branch": "[variables('codeBranch')]",
+                        "isManualIntegration": true,
+                        "isGitHubAction": false,
+                        "deploymentRollbackEnabled": false,
+                        "isMercurial": false
                     }
                 }
             ]
