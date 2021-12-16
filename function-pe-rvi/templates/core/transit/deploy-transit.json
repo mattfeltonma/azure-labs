@@ -93,11 +93,12 @@
         "bastionNsgName": "[concat('nsg-bst', parameters('uniqueData'))]",
         "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
         "bastionSubnetName": "AzureBastionSubnet",
-        "deployDevServerRt": "deploy-dev-serverroutetable",
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
+        "deployDevServerRt": "deploy-dev-serverroutetable",
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployFirewallPolicy": "deploy-firewallpolicy",
         "deployLaw": "deploy-sharedsvclaw",
+        "deployVmNsgFlowLog": "deploy-vmnsgflowlog",
         "devServerRouteTableName": "rt-dev-server",
         "devServerSubnetName": "snet-dev",
         "devVmDeploymentName": "deploy-dev-vm",
@@ -109,7 +110,6 @@
         "firewallDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-fw-policy.json')]",
         "firewallName": "[concat('fw', parameters('uniqueData'))]",
         "firewallPublicIpName": "[concat('pip-fw', parameters('uniqueData'))]",
-        "firewallSkuName": "Standard",
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
         "lawDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-law.json')]",
@@ -119,6 +119,7 @@
         "storageFilesPrivateDnsZoneName": "privatelink.file.core.windows.net",
         "storageFilesPlLinkName": "[concat(variables('storageFilesPrivateDnsZoneName'), '-link')]",
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
+        "vmNsgName": "nsg-dev",
         "vmSku": "Standard_D4_v4",
         "vnetStandardDdosProtection": false
     },
@@ -407,13 +408,63 @@
             }
         },
         {
+            "name": "[variables('vmNsgName')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                ]
+            }
+        },
+        {
+            "name": "[variables('deployVmNsgFlowLog')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('vmNsgName'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deployLaw'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deployBastionNsgFlowLog'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('vmNsgName')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('vmNsgName'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('nsgDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('transitVnetName')]",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployBastionNsgFlowLog'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployVmNsgFlowLog'))]"
             ],
             "properties": {
                 "addressSpace": {
@@ -446,7 +497,10 @@
                     {
                         "name": "[variables('devServerSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('transitDevSubnetCidr')]"
+                            "addressPrefix": "[parameters('transitDevSubnetCidr')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('vmNsgName'))]"
+                            }
                         }
                     }
                 ],
