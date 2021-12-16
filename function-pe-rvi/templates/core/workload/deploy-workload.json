@@ -130,7 +130,7 @@
         "storageBlobsPrivateDnsZoneName": "privatelink.blob.core.windows.net",
         "storageFilesPrivateDnsZoneName": "privatelink.file.core.windows.net",
         "workloadVnetName": "[concat('vnet-workload', parameters('uniqueData'))]",
-        "workloadVnetFunctionSubneName": "snet-func",
+        "workloadVnetFunctionSubnetName": "snet-func",
         "workloadVnetRviSubneName": "snet-rvi",
         "workloadVnetSvcSubneName": "snet-svc",
         "workloadToTransitPeeringName": "peerworkloadtotransit",
@@ -231,7 +231,7 @@
                 },
                 "subnets": [
                     {
-                        "name": "[variables('workloadVnetFunctionSubneName')]",
+                        "name": "[variables('workloadVnetFunctionSubnetName')]",
                         "properties": {
                             "addressPrefix": "[parameters('workloadVnetSubnetAppSvcPeCidr')]",
                             "privateEndpointNetworkPolicies": "Disabled"
@@ -374,6 +374,12 @@
                 "name": "Standard_LRS"
             },
             "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Deny"
+                },
                 "supportsHttpsTrafficOnly": true
             }
         },
@@ -400,7 +406,7 @@
                         "value": "[subscription().subscriptionId]"
                     },
                     "privateEndpointSubnetName": {
-                        "value": "[variables('workloadVnetFunctionSubneName')]"
+                        "value": "[variables('workloadVnetFunctionSubnetName')]"
                     },
                     "privateEndpointSubResource": {
                         "value": "file"
@@ -439,7 +445,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "privateDnsZoneName": {
-                        "value": "[variables('storageFilesPrivateDnsZoneName')]"
+                        "value": "[variables('storageBlobsPrivateDnsZoneName')]"
                     },
                     "privateEndpointLocation": {
                         "value": "[variables('location')]"
@@ -451,10 +457,10 @@
                         "value": "[subscription().subscriptionId]"
                     },
                     "privateEndpointSubnetName": {
-                        "value": "[variables('workloadVnetFunctionSubneName')]"
+                        "value": "[variables('workloadVnetFunctionSubnetName')]"
                     },
                     "privateEndpointSubResource": {
-                        "value": "file"
+                        "value": "blob"
                     },
                     "privateEndpointVnetName": {
                         "value": "[variables('workloadVnetName')]"
@@ -591,7 +597,7 @@
                         "value": "[subscription().subscriptionId]"
                     },
                     "privateEndpointSubnetName": {
-                        "value": "[variables('workloadVnetFunctionSubneName')]"
+                        "value": "[variables('workloadVnetFunctionSubnetName')]"
                     },
                     "privateEndpointSubResource": {
                         "value": "sites"
