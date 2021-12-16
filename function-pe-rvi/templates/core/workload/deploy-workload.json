@@ -109,7 +109,8 @@
         "appServicePlanName": "[concat('sp-app', parameters('uniqueData'))]",
         "codeBranch": "master",
         "devRouteTableUpdateDeploymentName": "deploy-dev-rt",
-        "deployStoragePe": "deploy-st-pe",
+        "deployStorageBlobPe": "deploy-st-blob-pe",
+        "deployStorageFilePe": "deploy-st-file-pe",
         "functionAppName": "[concat('func', parameters('uniqueData'))]",
         "functionAppPlanTier": "ElasticPremium",
         "functionAppPlanSkuName": "EP1",
@@ -126,6 +127,7 @@
         "rviNsgName": "nsg-rvi",
         "rviNsgFlowLogDeploymentName": "deploy-rviflowlog",
         "storageAccountName": "[concat('stfunc', parameters('uniqueData'))]",
+        "storageBlobsPrivateDnsZoneName": "privatelink.blob.core.windows.net",
         "storageFilesPrivateDnsZoneName": "privatelink.file.core.windows.net",
         "workloadVnetName": "[concat('vnet-workload', parameters('uniqueData'))]",
         "workloadVnetFunctionSubneName": "snet-func",
@@ -376,11 +378,62 @@
             }
         },
         {
-            "name": "[variables('deployStoragePe')]",
+            "name": "[variables('deployStorageFilePe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                     "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('storageFilesPrivateDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('transitResourceGroupName')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[subscription().subscriptionId]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('workloadVnetFunctionSubneName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "file"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('workloadVnetName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('storageAccountName'))]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('storageAccountName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployStorageBlobPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                    "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                    "[concat('Microsoft.Resources/deployments/', variables('deployStorageFilePe'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -433,7 +486,9 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-                "[resourceId('Microsoft.insights/components', variables('appInsightsName'))]"
+                "[resourceId('Microsoft.insights/components', variables('appInsightsName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployStorageBlobPe'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployStorageFilePe'))]"
             ],
             "kind": "[variables('functionAppKind')]",
             "tags": "[parameters('tags')]",

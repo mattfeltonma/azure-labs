@@ -116,6 +116,8 @@
         "location": "[resourceGroup().location]",
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
         "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
+        "storageBlobsPrivateDnsZoneName": "privatelink.blob.core.windows.net",
+        "storageBlobsPlLinkName": "[concat(variables('storageBlobsPrivateDnsZoneName'), '-link')]",
         "storageFilesPrivateDnsZoneName": "privatelink.file.core.windows.net",
         "storageFilesPlLinkName": "[concat(variables('storageFilesPrivateDnsZoneName'), '-link')]",
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
@@ -621,12 +623,34 @@
             }
         },
         {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[variables('storageBlobsPrivateDnsZoneName')]",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[concat(variables('storageBlobsPrivateDnsZoneName'), '/', variables('storageBlobsPlLinkName'))]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('storageBlobsPrivateDnsZoneName'))]",
+                "[concat('Microsoft.Network/privateDnsZones/',variables('appServicesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageFilesPlLinkName'))]"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
+                }
+            }
+        },
+        {
             "name": "[variables('deployDnsServerSettings')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'),'/providers/microsoft.insights/diagnosticSettings/diag')]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('storageFilesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageFilesPlLinkName'))]"
+                "[concat('Microsoft.Network/privateDnsZones/',variables('storageFilesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageBlobsPlLinkName'))]"
             ],
             "properties": {
                 "mode": "Incremental",

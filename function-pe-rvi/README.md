@@ -16,6 +16,7 @@ Additional features included:
 * Azure Bastion provisioned in the hub to provide secure RDP (Remote Desktop Protocol) access to the VM
 * Azure Firewall configured to send diagnostic logs to an instance of Log Analytics Workspace to allow for inspection of the traffic flowing to and from the Azure Function
 * Azure Function integrated with an instance of App Insights
+* Azure Key Vault which stores the user configured VM administrator username and password
 
 ![lab image](https://github.com/mattfeltonma/azure-labs/blob/master/app-service-force-tunnel/lab_visual.png)
 
