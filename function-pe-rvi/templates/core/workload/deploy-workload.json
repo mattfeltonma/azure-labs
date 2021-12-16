@@ -122,7 +122,7 @@
         "location": "[resourceGroup().location]",
         "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
         "peDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-private-endpoint.json')]",
-        "repoUrl": "https://github.com/mattfeltonma/python-sample-web-app.git",
+        "repoUrl": "https://github.com/mattfeltonma/azure-function-example.git",
         "rviNsgName": "nsg-rvi",
         "rviNsgFlowLogDeploymentName": "deploy-rviflowlog",
         "storageAccountName": "[concat('stfunc', parameters('uniqueData'))]",
