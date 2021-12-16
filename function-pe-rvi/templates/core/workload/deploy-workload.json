@@ -398,7 +398,7 @@
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-                "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'), '/fileServices/shares/default/', variables('functionAppName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts/fileServices/shares',variables('storageAccountName'), 'default', variables('functionAppName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
