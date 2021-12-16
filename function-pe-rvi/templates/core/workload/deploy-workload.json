@@ -590,6 +590,10 @@
                         {
                             "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
                             "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').ConnectionString]"
+                        },
+                        {
+                            "name": "WEBSITE_DNS_SERVER",
+                            "value": "[parameters('firewallIp')]"
                         }
                     ]
                 }
