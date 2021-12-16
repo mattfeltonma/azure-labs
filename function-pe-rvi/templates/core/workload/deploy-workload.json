@@ -131,8 +131,8 @@
         "storageFilesPrivateDnsZoneName": "privatelink.file.core.windows.net",
         "workloadVnetName": "[concat('vnet-workload', parameters('uniqueData'))]",
         "workloadVnetFunctionSubnetName": "snet-func",
-        "workloadVnetRviSubneName": "snet-rvi",
-        "workloadVnetSvcSubneName": "snet-svc",
+        "workloadVnetRviSubnetName": "snet-rvi",
+        "workloadVnetSvcSubnetName": "snet-svc",
         "workloadToTransitPeeringName": "peerworkloadtotransit",
         "workloadRgName": "[resourceGroup().name]",
         "transitToWorkloadPeeringName": "peertransittoworkload"
@@ -238,7 +238,7 @@
                         }
                     },
                     {
-                        "name": "[variables('workloadVnetRviSubneName')]",
+                        "name": "[variables('workloadVnetRviSubnetName')]",
                         "properties": {
                             "addressPrefix": "[parameters('workloadVnetSubnetAppSvcRviCidr')]",
                             "delegations": [
@@ -258,7 +258,7 @@
                         }
                     },
                     {
-                        "name": "[variables('workloadVnetSvcSubneName')]",
+                        "name": "[variables('workloadVnetSvcSubnetName')]",
                         "properties": {
                             "addressPrefix": "[parameters('workloadVnetSubnetSvcCidr')]",
                             "privateEndpointNetworkPolicies": "Disabled"
@@ -406,7 +406,7 @@
                         "value": "[subscription().subscriptionId]"
                     },
                     "privateEndpointSubnetName": {
-                        "value": "[variables('workloadVnetFunctionSubnetName')]"
+                        "value": "[variables('workloadVnetSvcSubnetName')]"
                     },
                     "privateEndpointSubResource": {
                         "value": "file"
@@ -457,7 +457,7 @@
                         "value": "[subscription().subscriptionId]"
                     },
                     "privateEndpointSubnetName": {
-                        "value": "[variables('workloadVnetFunctionSubnetName')]"
+                        "value": "[variables('workloadVnetSvcSubnetName')]"
                     },
                     "privateEndpointSubResource": {
                         "value": "blob"
@@ -549,7 +549,7 @@
                         "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
                     ],
                     "properties": {
-                        "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('workloadVnetName'), variables('workloadVnetRviSubneName'))]",
+                        "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('workloadVnetName'), variables('workloadVnetRviSubnetName'))]",
                         "swiftSupported": true
                     }
                 },
