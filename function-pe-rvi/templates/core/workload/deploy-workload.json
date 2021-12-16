@@ -593,7 +593,7 @@
                         },
                         {
                             "name": "WEBSITE_DNS_SERVER",
-                            "value": "[parameters('firewallIp')]"
+                            "value": "168.63.129.16"
                         }
                     ]
                 }
