@@ -547,7 +547,8 @@
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
                 "[resourceId('Microsoft.insights/components', variables('appInsightsName'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployStorageBlobPe'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployStorageFilePe'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployStorageFilePe'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployStorageTablePe'))]"
             ],
             "kind": "[variables('functionAppKind')]",
             "tags": "[parameters('tags')]",
