@@ -656,7 +656,7 @@
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'),'/providers/microsoft.insights/diagnosticSettings/diag')]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('storageFilesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageBlobsPlLinkName'))]"
+                "[concat('Microsoft.Network/privateDnsZones/',variables('storageBlobsPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageBlobsPlLinkName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
