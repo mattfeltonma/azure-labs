@@ -357,7 +357,7 @@
                 "name": "[variables('functionAppPlanSkuName')]"
             },
             "kind": "[variables('appServiceKind')]",
-    
+
             "properties": {
                 "reserved": true
             }
@@ -390,7 +390,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                    "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -440,8 +440,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                    "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-                    "[concat('Microsoft.Resources/deployments/', variables('deployStorageFilePe'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployStorageFilePe'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -491,8 +491,8 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                    "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-                    "[concat('Microsoft.Resources/deployments/', variables('deployStorageBlobPe'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployStorageBlobPe'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -562,6 +562,10 @@
                         {
                             "name": "FUNCTIONS_EXTENSION_VERSION",
                             "value": "~3"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTOVERVNET",
+                            "value": "1"
                         },
                         {
                             "name": "FUNCTIONS_WORKER_RUNTIME",
