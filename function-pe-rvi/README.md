@@ -18,7 +18,7 @@ Additional features included:
 * Azure Function integrated with an instance of App Insights
 * Azure Key Vault which stores the user configured VM administrator username and password
 
-![lab image](/images/lab_visual.svg)
+![lab image](../images/lab_visual.svg)
 
 ## Installation
 1.  Create a resource group.
