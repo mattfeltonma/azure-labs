@@ -111,6 +111,7 @@
         "devRouteTableUpdateDeploymentName": "deploy-dev-rt",
         "deployStorageBlobPe": "deploy-st-blob-pe",
         "deployStorageFilePe": "deploy-st-file-pe",
+        "deployStorageTablePe": "deploy-st-table-pe",
         "functionAppName": "[concat('func', parameters('uniqueData'))]",
         "functionAppPlanTier": "ElasticPremium",
         "functionAppPlanSkuName": "EP1",
@@ -129,6 +130,7 @@
         "storageAccountName": "[concat('stfunc', parameters('uniqueData'))]",
         "storageBlobsPrivateDnsZoneName": "privatelink.blob.core.windows.net",
         "storageFilesPrivateDnsZoneName": "privatelink.file.core.windows.net",
+        "storageTablesPrivateDnsZoneName": "privatelink.table.core.windows.net",
         "workloadVnetName": "[concat('vnet-workload', parameters('uniqueData'))]",
         "workloadVnetFunctionSubnetName": "snet-func",
         "workloadVnetRviSubnetName": "snet-rvi",
@@ -461,6 +463,57 @@
                     },
                     "privateEndpointSubResource": {
                         "value": "blob"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('workloadVnetName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('storageAccountName'))]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('storageAccountName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployStorageTablePe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                    "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                    "[concat('Microsoft.Resources/deployments/', variables('deployStorageBlobPe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('storageTablesPrivateDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('transitResourceGroupName')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[subscription().subscriptionId]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('workloadVnetSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "table"
                     },
                     "privateEndpointVnetName": {
                         "value": "[variables('workloadVnetName')]"

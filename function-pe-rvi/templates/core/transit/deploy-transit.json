@@ -126,6 +126,8 @@
         "storageBlobsPlLinkName": "[concat(variables('storageBlobsPrivateDnsZoneName'), '-link')]",
         "storageFilesPrivateDnsZoneName": "privatelink.file.core.windows.net",
         "storageFilesPlLinkName": "[concat(variables('storageFilesPrivateDnsZoneName'), '-link')]",
+        "storageTablesPrivateDnsZoneName": "privatelink.table.core.windows.net",
+        "storageTablesPlLinkName": "[concat(variables('storageTablesPrivateDnsZoneName'), '-link')]",
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
         "vmNsgName": "nsg-dev",
         "vmSku": "Standard_D4_v4",
@@ -651,12 +653,34 @@
             }
         },
         {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[variables('storageTablesPrivateDnsZoneName')]",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[concat(variables('storageBlobsPrivateDnsZoneName'), '/', variables('storageBlobsPlLinkName'))]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('storageBlobsPrivateDnsZoneName'))]",
+                "[concat('Microsoft.Network/privateDnsZones/',variables('storageBlobsPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageBlobsPlLinkName'))]"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
+                }
+            }
+        },
+        {
             "name": "[variables('deployDnsServerSettings')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'),'/providers/microsoft.insights/diagnosticSettings/diag')]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('storageBlobsPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageBlobsPlLinkName'))]"
+                "[concat('Microsoft.Network/privateDnsZones/',variables('storageTablesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageTablesPlLinkName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
