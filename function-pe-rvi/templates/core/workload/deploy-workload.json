@@ -383,14 +383,22 @@
                     "defaultAction": "Deny"
                 },
                 "supportsHttpsTrafficOnly": true
-            }
+            },
+            "resources": [
+                {
+                    "type": "fileServices/shares",
+                    "apiVersion": "[variables('storageApiVersion')]",
+                    "name": "[concat('default/', variables('functionAppName'))]"
+                }
+            ]
         },
         {
             "name": "[variables('deployStorageFilePe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'), '/fileServices/shares/default/', variables('functionAppName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -548,7 +556,8 @@
                 "[resourceId('Microsoft.insights/components', variables('appInsightsName'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployStorageBlobPe'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployStorageFilePe'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployStorageTablePe'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployStorageTablePe'))]",
+                "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'), '/fileServices/shares/default/', variables('functionAppName'))]"
             ],
             "kind": "[variables('functionAppKind')]",
             "tags": "[parameters('tags')]",
@@ -637,7 +646,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
                 "[concat('Microsoft.Web/sites/', variables('functionAppName'),'/sourcecontrols/web')]",
-                "[concat('Microsoft.Web/sites/', variables('functionAppName'),'/networkCOnfig/virtualNetwork')]"
+                "[concat('Microsoft.Web/sites/', variables('functionAppName'),'/networkConfig/virtualNetwork')]"
             ],
             "properties": {
                 "mode": "Incremental",
