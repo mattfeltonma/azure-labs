@@ -635,7 +635,7 @@
             "location": "global",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/privateDnsZones', variables('storageBlobsPrivateDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('appServicesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageFilesPlLinkName'))]"
+                "[concat('Microsoft.Network/privateDnsZones/',variables('storageFilesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageFilesPlLinkName'))]"
             ],
             "properties": {
                 "registrationEnabled": false,
