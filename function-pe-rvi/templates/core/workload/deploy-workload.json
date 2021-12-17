@@ -2,10 +2,10 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "devRouteTableName": {
+        "dnsServerIp": {
             "type": "string",
             "metadata": {
-                "description": "The name assigned to the route table assigned to the Dev subnet in the Transit virtual network"
+                "description": "The IP address to set for the Virtual Network"
             }
         },
         "firewallIp": {
@@ -36,6 +36,12 @@
             "type": "string",
             "metadata": {
                 "description": "The name of the Transit resource group"
+            }
+        },
+        "transitVnetSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The id of the subscription that contains the Transit virtual network"
             }
         },
         "transitVnetCidr": {
@@ -108,7 +114,6 @@
         "appServiceKind": "Linux",
         "appServicePlanName": "[concat('sp-app', parameters('uniqueData'))]",
         "codeBranch": "master",
-        "devRouteTableUpdateDeploymentName": "deploy-dev-rt",
         "deployStorageBlobPe": "deploy-st-blob-pe",
         "deployStorageFilePe": "deploy-st-file-pe",
         "deployStorageTablePe": "deploy-st-table-pe",
@@ -270,7 +275,7 @@
                 "enableDdosProtection": false,
                 "dhcpOptions": {
                     "dnsServers": [
-                        "[parameters('firewallIp')]"
+                        "[parameters('dnsServerIp')]"
                     ]
                 }
             },
@@ -299,6 +304,7 @@
             "name": "[variables('transitToWorkloadPeeringName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('transitVnetSubscriptionId')]",
             "resourceGroup": "[parameters('transitResourceGroupName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('workloadVnetName'))]"
@@ -413,7 +419,7 @@
                         "value": "[parameters('transitResourceGroupName')]"
                     },
                     "privateDnsZoneSubscription": {
-                        "value": "[subscription().subscriptionId]"
+                        "value": "[parameters('transitVnetSubscriptionId')]"
                     },
                     "privateEndpointSubnetName": {
                         "value": "[variables('workloadVnetSvcSubnetName')]"
@@ -464,7 +470,7 @@
                         "value": "[parameters('transitResourceGroupName')]"
                     },
                     "privateDnsZoneSubscription": {
-                        "value": "[subscription().subscriptionId]"
+                        "value": "[parameters('transitVnetSubscriptionId')]"
                     },
                     "privateEndpointSubnetName": {
                         "value": "[variables('workloadVnetSvcSubnetName')]"
@@ -515,7 +521,7 @@
                         "value": "[parameters('transitResourceGroupName')]"
                     },
                     "privateDnsZoneSubscription": {
-                        "value": "[subscription().subscriptionId]"
+                        "value": "[parameters('transitVnetSubscriptionId')]"
                     },
                     "privateEndpointSubnetName": {
                         "value": "[variables('workloadVnetSvcSubnetName')]"
@@ -599,10 +605,6 @@
                         {
                             "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
                             "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').ConnectionString]"
-                        },
-                        {
-                            "name": "WEBSITE_DNS_SERVER",
-                            "value": "[parameters('firewallIp')]"
                         }
                     ]
                 }
@@ -661,7 +663,7 @@
                         "value": "[parameters('transitResourceGroupName')]"
                     },
                     "privateDnsZoneSubscription": {
-                        "value": "[subscription().subscriptionId]"
+                        "value": "[parameters('transitVnetSubscriptionId')]"
                     },
                     "privateEndpointSubnetName": {
                         "value": "[variables('workloadVnetFunctionSubnetName')]"
@@ -688,36 +690,6 @@
                 "templateLink": {
                     "uri": "[variables('peDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('devRouteTableUpdateDeploymentName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "resourceGroup": "[parameters('transitResourceGroupName')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('functionPeDeploymentName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {},
-                    "variables": {},
-                    "resources": [
-                        {
-                            "name": "[concat(parameters('devRouteTableName'),'/udr-appsvc')]",
-                            "type": "Microsoft.Network/routeTables/routes",
-                            "apiVersion": "[variables('networkApiVersion')]",
-                            "properties": {
-                                "addressPrefix": "[concat(reference(variables('functionPeDeploymentName')).outputs.privateEndpointIp.value,'/32')]",
-                                "nextHopType": "VirtualAppliance",
-                                "nextHopIpAddress": "[parameters('firewallIp')]"
-                            }
-                        }
-                    ]
                 }
             }
         }

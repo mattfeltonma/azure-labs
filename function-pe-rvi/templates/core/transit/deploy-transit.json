@@ -8,12 +8,6 @@
                 "description": "The IP address block assigned to this Azure environment"
             }
         },
-        "devServerIp": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP assigned to the Windows Dev Server"
-            }
-        },
         "networkWatcherRg": {
             "type": "string",
             "metadata": {
@@ -25,12 +19,6 @@
             "type": "string",
             "metadata": {
                 "description": "The IP address block assigned to the Bastion subnet in the Transit virtual network"
-            }
-        },
-        "transitDevSubnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address block assigned to the Dev subnet in the Transit virtual network"
             }
         },
         "transitFwSubnetPayCidr": {
@@ -66,24 +54,6 @@
                 "description": "Data used to append to resources to ensure uniqueness"
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
-        },
-        "vmAdminPassword": {
-            "type": "securestring",
-            "metadata": {
-                "description": "Password for the VMs that are created"
-            }
-        },
-        "vmAdminUsername": {
-            "type": "string",
-            "metadata": {
-                "description": "Administrator name for VMs that are created"
-            }
-        },
-        "workloadVnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address block assigned to the Workload virtual network"
-            }
         }
     },
     "variables": {
@@ -100,16 +70,10 @@
         "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
         "bastionSubnetName": "AzureBastionSubnet",
         "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
-        "deployDevServerRt": "deploy-dev-serverroutetable",
         "deployDnsServerSettings": "deploy-dnsserversettings",
         "deployFirewallPolicy": "deploy-firewallpolicy",
         "deployLaw": "deploy-sharedsvclaw",
         "deployVmNsgFlowLog": "deploy-vmnsgflowlog",
-        "devServerRouteTableName": "rt-dev-server",
-        "devServerSubnetName": "snet-dev",
-        "devVmDeploymentName": "deploy-dev-vm",
-        "devVmDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-windows-dev-vm.json')]",
-        "devVmName": "vmwdev01",
         "firewallAz": [
             "1"
         ],
@@ -118,19 +82,24 @@
         "firewallPublicIpName": "[concat('pip-fw', parameters('uniqueData'))]",
         "fwPayloadSubnetName": "AzureFirewallSubnet",
         "gatewaySubnetName": "GatewaySubnet",
+        "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
+        "keyVaultPlLinkName": "[concat(variables('keyVaultPrivateDnsZoneName'), '-link')]",
         "lawDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-law.json')]",
         "location": "[resourceGroup().location]",
         "logStorageAccountName": "[concat('stcent', parameters('uniqueData'))]",
         "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
         "storageBlobsPrivateDnsZoneName": "privatelink.blob.core.windows.net",
         "storageBlobsPlLinkName": "[concat(variables('storageBlobsPrivateDnsZoneName'), '-link')]",
+        "storageDfsPrivateDnsZoneName": "privatelink.dfs.core.windows.net",
+        "storageDfsPlLinkName": "[concat(variables('storageDfsPrivateDnsZoneName'), '-link')]",
         "storageFilesPrivateDnsZoneName": "privatelink.file.core.windows.net",
         "storageFilesPlLinkName": "[concat(variables('storageFilesPrivateDnsZoneName'), '-link')]",
+        "storageQueuesPrivateDnsZoneName": "privatelink.queue.core.windows.net",
+        "storageQueuesPlLinkName": "[concat(variables('storageQueuesPrivateDnsZoneName'), '-link')]",
         "storageTablesPrivateDnsZoneName": "privatelink.table.core.windows.net",
         "storageTablesPlLinkName": "[concat(variables('storageTablesPrivateDnsZoneName'), '-link')]",
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
         "vmNsgName": "nsg-dev",
-        "vmSku": "Standard_D4_v4",
         "vnetStandardDdosProtection": false
     },
     "resources": [
@@ -503,15 +472,6 @@
                         "properties": {
                             "addressPrefix": "[parameters('transitFwSubnetPayCidr')]"
                         }
-                    },
-                    {
-                        "name": "[variables('devServerSubnetName')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('transitDevSubnetCidr')]",
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('vmNsgName'))]"
-                            }
-                        }
                     }
                 ],
                 "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
@@ -675,12 +635,78 @@
             }
         },
         {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[variables('storageDfsPrivateDnsZoneName')]",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[concat(variables('storageDfsPrivateDnsZoneName'), '/', variables('storageDfsPlLinkName'))]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('storageDfsPrivateDnsZoneName'))]",
+                "[concat('Microsoft.Network/privateDnsZones/',variables('storageTablesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageTablesPlLinkName'))]"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[variables('storageQueuesPrivateDnsZoneName')]",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[concat(variables('storageQueuesPrivateDnsZoneName'), '/', variables('storageQueuesPlLinkName'))]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('storageQueuesPrivateDnsZoneName'))]",
+                "[concat('Microsoft.Network/privateDnsZones/',variables('storageDfsPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageDfsPlLinkName'))]"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[variables('keyVaultPrivateDnsZoneName')]",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[concat(variables('keyVaultPrivateDnsZoneName'), '/', variables('keyVaultPlLinkName'))]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('keyVaultPrivateDnsZoneName'))]",
+                "[concat('Microsoft.Network/privateDnsZones/',variables('storageQueuesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageQueuesPlLinkName'))]"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
+                }
+            }
+        },
+        {
             "name": "[variables('deployDnsServerSettings')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'),'/providers/microsoft.insights/diagnosticSettings/diag')]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('storageTablesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageTablesPlLinkName'))]"
+                "[concat('Microsoft.Network/privateDnsZones/',variables('keyVaultPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('keyVaultPlLinkName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -723,12 +749,6 @@
                                         "properties": {
                                             "addressPrefix": "[parameters('transitFwSubnetPayCidr')]"
                                         }
-                                    },
-                                    {
-                                        "name": "[variables('devServerSubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('transitDevSubnetCidr')]"
-                                        }
                                     }
                                 ],
                                 "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
@@ -744,39 +764,6 @@
                     ]
                 }
             }
-        },
-        {
-            "name": "[variables('devServerRouteTableName')]",
-            "type": "Microsoft.Network/routeTables",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deployDnsServerSettings'))]"
-            ],
-            "properties": {
-                "routes": [
-                    {
-                        "name": "udr-default",
-                        "properties": {
-                            "addressPrefix": "0.0.0.0/0",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
-                        }
-                    },
-                    {
-                        "name": "udr-spoke",
-                        "properties": {
-                            "addressPrefix": "[parameters('workloadVnetCidr')]",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
-                        }
-                    }
-                ],
-                "disableBgpRoutePropagation": "True"
-            },
-            "resources": [
-            ]
         },
         {
             "name": "[variables('bastionName')]",
@@ -829,140 +816,9 @@
             },
             "resources": [
             ]
-        },
-        {
-            "name": "[variables('deployDevServerRt')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/bastionHosts',variables('bastionName'))]",
-                "[resourceId('Microsoft.Network/routeTables',variables('devServerRouteTableName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployBastionNsgFlowLog'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {},
-                    "variables": {},
-                    "resources": [
-                        {
-                            "type": "Microsoft.Network/virtualNetworks",
-                            "name": "[variables('transitVnetName')]",
-                            "apiVersion": "[variables('networkApiVersion')]",
-                            "location": "[variables('location')]",
-                            "tags": "[parameters('tags')]",
-                            "dependsOn": [
-                            ],
-                            "properties": {
-                                "addressSpace": {
-                                    "addressPrefixes": [
-                                        "[parameters('transitVnetCidr')]"
-                                    ]
-                                },
-                                "subnets": [
-                                    {
-                                        "name": "[variables('gatewaySubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('transitGatewaySubnetCidr')]"
-                                        }
-                                    },
-                                    {
-                                        "name": "[variables('bastionSubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('transitBastionSubnetCidr')]",
-                                            "networkSecurityGroup": {
-                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "name": "[variables('fwPayloadSubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('transitFwSubnetPayCidr')]"
-                                        }
-                                    },
-                                    {
-                                        "name": "[variables('devServerSubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('transitDevSubnetCidr')]",
-                                            "routeTable": {
-                                                "id": "[resourceId('Microsoft.Network/routeTables', variables('devServerRouteTableName'))]"
-                                            }
-                                        }
-                                    }
-                                ],
-                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
-                                "dhcpOptions": {
-                                    "dnsServers": [
-                                        "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
-                                    ]
-                                }
-                            },
-                            "resources": [
-                            ]
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "name": "[variables('devVmDeploymentName')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployDevServerRt'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "adminPassword": {
-                        "value": "[parameters('vmAdminPassword')]"
-                    },
-                    "adminUserName": {
-                        "value": "[parameters('vmAdminUsername')]"
-                    },
-                    "serverIpAddress": {
-                        "value": "[parameters('devServerIp')]"
-                    },
-                    "myWorkspaceId": {
-                        "value": "[reference(variables('deployLaw')).outputs.logAnalyticsWorkspaceId.value]"
-                    },
-                    "myWorkspaceKey": {
-                        "value": "[reference(variables('deployLaw')).outputs.logAnalyticsWorkspaceKey.value]"
-                    },
-                    "subnetName": {
-                        "value": "[variables('devServerSubnetName')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    },
-                    "virtualMachineSize": {
-                        "value": "[variables('vmSku')]"
-                    },
-                    "vmName": {
-                        "value": "[variables('devVmName')]"
-                    },
-                    "vnetName": {
-                        "value": "[variables('transitVnetName')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('devVmDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
         }
     ],
     "outputs": {
-        "devServerRouteTableName": {
-            "type": "string",
-            "value": "[variables('devServerRouteTableName')]"
-        },
         "firewallIp": {
             "type": "string",
             "value": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
