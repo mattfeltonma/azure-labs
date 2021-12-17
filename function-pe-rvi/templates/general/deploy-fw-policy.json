@@ -183,7 +183,7 @@
                                         ],
                                         "terminateTLS": false,
                                         "sourceAddresses": [
-                                            "[parameters('transitVnetCidr')]"
+                                            "[parameters('cloudAddressSpace')]"
                                         ],
                                         "sourceIpGroups": [],
                                         "targetFqdns": [
