@@ -560,7 +560,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
                 "[resourceId('Microsoft.insights/components', variables('appInsightsName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'), 'default', variables('functionAppName'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('transitToWorkloadPeeringName'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployStorageBlobPe'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployStorageFilePe'))]",
