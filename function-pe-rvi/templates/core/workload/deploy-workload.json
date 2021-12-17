@@ -5,7 +5,7 @@
         "dnsServerIp": {
             "type": "string",
             "metadata": {
-                "description": "The IP address to set for the Virtual Network"
+                "description": "The IP address to set for the Virtual Network DNS server"
             }
         },
         "firewallIp": {

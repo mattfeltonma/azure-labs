@@ -2,6 +2,12 @@
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+            }
+        },
         "location": {
             "type": "string",
             "metadata": {
@@ -237,17 +243,17 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "centralKeyVaultName": {
-                        "value": "[reference(variables('transitRgDeploymentName')).outputs.centralKeyVaultName.value]"
-                    },
-                    "centralKeyVaultResourceId": {
-                        "value": "[reference(variables('transitRgDeploymentName')).outputs.centralKeyVaultResourceId.value]"
-                    },
                     "devServerIp": {
                         "value": "[variables('sharedSvcDevServerIp')]"
                     },
+                    "dnsServerIp": {
+                        "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
+                    },
                     "firewallIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
+                    },
+                    "keyVaultAdmin": {
+                        "value": "[parameters('keyVaultAdmin')]"
                     },
                     "lawResourceId": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.lawResourceId.value]"

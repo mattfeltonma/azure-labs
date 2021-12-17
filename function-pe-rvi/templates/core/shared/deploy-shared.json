@@ -2,28 +2,28 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "centralKeyVaultName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the Key Vault in the Shared Services subscription"
-            }
-        },
-        "centralKeyVaultResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource ID of the Key Vault in the SHared Services subscription"
-            }
-        },
         "devServerIp": {
             "type": "string",
             "metadata": {
                 "description": "The IP assigned to the virtual machine running used for deploying code"
             }
         },
+        "dnsServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address to set for the Virtual Network DNS server"
+            }
+        },
         "firewallIp": {
             "type": "string",
             "metadata": {
                 "description": "The IP address of the Azure Firewall where traffic will be routed to"
+            }
+        },
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
             }
         },
         "lawResourceId": {
@@ -120,12 +120,14 @@
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
+        "deployKeyVaultCentral": "deploy-central-keyvault",
         "deployKeyVaultPe": "deploy-keyvaultprivateendpoint",
         "devNsgFlowLogDeploymentName": "deploy-devflowlog",
         "devNsgName": "[concat('nsg-dev', parameters('uniqueData'))]",
         "devVmDeploymentName": "deploy-dev-vm",
         "devVmDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-windows-dev-vm.json')]",
         "devVmName": "vmwdev01",
+        "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "location": "[resourceGroup().location]",
         "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
@@ -150,6 +152,40 @@
     },
     "resources": [
         {
+            "name": "[variables('deployKeyVaultCentral')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "defaultAction": {
+                        "value": "Allow"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "keyVaultNamePrefix": {
+                        "value": "kvcnt"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "name": "[variables('usernameSecretDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
@@ -158,7 +194,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[parameters('centralKeyVaultName')]"
+                        "value": "[reference(variables('deployKeyVaultCentral')).outputs.keyVaultName.value]"
                     },
                     "location": {
                         "value": "[variables('location')]"
@@ -188,7 +224,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[parameters('centralKeyVaultName')]"
+                        "value": "[reference(variables('deployKeyVaultCentral')).outputs.keyVaultName.value]"
                     },
                     "location": {
                         "value": "[variables('location')]"
@@ -371,7 +407,7 @@
                 "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
                 "dhcpOptions": {
                     "dnsServers": [
-                        "[parameters('firewallIp')]"
+                        "[parameters('dnsServerIp')]"
                     ]
                 }
             },
@@ -464,10 +500,10 @@
                         "value": "[variables('sharedSvcVnetName')]"
                     },
                     "resourceName": {
-                        "value": "[parameters('centralKeyVaultName')]"
+                        "value": "[reference(variables('deployKeyVaultCentral')).outputs.keyVaultName.value]"
                     },
                     "resourceIdentifier": {
-                        "value": "[parameters('centralKeyVaultResourceId')]"
+                        "value": "[reference(variables('deployKeyVaultCentral')).outputs.KeyVaultResourceId.value]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
