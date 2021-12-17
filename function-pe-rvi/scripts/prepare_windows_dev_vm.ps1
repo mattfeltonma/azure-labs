@@ -36,7 +36,7 @@ catch {
 try {
 
     # Download Visual Studio Code
-    Write-Host "Installing Visual Studio Code"
+    Write-Host "Installing Visual Studio Code..."
     $uri = "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64"
     $destination = "C:\MachinePrep\files\visualstudiocode.exe"
     Invoke-WebRequest -Uri $uri -OutFile $destination

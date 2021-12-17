@@ -14,6 +14,12 @@
                 "description": "The IP address of the Azure Firewall to route traffic to"
             }
         },
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+            }
+        },
         "lawResourceId": {
             "type": "string",
             "metadata": {
@@ -105,6 +111,7 @@
     },
     "variables": {
         "appInsightsAPiVersion": "2015-05-01",
+        "managedIdentityApiVersion": "2018-11-30",
         "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
@@ -114,9 +121,14 @@
         "appServiceKind": "Linux",
         "appServicePlanName": "[concat('sp-app', parameters('uniqueData'))]",
         "codeBranch": "master",
+        "deployKeyVaultApp": "deploy-kv-app",
+        "deployKeyVaultPe": "deploy-kv-pe",
+        "deployKeyVaultAppPerm": "deploy-app-kv-perm",
+        "deployKeyVaultSecret": "deploy-kv-secret-word",
         "deployStorageBlobPe": "deploy-st-blob-pe",
         "deployStorageFilePe": "deploy-st-file-pe",
         "deployStorageTablePe": "deploy-st-table-pe",
+        "diagnosticApiVersion": "2017-05-01-preview",
         "functionAppName": "[concat('func', parameters('uniqueData'))]",
         "functionAppPlanTier": "ElasticPremium",
         "functionAppPlanSkuName": "EP1",
@@ -125,6 +137,14 @@
         "functionPrivateDnsZoneName": "privatelink.azurewebsites.net",
         "functionPeDeploymentName": "deploy-function-pe",
         "functionRviRouteTable": "rt-rvi",
+        "functionUmi": "[concat('umi', parameters('uniqueData'))]",
+        "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
+        "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
+        "keyVaultNamePrefix": "kvapp",
+        "keyVaultPermDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault-permissions.json')]",
+        "keyVaultSecretDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-secret.json')]",
+        "keyVaultSecretName": "lotr",
+        "keyVaultSecretValue": "Gollum",
         "linuxFxVersion": "PYTHON|3.8",
         "location": "[resourceGroup().location]",
         "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
@@ -146,6 +166,109 @@
     },
     "resources": [
         {
+            "name": "[variables('functionUmi')]",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "[variables('managedIdentityApiVersion')]",
+            "tags": "[parameters('tags')]",
+            "location": "[variables('location')]"
+        },
+        {
+            "name": "[variables('deployKeyVaultApp')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('functionUmi'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "defaultAction": {
+                        "value": "Deny"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "keyVaultNamePrefix": {
+                        "value": "[variables('keyVaultNamePrefix')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployKeyVaultSecret')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultApp'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('deployKeyVaultApp')).outputs.keyVaultName.value]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('keyVaultSecretName')]"
+                    },
+                    "secretValue": {
+                        "value": "[variables('keyVaultSecretValue')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultSecretDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deployKeyVaultAppPerm')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deployKeyVaultSecret'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('deployKeyVaultApp')).outputs.keyVaultName.value]"
+                    },
+                    "objectId": {
+                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('functionUmi'))).principalId]"
+                    },
+                    "secretPermissions": {
+                        "value": [
+                            "get",
+                            "list"
+                        ]
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultPermDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "[variables('storageApiVersion')]",
             "name": "[variables('storageAccountName')]",
@@ -153,6 +276,7 @@
             "tags": "[parameters('tags')]",
             "kind": "StorageV2",
             "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultAppPerm'))]"
             ],
             "sku": {
                 "name": "Standard_LRS"
@@ -553,6 +677,56 @@
             }
         },
         {
+            "name": "[variables('deployKeyVaultPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployStorageTablePe'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('keyVaultDnsZoneName')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('transitResourceGroupName')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[parameters('transitVnetSubscriptionId')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('workloadVnetSvcSubnetName')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "vault"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('workloadVnetName')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[reference(variables('deployKeyVaultApp')).outputs.KeyVaultResourceId.value]"
+                    },
+                    "resourceName": {
+                        "value": "[reference(variables('deployKeyVaultApp')).outputs.keyVaultName.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('peDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "type": "Microsoft.Web/sites",
             "apiVersion": "[variables('webApiVersion')]",
             "name": "[variables('functionAppName')]",
@@ -564,20 +738,27 @@
                 "[concat('Microsoft.Resources/deployments/', variables('transitToWorkloadPeeringName'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployStorageBlobPe'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployStorageFilePe'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployStorageTablePe'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployStorageTablePe'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultPe'))]"
             ],
             "kind": "[variables('functionAppKind')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
                 "clientAffinityEnabled": false,
+                "identity": {
+                    "type": "UserAssigned",
+                    "userAssignedIdentites": {
+                        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('functionUmi'))]": {}
+                    }
+                },
                 "siteConfig": {
                     "linuxFxVersion": "[variables('linuxFxVersion')]",
                     "vnetRouteAllEnabled": true,
                     "appSettings": [
                         {
                             "name": "FUNCTIONS_EXTENSION_VERSION",
-                            "value": "~3"
+                            "value": "~4"
                         },
                         {
                             "name": "WEBSITE_CONTENTOVERVNET",
@@ -606,6 +787,10 @@
                         {
                             "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
                             "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').ConnectionString]"
+                        },
+                        {
+                            "name": "WORD_OF_THE_DAY",
+                            "value": "[concat('@Microsoft.KeyVault(VaultName=', reference(variables('deployKeyVaultApp')).outputs.keyVaultName.value, ';SecretName=', variables('keyVaultSecretName'))]"
                         }
                     ]
                 }
@@ -641,6 +826,29 @@
                     }
                 }
             ]
+        },
+        {
+            "type": "Microsoft.Web/sites/providers/diagnosticSettings",
+            "apiVersion": "[variables('diagnosticApiVersion')]",
+            "name": "[concat(variables('functionAppName'),'/microsoft.insights/diag')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+            ],
+            "properties": {
+                "workspaceId": "[parameters('lawResourceId')]",
+                "logs": [
+                    {
+                        "category": "FunctionAppLogs",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            }
         },
         {
             "name": "[variables('functionPeDeploymentName')]",

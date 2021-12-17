@@ -322,6 +322,9 @@
                     "firewallIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
                     },
+                    "keyVaultAdmin": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
                     "lawResourceId": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.lawResourceId.value]"
                     },
