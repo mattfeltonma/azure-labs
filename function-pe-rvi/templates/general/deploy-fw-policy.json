@@ -110,6 +110,26 @@
                                         "destinationFqdns": [
                                             "kms.core.windows.net"
                                         ]
+                                    },
+                                    {
+                                        "name": "AllowNtp",
+                                        "ipProtocols": [
+                                            "TCP"
+                                        ],
+                                        "destinationPorts": [
+                                            "123"
+                                        ],
+                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "destinationIpGroups": [],
+                                        "destinationAddresses": [],
+                                        "ruleConditionType": "NetworkRuleCondition",
+                                        "ruleType": "NetworkRule",
+                                        "destinationFqdns": [
+                                            "time.windows.com"
+                                        ]
                                     }
                                 ],
                                 "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
