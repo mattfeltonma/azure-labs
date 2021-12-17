@@ -146,6 +146,50 @@
     },
     "resources": [
         {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "[variables('storageApiVersion')]",
+            "name": "[variables('storageAccountName')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "kind": "StorageV2",
+            "dependsOn": [
+            ],
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Deny"
+                },
+                "supportsHttpsTrafficOnly": true
+            },
+            "resources": [
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "[variables('storageApiVersion')]",
+            "name": "[concat(variables('storageAccountName'), '/default/', variables('functionAppName'))]",
+            "dependsOn": [
+            ]
+        },
+        {
+            "apiVersion": "[variables('appInsightsApiVersion')]",
+            "name": "[variables('appInsightsName')]",
+            "type": "microsoft.insights/components",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "ApplicationId": "[variables('appInsightsName')]",
+                "Request_Source": "IbizaWebAppExtensionCreate"
+            }
+        },
+        {
             "name": "[variables('functionRviRouteTable')]",
             "type": "Microsoft.Network/routeTables",
             "apiVersion": "[variables('networkApiVersion')]",
@@ -337,20 +381,6 @@
             }
         },
         {
-            "apiVersion": "[variables('appInsightsApiVersion')]",
-            "name": "[variables('appInsightsName')]",
-            "type": "microsoft.insights/components",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('transitToWorkloadPeeringName'))]"
-            ],
-            "properties": {
-                "ApplicationId": "[variables('appInsightsName')]",
-                "Request_Source": "IbizaWebAppExtensionCreate"
-            }
-        },
-        {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "[variables('webApiVersion')]",
             "name": "[variables('appServicePlanName')]",
@@ -369,45 +399,12 @@
             }
         },
         {
-            "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "[variables('storageApiVersion')]",
-            "name": "[variables('storageAccountName')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "kind": "StorageV2",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
-            ],
-            "sku": {
-                "name": "Standard_LRS"
-            },
-            "properties": {
-                "networkAcls": {
-                    "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
-                    "ipRules": [],
-                    "defaultAction": "Deny"
-                },
-                "supportsHttpsTrafficOnly": true
-            },
-            "resources": [
-            ]
-        },
-                {
-            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
-            "apiVersion": "[variables('storageApiVersion')]",
-            "name": "[concat(variables('storageAccountName'), '/default/', variables('functionAppName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
-            ]
-        },
-        {
             "name": "[variables('deployStorageFilePe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts/fileServices/shares',variables('storageAccountName'), 'default', variables('functionAppName'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('transitToWorkloadPeeringName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -561,12 +558,12 @@
             "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
                 "[resourceId('Microsoft.insights/components', variables('appInsightsName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('transitToWorkloadPeeringName'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployStorageBlobPe'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployStorageFilePe'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployStorageTablePe'))]",
-                "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'), '/fileServices/shares/default/', variables('functionAppName'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployStorageTablePe'))]"
             ],
             "kind": "[variables('functionAppKind')]",
             "tags": "[parameters('tags')]",
