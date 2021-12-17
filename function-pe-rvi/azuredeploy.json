@@ -271,7 +271,7 @@
                         "value": "[variables('transitRgName')]"
                     },
                     "transitSubscriptionId": {
-                        "value": "[parameters('transitServicesSubId')]"
+                        "value": "[parameters('transitSubscriptionId')]"
                     },
                     "transitVnetName": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.transitVnetName.value]"
