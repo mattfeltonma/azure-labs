@@ -391,14 +391,14 @@
                 "supportsHttpsTrafficOnly": true
             },
             "resources": [
+            ]
+        },
                 {
-                    "type": "fileServices/shares",
-                    "apiVersion": "[variables('storageApiVersion')]",
-                    "name": "[concat('default/', variables('functionAppName'))]",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
-                    ]
-                }
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "[variables('storageApiVersion')]",
+            "name": "[concat(variables('storageAccountName'), '/default/', variables('functionAppName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
             ]
         },
         {
