@@ -44,7 +44,7 @@ Additional features included:
 
 2. Deploy the lab using the command: 
 
-**az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/function-pe-rvi/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=ADMIN_USER_NAME keyVaultAdmin=ADMIN_OBJECT_ID**
+**az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/function-pe-rvi/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID**
 
 3.  You will be prompted to provide an administrator user name and password for the local administrator accounts on the virtual machines.
 
