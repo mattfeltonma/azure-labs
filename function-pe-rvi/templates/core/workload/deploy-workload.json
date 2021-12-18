@@ -50,12 +50,6 @@
                 "description": "The id of the subscription that contains the Transit virtual network"
             }
         },
-        "transitVnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address block assigned to the Transit virtual network"
-            }
-        },
         "transitVnetName": {
             "type": "string",
             "metadata": {
@@ -322,14 +316,6 @@
             "tags": "[parameters('tags')]",
             "properties": {
                 "routes": [
-                    {
-                        "name": "udr-transit",
-                        "properties": {
-                            "addressPrefix": "[parameters('transitVnetCidr')]",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[parameters('firewallIp')]"
-                        }
-                    },
                     {
                         "name": "udr-default",
                         "properties": {
