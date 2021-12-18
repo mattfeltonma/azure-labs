@@ -729,15 +729,15 @@
             ],
             "kind": "[variables('functionAppKind')]",
             "tags": "[parameters('tags')]",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentites": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('functionUmi'))]": {}
+                }
+            },
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
                 "clientAffinityEnabled": false,
-                "identity": {
-                    "type": "UserAssigned",
-                    "userAssignedIdentites": {
-                        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('functionUmi'))]": {}
-                    }
-                },
                 "siteConfig": {
                     "linuxFxVersion": "[variables('linuxFxVersion')]",
                     "vnetRouteAllEnabled": true,
