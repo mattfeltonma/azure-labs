@@ -773,6 +773,14 @@
                         {
                             "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
                             "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').ConnectionString]"
+                        },
+                        {
+                            "name": "KEY_VAULT_NAME",
+                            "value": "[reference(variables('deployKeyVaultApp')).outputs.keyVaultName.value]"
+                        },
+                        {
+                            "name": "KEY_VAULT_SECRET_NAME",
+                            "value": "[variables('keyVaultSecretName')]"
                         }
                     ]
                 }
