@@ -731,7 +731,7 @@
             "tags": "[parameters('tags')]",
             "identity": {
                 "type": "UserAssigned",
-                "userAssignedIdentites": {
+                "userAssignedIdentities": {
                     "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('functionUmi'))]": {}
                 }
             },
