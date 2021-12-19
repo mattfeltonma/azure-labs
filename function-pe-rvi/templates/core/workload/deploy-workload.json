@@ -771,6 +771,10 @@
                             "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').ConnectionString]"
                         },
                         {
+                            "name": "MSI_CLIENT_ID",
+                            "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('functionUmi'))).clientId]"
+                        },
+                        {
                             "name": "KEY_VAULT_NAME",
                             "value": "[reference(variables('deployKeyVaultApp')).outputs.keyVaultName.value]"
                         },
