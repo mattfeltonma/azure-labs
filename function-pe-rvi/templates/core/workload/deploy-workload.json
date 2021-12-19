@@ -748,7 +748,7 @@
                             "value": "[variables('functionAppRuntime')]"
                         },
                         {
-                            "name": "FUNCTIONS_EXTENSION_RUNTIME",
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
                             "value": "~3"
                         },
                         {
