@@ -48,6 +48,7 @@ Additional features included:
 
 3.  You will be prompted to provide a password for the local administrator of the virtual machine.
 
-
+## Post Installation
+Once the lab is deployed, you can RDP into the VM running in the hub using Azure Bastion. Once in the VM, open up an instance of Google Chrome and navigate to the function endpoint. The function endpoint is structured as follows: https://FUNCTION_NAME.azurewebsites.net/api/pythonsample.
 
 
