@@ -7,7 +7,7 @@ Organizations in regulated industries are often required to mediate and sometime
 
 When running an Azure Function in a multi-tenant environment using a Premium Plan, Microsoft provides two separate features to allow for influencing incoming and outgoing networking traffic. [Private Endpoints](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) provide the customer with the ability to create a network interface for the Azure Function within their Azure VNet (Virtual Network) to influence incoming traffic. [Regional VNet Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration) provides the customer with the ability to force outgoing traffic from the Azure Function to flow through the customer's VNet.
 
-This deployable lab provides a simple way to test and experiment with these features. It deploys an Azure Function configured with a Private Endpoint and Regional VNet integration. A [simple web application](https://github.com/mattfeltonma/azure-function-example) is deployed to the Azure Function which upon accessed will query a public API for the current time and display a secret word pulled from an instance of Azure Key Vault. The function is deployed into a [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli). [UDRs (User defined routes)](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined) assigned to the subnet delegated for Regional VNet integration are used to force outgoing traffic from the function through an Azure Firewall which is provisioned into the hub VNet.
+This deployable lab provides a simple way to test and experiment with these features. It deploys an Azure Function configured with a Private Endpoint and Regional VNet integration. [A small Python application](https://github.com/mattfeltonma/azure-function-example) is deployed to the Azure Function which upon accessed will query a public API for the current time and display a secret word pulled from an instance of Azure Key Vault that is secured behind a Private Endpoint. The function is deployed into a [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli). [UDRs (User defined routes)](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined) assigned to the subnet delegated for Regional VNet integration are used to force outgoing traffic from the function through an Azure Firewall which is provisioned into the hub VNet.
 
 A Windows Server 2019 VM (virtual machine) is deployed into a Shared Services VNet and is provisioned with Windows Remote Server Administration Tools, Google Chrome, Azure CLI, Azure PowerShell, and Visual Studio Code. UDRs assigned to the VM's subnet are used to force traffic destined to the Azure Function through the Azure Firewall instance.
 
@@ -16,8 +16,9 @@ Additional features included:
 * Azure Bastion provisioned in the hub to provide secure RDP (Remote Desktop Protocol) access to the VM
 * Azure Firewall configured to send diagnostic logs to an instance of Log Analytics Workspace to allow for inspection of the traffic flowing to and from the Azure Function
 * Azure Function integrated with an instance of App Insights
+* Azure Function storage account is secured behind a Private Endpoint
 * Azure Key Vault instance which stores the user configured VM administrator username and password
-* Azure Key Vault instance which stores a secret word that is displayed to the user when accessing the Azure Function
+* Azure Key Vault instance secured behind a Private Endpoint which stores a secret word that is displayed to the user when accessing the Azure Function
 
 ![lab image](images/lab_image.svg)
 
