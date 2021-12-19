@@ -748,6 +748,10 @@
                             "value": "[variables('functionAppRuntime')]"
                         },
                         {
+                            "name": "FUNCTIONS_EXTENSION_RUNTIME",
+                            "value": "~3"
+                        },
+                        {
                             "name": "WEBSITE_CONTENTOVERVNET",
                             "value": "1"
                         },
