@@ -43,8 +43,12 @@ Additional features included:
    * LOCATION - The location to create the resources
    * ADMIN_USER_NAME - The name to set for the VM administrator username
    * ADMIN_OBJECT_ID - The object ID of the Azure AD User that will have full permissions on the Key Vault instances
+   * SUBSCRIPTION - The name or id of the subscription you wish to deploy the resources to
 
-2. Deploy the lab using the command: 
+2. Set the CLI to the subscription you wish to deploy the resources to:
+
+**az account set --subscription SUBSCRIPTION_ID
+4. Deploy the lab using the command: 
 
 **az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/function-pe-rvi/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID**
 
