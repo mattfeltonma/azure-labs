@@ -1,40 +1,7 @@
 # Azure Function with Private Endpoint and Regional VNet Integration
 
-## Prerequisites
-1. You must hold at least the Contributor role within each Azure subscription you configure the template to deploy resources to.
-
-2. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance. This will be used for the keyVaultAdmin parameter of the template.
-
-**az ad user show --id someuser@sometenant.com --query objectId --output tsv**
-
-3. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in this link. Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 which will cause the deployment of the environment to fail.
-
-## Installation with Azure Portal
-
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fmaster%2Ffunction-pe-rvi%2Fazuredeploy.json)
-
-## Installation with Azure CLI
-1. Set the following variables:
-   * DEPLOYMENT_NAME - The name of the location
-   * DEPLOYMENT_LOCATION - The location to create the deployment
-   * LOCATION - The location to create the resources
-   * ADMIN_USER_NAME - The name to set for the VM administrator username
-   * ADMIN_OBJECT_ID - The object ID of the Azure AD User that will have full permissions on the Key Vault instances
-
-2. Deploy the lab using the command: 
-
-**az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/function-pe-rvi/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID**
-
-3.  You will be prompted to provide a password for the local administrator of the virtual machine.
-
-## Post Installation
-Once the lab is deployed, you can RDP into the VM running in the hub using Azure Bastion. Once in the VM, open up an instance of Google Chrome and navigate to the function endpoint. The function endpoint is structured as follows: https://FUNCTION_NAME.azurewebsites.net/api/pythonsample.
-
-
-# Azure Function with Private Endpoint and Regional VNet Integration
-
 ## Overview
-Organizations in regulated industries are often required to mediate and sometimes inspect traffic to and from applications or code that providing access to or are capable of accessing sensitive data. These applications or code may also need to access resources which exists on-premises or are being exposed only within a customer's private network within a public cloud provider using a feature such as Microsoft Azure's [Private Endpoints](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview). While influencing incoming and outgoing network for applications or code running in an IaaS (Infrastructure-as-a-Service) offering is straightforward, the patterns differ when using PaaS (Platform-as-a-Service).
+Organizations in regulated industries are often required to mediate and sometimes inspect traffic to and from applications or code that provide access to or are capable of accessing sensitive data. These applications or code may also need to access resources which exists on-premises or are being exposed only within a customer's private network within a public cloud provider using a feature such as Microsoft Azure's [Private Endpoints](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview). While influencing incoming and outgoing network for applications or code running in an IaaS (Infrastructure-as-a-Service) offering is straightforward, the patterns differ when using PaaS (Platform-as-a-Service).
 
 [Azure Functions](https://docs.microsoft.com/en-us/azure/azure-functions/) is a serverless PaaS offering in Microsoft Azure which can be used to run code based upon a trigger or event. Common use cases include Web APIs, performing simple data processing, or even automatically remediating a resource which has drifted out of compliance. Azure Functions can run in both a dedicated enviroment with an [ASE (App Services Environment)](https://docs.microsoft.com/en-us/azure/app-service/environment/) or in a multi-tenant environment with a [Consumption or Premium plan](https://docs.microsoft.com/en-us/azure/azure-functions/functions-scale#overview-of-plans).
 
