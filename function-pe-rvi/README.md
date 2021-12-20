@@ -47,11 +47,11 @@ Additional features included:
 
 2. Set the CLI to the subscription you wish to deploy the resources to:
 
-**az account set --subscription SUBSCRIPTION_ID
+* **az account set --subscription SUBSCRIPTION_ID
 
 4. Deploy the lab using the command: 
 
-**az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/function-pe-rvi/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID**
+* **az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/function-pe-rvi/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID**
 
 3.  You will be prompted to provide a password for the local administrator of the virtual machine.
 
