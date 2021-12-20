@@ -53,7 +53,7 @@ Additional features included:
 
    * **az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-       labs/master/function-pe-rvi/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID**
 
-3.  You will be prompted to provide a password for the local administrator of the virtual machine.
+3.  You will be prompted to provide a password for the local administrator of the virtual machine. The username and password you set will be available to you as secrets in the "central" Key Vault provisioned as part of this lab.
 
 ## Post Installation
 Once the lab is deployed, you can RDP into the VM running in the hub using Azure Bastion. Once in the VM, open up an instance of Google Chrome and navigate to the function endpoint. The function endpoint is structured as follows: https://FUNCTION_NAME.azurewebsites.net/api/pythonsample.
