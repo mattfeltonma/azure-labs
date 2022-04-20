@@ -33,12 +33,6 @@
             },
             "defaultValue": 100
         },
-        "diskEncryptionSet": {
-            "type": "string",
-            "metadata": {
-                "description": "The disk encryption set to associate the managed disks to"
-            }
-        },
         "linkedTemplateLocation": {
             "type": "string",
             "metadata": {
@@ -195,20 +189,14 @@
                             "lun": 0,
                             "createOption": "Empty",
                             "managedDisk": {
-                                "storageAccountType": "[variables('dataDiskType')]",
-                                "diskEncryptionSet": {
-                                    "id": "[parameters('diskEncryptionSet')]"
-                                }
+                                "storageAccountType": "[variables('dataDiskType')]"
                             }
                         }
                     ],
                     "osDisk": {
                         "createOption": "fromImage",
                         "managedDisk": {
-                            "storageAccountType": "[variables('osDiskType')]",
-                            "diskEncryptionSet": {
-                                "id": "[parameters('diskEncryptionSet')]"
-                            }
+                            "storageAccountType": "[variables('osDiskType')]"
                         }
                     },
                     "imageReference": {
@@ -272,7 +260,7 @@
                     "properties": {
                         "publisher": "Microsoft.EnterpriseCloud.Monitoring",
                         "type": "OmsAgentForLinux",
-                        "typeHandlerVersion": "1.4",
+                        "typeHandlerVersion": "1.13",
                         "autoUpgradeMinorVersion": true,
                         "settings": {
                             "workspaceId": "[parameters('myWorkspaceId')]",
