@@ -22,6 +22,13 @@
                 "westus2"
             ]
         },
+        "onPremisesAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block used on-premises"
+            },
+            "defaultValue": "192.168.0.0/16"
+        },
         "networkWatcherResourceGroup": {
             "type": "string",
             "metadata": {
@@ -206,6 +213,9 @@
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
                     },
+                    "onPremisesAdressSpace": {
+                        "value": "[parameters('onPremisesAddressSpace')]"
+                    },           
                     "transitBastionSubnetCidr": {
                         "value": "[variables('transitBastionSubnetCidr')]"
                     },
