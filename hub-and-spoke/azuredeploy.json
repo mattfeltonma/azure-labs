@@ -213,7 +213,7 @@
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
                     },
-                    "onPremisesAdressSpace": {
+                    "onPremisesAddressSpace": {
                         "value": "[parameters('onPremisesAddressSpace')]"
                     },           
                     "transitBastionSubnetCidr": {
