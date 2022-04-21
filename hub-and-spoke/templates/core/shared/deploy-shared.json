@@ -126,7 +126,7 @@
         "devNsgName": "[concat('nsg-dev', parameters('uniqueData'))]",
         "devVmDeploymentName": "deploy-dev-vm",
         "devVmDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-dev-vm.json')]",
-        "devVmName": "vmwdev01",
+        "devVmName": "vmldev01",
         "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "location": "[resourceGroup().location]",
