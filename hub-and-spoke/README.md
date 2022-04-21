@@ -46,7 +46,7 @@ Additional features included:
 
 2. Set the CLI to the subscription you wish to deploy the resources to:
 
-   * **az account set --subscription SUBSCRIPTION_ID
+   * **az account set --subscription SUBSCRIPTION_ID**
 
 4. Deploy the lab using the command (tags parameter is optional): 
 
