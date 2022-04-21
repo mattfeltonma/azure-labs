@@ -1,7 +1,7 @@
 # Azure Hub and Spoke Base Lab
 
 ## Overview
-This deployable lab provides a simple way to test and experiment with Azure workloads in an enterprise-like hub and spoke environment. Three resource groups are deployed with one for transit resources, one for shared services, and one for a workload.
+This deployable lab provides a simple way to experiment with Azure workloads in an enterprise-like hub and spoke environment. Three resource groups are deployed with one for transit resources, one for shared services, and one for a workload.
 
 A [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli). [UDRs (User defined routes)](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined) are used to route all outgoing traffic and traffic between spokes through the Azure Firewall in the hub Virtual Network. The Azure Firewall is also configured as the DNS provider for the attached Virtual Network. Private DNS Zones for common Azure services are deployed and linked to the hub virtual network to support PrivateLink integrations.
 
@@ -50,7 +50,7 @@ Additional features included:
 
 4. Deploy the lab using the command (tags parameter is optional): 
 
-   * **az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/hub-and-spoke/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID tags='{"mytag":"value}'**
+   * **az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/hub-and-spoke/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID tags='{"mytag":"value"}'**
 
 3.  You will be prompted to provide a password for the local administrator of the virtual machine. The username and password you set will be available to you as secrets in the "central" Key Vault provisioned as part of this lab.
 
