@@ -47,11 +47,6 @@
                 "dnsSettings": {
                     "enableProxy": true
                 },
-                "snat": {
-                    "privateRanges": [
-                        "255.255.255.255/32"
-                    ]
-                },
                 "sku": {
                     "tier": "Standard"
                 },
