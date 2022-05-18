@@ -424,7 +424,7 @@
                         "allowVirtualNetworkAccess": "true",
                         "allowForwardedTraffic": "true",
                         "allowGatewayTransit": "false",
-                        "useRemoteGateways": "false",
+                        "useRemoteGateways": "true",
                         "remoteVirtualNetwork": {
                             "id": "[parameters('transitVnetResourceId')]"
                         }
@@ -457,7 +457,7 @@
                             "properties": {
                                 "allowVirtualNetworkAccess": "true",
                                 "allowForwardedTraffic": "true",
-                                "allowGatewayTransit": "false",
+                                "allowGatewayTransit": "true",
                                 "useRemoteGateways": "false",
                                 "remoteVirtualNetwork": {
                                     "id": "[resourceId(variables('sharedSvcSubId'), variables('sharedSvcRgName'), 'Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
