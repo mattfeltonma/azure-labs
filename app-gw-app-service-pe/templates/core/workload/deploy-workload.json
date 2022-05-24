@@ -813,7 +813,7 @@
                         "enabled": true
                     },
                     {
-                        "category": "AuditPolicyEvaluationDetails",
+                        "category": "AzurePolicyEvaluationDetails",
                         "enabled": true
                     }
                 ],
