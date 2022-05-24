@@ -26,6 +26,12 @@
                 "description": "The IP address of the Azure Firewall in the transit Virtual Network"
             }
         },
+        "keyVaultAdminObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object id of the user account that will control the workload Key Vault"
+            }
+        },
         "laWorkspaceResourceId": {
             "type": "string",
             "metadata": {
@@ -775,6 +781,9 @@
                 "parameters": {
                     "defaultAction": {
                         "value": "Allow"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
                     },
                     "keyVaultNamePrefix": {
                         "value": "[variables('keyVaultPrefixName')]"
