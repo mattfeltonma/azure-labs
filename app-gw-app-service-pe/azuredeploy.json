@@ -8,6 +8,12 @@
                 "description": "Specify a custom domain name to be used for private access to the application via the Application Gateway. This will be created as an Azure Private DNS Zone"
             }
         },
+        "keyVaultAdminObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object id of the user that will have full permissions on the central Key Vault in the Shared Services subscription"
+            }
+        },
         "location": {
             "type": "string",
             "metadata": {
@@ -262,6 +268,9 @@
                     },
                     "firewallIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
                     },
                     "lawResourceId": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.lawResourceId.value]"

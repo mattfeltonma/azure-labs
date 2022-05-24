@@ -14,6 +14,12 @@
                 "description": "The IP address of the Azure Firewall where traffic will be routed to"
             }
         },
+        "keyVaultAdminObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object id of the user account that will control the centralized Key Vault"
+            }
+        },
         "lawResourceId": {
             "type": "string",
             "metadata": {
@@ -152,6 +158,9 @@
                 "parameters": {
                     "defaultAction": {
                         "value": "Deny"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
                     },
                     "keyVaultNamePrefix": {
                         "value": "[variables('keyVaultNamePrefix')]"
