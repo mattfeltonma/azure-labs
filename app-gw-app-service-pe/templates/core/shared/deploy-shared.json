@@ -182,43 +182,10 @@
             }
         },
         {
-            "name": "[concat(variables('keyVaultNamePrefix'), parameters('uniqueData'),'/microsoft.insights/diag')]",
-            "type": "Microsoft.KeyVault/vaults/providers/diagnosticSettings",
-            "apiVersion": "[variables('diagnosticApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
-            ],
-            "properties": {
-                "name": "diag",
-                "workspaceId": "[parameters('lawResourceId')]",
-                "logs": [
-                    {
-                        "category": "AuditEvent",
-                        "enabled": true
-                    },
-                    {
-                        "category": "AzurePolicyEvaluationDetails",
-                        "enabled": true
-                    }
-                ],
-                "metrics": [
-                    {
-                        "category": "AllMetrics",
-                        "enabled": true
-                    }
-                ]
-            },
-            "resources": [
-            ]
-        },
-        {
             "name": "[variables('usernameSecretDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.KeyVault/vaults/',concat(variables('keyVaultNamePrefix'), parameters('uniqueData')), '/providers/microsoft.insights/diagnosticSettings/diag')]",
                 "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
             ],
             "properties": {

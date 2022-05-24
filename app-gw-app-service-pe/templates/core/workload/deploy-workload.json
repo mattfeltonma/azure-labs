@@ -796,43 +796,11 @@
             }
         },
         {
-            "name": "[concat(variables('keyVaultPrefixName'), parameters('uniqueData'),'/microsoft.insights/diag')]",
-            "type": "Microsoft.KeyVault/vaults/providers/diagnosticSettings",
-            "apiVersion": "[variables('diagnosticApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
-            ],
-            "properties": {
-                "name": "diag",
-                "workspaceId": "[parameters('laWorkspaceResourceId')]",
-                "logs": [
-                    {
-                        "category": "AuditEvent",
-                        "enabled": true
-                    },
-                    {
-                        "category": "AzurePolicyEvaluationDetails",
-                        "enabled": true
-                    }
-                ],
-                "metrics": [
-                    {
-                        "category": "AllMetrics",
-                        "enabled": true
-                    }
-                ]
-            },
-            "resources": [
-            ]
-        },
-        {
             "name": "[variables('deployDsUmiKvPerm')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.KeyVault/vaults/',concat(variables('keyVaultPrefixName'), parameters('uniqueData')),'/providers/microsoft.insights/diagnosticSettings/diag')]",
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]",
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('dsUmi'))]"
             ],
             "properties": {
@@ -862,7 +830,7 @@
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployDsUmiKvPerm'))]",
-                "[concat('Microsoft.KeyVault/vaults/',concat(variables('keyVaultPrefixName'),parameters('uniqueData')),'/providers/microsoft.insights/diagnosticSettings/diag')]",
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]",
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]"
             ],
             "properties": {
