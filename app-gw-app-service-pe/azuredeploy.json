@@ -363,9 +363,6 @@
                     "transitVnetSubscriptionId": {
                         "value": "[parameters('transitServicesSubId')]"
                     },
-                    "workloadAppGwPrivateIp": {
-                        "value": "[variables('workloadAppGwPrivateIp')]"
-                    },
                     "workloadVnetCidr": {
                         "value": "[variables('workloadVnetCidr')]"
                     },
