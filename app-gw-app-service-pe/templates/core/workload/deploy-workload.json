@@ -839,7 +839,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                        "value": "[concat(variables('keyVaultPrefixName'),parameters('uniqueData'))]"
                     },
                     "objectId": {
                         "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('dsUmi'))).principalId]"
@@ -862,14 +862,14 @@
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployDsUmiKvPerm'))]",
-                "[concat('Microsoft.KeyVault/vaults/',reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value,'/providers/microsoft.insights/diagnosticSettings/diag')]",
+                "[concat('Microsoft.KeyVault/vaults/',concat(variables('keyVaultPrefixName'),parameters('uniqueData')),'/providers/microsoft.insights/diagnosticSettings/diag')]",
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                        "value": "[concat(variables('keyVaultPrefixName'),parameters('uniqueData'))]"
                     },
                     "objectId": {
                         "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('appGwUmi'))).principalId]"
@@ -917,7 +917,7 @@
                     },
                     {
                         "name": "KV_NAME",
-                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
+                        "value": "[concat(variables('keyVaultPrefixName'),parameters('uniqueData'))]"
                     }
                 ],
                 "retentionInterval": "P1D",
