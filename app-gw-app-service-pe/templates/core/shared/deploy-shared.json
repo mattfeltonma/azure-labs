@@ -117,6 +117,7 @@
         "keyVaultDeploymentName": "deploy-kv-cent",
         "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
+        "keyVaultNamePrefix": "kvcnt",
         "location": "[resourceGroup().location]",
         "devVmDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-windows-dev-vm.json')]",
         "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
@@ -153,7 +154,7 @@
                         "value": "Deny"
                     },
                     "keyVaultNamePrefix": {
-                        "value": "kvcnt"
+                        "value": "[variables('keyVaultNamePrefix')]"
                     },
                     "laWorkspaceResourceId": {
                         "value": "[parameters('lawResourceId')]"
@@ -172,7 +173,7 @@
             }
         },
         {
-            "name": "[concat(reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value,'/microsoft.insights/diag')]",
+            "name": "[concat(variables('keyVaultNamePrefix'), parameters('uniqueData'),'/microsoft.insights/diag')]",
             "type": "Microsoft.KeyVault/vaults/providers/diagnosticSettings",
             "apiVersion": "[variables('diagnosticApiVersion')]",
             "location": "[variables('location')]",
@@ -208,7 +209,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.KeyVault/vaults/',reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value,'/providers/microsoft.insights/diagnosticSettings/diag')]",
+                "[concat('Microsoft.KeyVault/vaults/',concat(variables('keyVaultNamePrefix'), parameters('uniqueData')), '/providers/microsoft.insights/diagnosticSettings/diag')]",
                 "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
             ],
             "properties": {

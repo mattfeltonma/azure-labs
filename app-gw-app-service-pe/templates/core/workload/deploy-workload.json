@@ -152,6 +152,7 @@
         "dsUmi":"[concat('dsumi', parameters('uniqueData'))]",
         "keyVaultDeploymentName": "deploy-workload-keyvault",
         "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
+        "keyVaultPrefixName": "kvwork",
         "keyVaultPermDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault-permissions.json')]",
         "linuxFxVersion": "PYTHON|3.8",
         "location": "[resourceGroup().location]",
@@ -776,7 +777,7 @@
                         "value": "Allow"
                     },
                     "keyVaultNamePrefix": {
-                        "value": "kwork"
+                        "value": "[variables('keyVaultPrefixName')]"
                     },
                     "laWorkspaceResourceId": {
                         "value": "[parameters('laWorkspaceResourceId')]"
@@ -795,7 +796,7 @@
             }
         },
         {
-            "name": "[concat(reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value,'/microsoft.insights/diag')]",
+            "name": "[concat(variables('keyVaultPrefixName'), parameters('uniqueData'),'/microsoft.insights/diag')]",
             "type": "Microsoft.KeyVault/vaults/providers/diagnosticSettings",
             "apiVersion": "[variables('diagnosticApiVersion')]",
             "location": "[variables('location')]",
@@ -831,7 +832,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.KeyVault/vaults/',reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value,'/providers/microsoft.insights/diagnosticSettings/diag')]",
+                "[concat('Microsoft.KeyVault/vaults/',concat(variables('keyVaultPrefixName'), parameters('uniqueData')),'/providers/microsoft.insights/diagnosticSettings/diag')]",
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('dsUmi'))]"
             ],
             "properties": {
