@@ -2,6 +2,13 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "azureFirewallSku": {
+            "type": "string",
+            "metadata": {
+                "description": "The SKU of the firewall policy. This can be standard or premium"
+            },
+            "defaultValue": "Standard"
+        },
         "cloudAddressSpace": {
             "type": "string",
             "metadata": {
@@ -67,7 +74,7 @@
                     ]
                 },
                 "sku": {
-                    "tier": "Standard"
+                    "tier": "[parameters('azureFirewallSku')]"
                 },
                 "threatIntelMode": "Alert"
             },

@@ -89,6 +89,7 @@
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "appServicesPrivateDnsZoneName": "privatelink.azurewebsites.net",
         "appServicesPlLinkName": "[concat(variables('appServicesPrivateDnsZoneName'), '-link')]",
+        "azureFirewallSku": "Standard",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
         "bastionNsgName": "[concat('nsg-bst', parameters('uniqueData'))]",
         "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
@@ -479,7 +480,7 @@
                     }
                 ],
                 "sku": {
-                    "tier": "Standard"
+                    "tier": "[variables('azureFirewallSku')]"
                 }
             }
         },
