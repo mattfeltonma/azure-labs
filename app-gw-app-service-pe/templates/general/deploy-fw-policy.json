@@ -2,12 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "appGatewayCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the App Gateway subnet"
-            }
-        },
         "cloudAddressSpace": {
             "type": "string",
             "metadata": {
@@ -52,11 +46,11 @@
     "variables": {
         "fwPolicyApiVersion": "2020-11-01",
         "location": "[resourceGroup().location]",
-        "lzFwPolicyName": "[concat('fwpol',parameters('uniqueData'))]"
+        "fwPolicyName": "[concat('fwpol',parameters('uniqueData'))]"
     },
     "resources": [
         {
-            "name": "[variables('lzFwPolicyName')]",
+            "name": "[variables('fwPolicyName')]",
             "type": "Microsoft.Network/firewallPolicies",
             "apiVersion": "[variables('fwPolicyApiVersion')]",
             "location": "[variables('location')]",
@@ -68,11 +62,12 @@
                 "snat": {
                     "privateRanges": [
                         "[parameters('sharedServicesVnetCidr')]",
-                        "[parameters('transitVnetCidr')]"
+                        "[parameters('transitVnetCidr')]",
+                        "[parameters('workloadVnetCidr')]"
                     ]
                 },
                 "sku": {
-                    "tier": "Premium"
+                    "tier": "Standard"
                 },
                 "threatIntelMode": "Alert"
             },
@@ -83,7 +78,7 @@
                     "apiVersion": "[variables('fwPolicyApiVersion')]",
                     "location": "[variables('fwPolicyApiVersion')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]"
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('fwPolicyName'))]"
                     ],
                     "properties": {
                         "priority": 100,
@@ -97,8 +92,8 @@
                     "apiVersion": "[variables('fwPolicyApiVersion')]",
                     "location": "[variables('fwPolicyApiVersion')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]",
-                        "[concat('Microsoft.Network/firewallPolicies/', variables('lzFwPolicyName'), '/ruleCollectionGroups/', 'DefaultDnatRuleCollectionGroup')]"
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('fwPolicyName'))]",
+                        "[concat('Microsoft.Network/firewallPolicies/', variables('fwPolicyName'), '/ruleCollectionGroups/', 'DefaultDnatRuleCollectionGroup')]"
                     ],
                     "properties": {
                         "priority": 200,
@@ -142,8 +137,8 @@
                     "apiVersion": "[variables('fwPolicyApiVersion')]",
                     "location": "[variables('fwPolicyApiVersion')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]",
-                        "[concat('Microsoft.Network/firewallPolicies/', variables('lzFwPolicyName'), '/ruleCollectionGroups/', 'DefaultNetworkRuleCollectionGroup')]"
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('fwPolicyName'))]",
+                        "[concat('Microsoft.Network/firewallPolicies/', variables('fwPolicyName'), '/ruleCollectionGroups/', 'DefaultNetworkRuleCollectionGroup')]"
                     ],
                     "properties": {
                         "priority": 300,
@@ -180,40 +175,6 @@
                                     }
                                 ],
                                 "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
-                            },
-                            {
-                                "name": "AllowAppGateway",
-                                "priority": 101,
-                                "action": {
-                                    "type": "Allow"
-                                },
-                                "rules": [
-                                    {
-                                        "name": "AllowAppGateway",
-                                        "protocols": [
-                                            {
-                                                "protocolType": "Https",
-                                                "port": 443
-                                            },
-                                            {
-                                                "protocolType": "Http",
-                                                "port": 80
-                                            }
-                                        ],
-                                        "terminateTLS": false,
-                                        "sourceAddresses": [
-                                            "[parameters('appGatewayCidr')]"
-                                        ],
-                                        "sourceIpGroups": [],
-                                        "targetFqdns": [
-                                            "*.azurewebsites.net",
-                                            "*.appserviceenvironment.net"
-                                        ],
-                                        "fqdnTags": [],
-                                        "ruleType": "ApplicationRule"
-                                    }
-                                ],
-                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
                             }
                         ]
                     }
@@ -224,7 +185,7 @@
     "outputs": {
         "firewallPolicyId": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]"
+            "value": "[resourceId('Microsoft.Network/firewallPolicies', variables('fwPolicyName'))]"
         }
     }
 }

@@ -32,13 +32,6 @@
                 "description": "The resource ID of the Log Analytics Workspace the logs and metrics will be sent to"
             }
         },
-        "softDeleteRetentionDays": {
-            "type": "int",
-            "metadata": {
-                "description": "The amount of days to retain after soft delete"
-            },
-            "defaultValue": 60
-        },
         "tenantId": {
             "type": "string",
             "metadata": {
@@ -63,48 +56,9 @@
     "variables": {
         "diagnosticApiVersion": "2017-05-01-preview",
         "keyVaultApiVersion": "2019-09-01",
-        "certPermissions": [
-            "backup",
-            "create",
-            "get",
-            "getissuers",
-            "import",
-            "list",
-            "listissuers",
-            "managecontacts",
-            "manageissuers",
-            "recover",
-            "restore",
-            "setissuers",
-            "update"
-        ],
         "keyVaultName": "[concat(parameters('keyVaultNamePrefix'), parameters('uniqueData'))]",
-        "keyPermissions": [
-            "list",
-            "encrypt",
-            "decrypt",
-            "wrapKey",
-            "unwrapKey",
-            "sign",
-            "verify",
-            "get",
-            "create",
-            "update",
-            "import",
-            "backup",
-            "restore",
-            "recover"
-        ],
         "keyVaultSku": "Standard",
-        "location": "[resourceGroup().location]",
-        "secretsPermissions": [
-            "list",
-            "get",
-            "set",
-            "backup",
-            "restore",
-            "recover"
-        ]
+        "location": "[resourceGroup().location]"
     },
     "resources": [
         {
@@ -119,14 +73,19 @@
                         "objectId": "[parameters('keyVaultAdminObjectId')]",
                         "tenantId": "[parameters('tenantId')]",
                         "permissions": {
-                            "keys": "[variables('keyPermissions')]",
-                            "secrets": "[variables('secretsPermissions')]",
-                            "certificates": "[variables('certPermissions')]"
+                            "keys": [
+                                "all"
+                            ],
+                            "secrets": [
+                                "all"
+                            ],
+                            "certificates": [
+                                "all"
+                            ]
                         }
                     }
                 ],
                 "enabledForTemplateDeployment": true,
-                "enableSoftDelete": true,
                 "enablePurgeProtection": true,
                 "networkAcls": {
                     "bypass": "AzureServices",
@@ -139,7 +98,6 @@
                     "family": "A",
                     "name": "[variables('keyVaultSku')]"
                 },
-                "softDeleteRetentionInDays": "[parameters('softDeleteRetentionDays')]",
                 "tenantid": "[parameters('tenantId')]"
             }
         },

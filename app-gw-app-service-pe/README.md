@@ -41,7 +41,7 @@ In addition to the above, the lab comes with the following features:
 ## Deployment
 Use the Deploy to Azure button below. Note that the template will take about 1 hour to fully deploy. 
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fmaster%2Fapp-gw-app-service-pe%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fagwapp-v2%2Fapp-gw-app-service-pe%2Fazuredeploy.json)
 
 **The template allows for the following parameters**
 * customWebDomain - The domain you'll be using to access the application publicly. The Application Gateway will be configured with an https listener for this domain. If this is a zone you do not own and do not have access to administer DNS you will need to modify the host file of the machine you are using the test the solution.
