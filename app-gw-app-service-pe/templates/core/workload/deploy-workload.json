@@ -125,7 +125,6 @@
     },
     "variables": {
         "deployScriptApiVersion": "2020-10-01",
-        "diagnosticApiVersion": "2017-05-01-preview",
         "managedIdentityApiVersion": "2018-11-30",
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
@@ -821,7 +820,7 @@
                     "objectId": {
                         "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('dsUmi'))).principalId]"
                     },
-                    "certificatePermissions": {
+                    "certPermissions": {
                         "value": [
                             "create"
                         ]

@@ -111,7 +111,6 @@
         }
     },
     "variables": {
-        "diagnosticApiVersion": "2017-05-01-preview",
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
