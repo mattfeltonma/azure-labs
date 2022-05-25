@@ -154,7 +154,7 @@
         "deployAppGwUmiKvPerm": "deploy-appgw-umi-kv-perm",
         "deployDsUmiKvPerm": "deploy-ds-umi-kv-perm",
         "deployScriptAgwCert": "ds-agwcert",
-        "dsUmi":"[concat('dsumi', parameters('uniqueData'))]",
+        "dsUmi": "[concat('dsumi', parameters('uniqueData'))]",
         "keyVaultDeploymentName": "deploy-workload-keyvault",
         "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "keyVaultPrefixName": "kvwork",
@@ -248,7 +248,36 @@
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
-                "securityRules": []
+                "securityRules": [
+                    {
+                        "name": "AllowAppGwManagement",
+                        "properties": {
+                            "description": "Allow incoming traffic for Application Gateway Management",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "65200-65535",
+                            "sourceAddressPrefix": "GatewayManager",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancer",
+                        "properties": {
+                            "description": "Allow incoming traffic for Azure Load Balancer",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
             }
         },
         {
@@ -832,7 +861,7 @@
                     "contentVersion": "1.0.0.0"
                 }
             }
-        },  
+        },
         {
             "name": "[variables('deployAppGwUmiKvPerm')]",
             "type": "Microsoft.Resources/deployments",
@@ -900,7 +929,7 @@
                 "retentionInterval": "P1D",
                 "timeout": "PT10M"
             }
-        },     
+        },
         {
             "name": "[variables('appGwName')]",
             "type": "Microsoft.Network/applicationGateways",
@@ -969,7 +998,7 @@
                     {
                         "name": "empty",
                         "properties": {
-                            "backendAddresses": [   
+                            "backendAddresses": [
                             ]
                         }
                     },
