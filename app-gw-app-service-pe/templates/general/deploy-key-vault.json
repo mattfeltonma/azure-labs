@@ -85,8 +85,8 @@
                         }
                     }
                 ],
+                "enableSoftDelete": false,
                 "enabledForTemplateDeployment": true,
-                "enablePurgeProtection": false,
                 "networkAcls": {
                     "bypass": "AzureServices",
                     "virtualNetworkRules": [],
