@@ -68,6 +68,9 @@ AGW_CERT_SECRET_ID=$(az keyvault certificate show \
 --query=sid \
 --output=tsv)
 
+# Remove the version so Application Gateway always pulls the most recent cert
+AGW_CERT_SECRET_ID=$(echo $AGW_CERT_SECRET_ID | sed 's/\/[^/]*$//')
+
 # Write the result to output
 RESULT=$(cat << EOF
 {

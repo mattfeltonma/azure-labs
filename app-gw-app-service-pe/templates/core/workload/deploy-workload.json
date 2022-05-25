@@ -944,12 +944,26 @@
                 "[resourceId('Microsoft.Resources/deploymentScripts', variables('deployScriptAgwCert'))]",
                 "[resourceId('Microsoft.Network/publicIpAddresses',variables('appGwPublicIpName'))]"
             ],
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]": {}
+                }
+            },
             "properties": {
                 "sku": {
                     "name": "WAF_v2",
                     "tier": "WAF_v2",
                     "capacity": 1
                 },
+                "sslCertificates": [
+                    {
+                        "name": "[variables('appGwCertName')]",
+                        "properties": {
+                            "keyVaultSecretId": "[reference(variables('deployScriptAgwCert')).outputs.CERT_SECRET]"
+                        }
+                    }
+                ],
                 "gatewayIPConfigurations": [
                     {
                         "name": "appGatewayIpConfig",
@@ -1052,6 +1066,23 @@
                             ],
                             "requireServerNameIndication": false
                         }
+                    },
+                    {
+                        "name": "https_listener",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPubFrontEnd')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/https_port')]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": "[resourceId('Microsoft.Network/applicationGateways/sslCertificates', variables('appGwName'),variables('appGwCertName'))]",
+                            "hostNames": [
+                                "[concat('*.',parameters('customWebDomain'))]"
+                            ],
+                            "requireServerNameIndication": false
+                        }
                     }
                 ],
                 "requestRoutingRules": [
@@ -1069,13 +1100,20 @@
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/http_httpsetting')]"
                             }
                         }
-                    }
-                ],
-                "sslCertificates": [
+                    },
                     {
-                        "name": "[variables('appGwCertName')]",
+                        "Name": "webapp",
                         "properties": {
-                            "keyVaultSecretId": "[reference(variables('deployScriptAgwCert')).outputs.CERT_SECRET]"
+                            "RuleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/https_listener')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/webapp')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/https_httpsetting')]"
+                            }
                         }
                     }
                 ],
@@ -1086,12 +1124,6 @@
                     "firewallMode": "Detection",
                     "ruleSetType": "OWASP",
                     "ruleSetVersion": "3.0"
-                }
-            },
-            "identity": {
-                "type": "UserAssigned",
-                "userAssignedIdentities": {
-                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('appGwUmi'))]": {}
                 }
             }
         },
