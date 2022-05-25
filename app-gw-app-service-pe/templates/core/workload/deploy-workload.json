@@ -124,6 +124,7 @@
         }
     },
     "variables": {
+        "appInsightsAPiVersion": "2015-05-01",
         "deployScriptApiVersion": "2020-10-01",
         "diagnosticApiVersion": "2017-05-01-preview",
         "managedIdentityApiVersion": "2018-11-30",
@@ -140,6 +141,7 @@
         "appGwPublicIpName": "[concat('pip-agw', parameters('uniqueData'))]",
         "appGwRouteTableUpdateDeploymentName": "deploy-appgwrt-update",
         "appGwUmi": "[concat('agwumi',parameters('uniqueData'))]",
+        "appInsightsName": "[concat('ai',parameters('uniqueData'))]",
         "appPeNsgFlowLogDeploymentName": "deploy-apppeflowlog",
         "appPeNsgName": "[concat('nsg-apppe', parameters('uniqueData'))]",
         "appRviNsgFlowLogDeploymentName": "deploy-apprviflowlog",
@@ -682,10 +684,24 @@
             }
         },
         {
+            "apiVersion": "[variables('appInsightsApiVersion')]",
+            "name": "[variables('appInsightsName')]",
+            "type": "microsoft.insights/components",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "ApplicationId": "[variables('appInsightsName')]",
+                "Request_Source": "IbizaWebAppExtensionCreate"
+            }
+        },
+        {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "[variables('webApiVersion')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('transitPeeringDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('transitPeeringDeploymentName'))]",
+                "[resourceId('microsoft.insights/components', variables('appInsightsName'))]"
             ],
             "name": "[variables('appServicePlanName')]",
             "location": "[variables('location')]",
@@ -704,60 +720,71 @@
             "location": "[variables('location')]",
             "kind": "app",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "[resourceId('microsoft.insights/components', variables('appInsightsName'))]"
             ],
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
                 "clientAffinityEnabled": false,
                 "siteConfig": {
                     "linuxFxVersion": "[variables('linuxFxVersion')]",
-                    "alwaysOn": true
-                }
-            },
-            "resources": [
-                {
-                    "type": "sourcecontrols",
-                    "apiVersion": "[variables('webApiVersion')]",
-                    "name": "web",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]"
-                    ],
-                    "properties": {
-                        "repoUrl": "[variables('repoUrl')]",
-                        "branch": "[variables('branch')]",
-                        "isManualIntegration": true,
-                        "isGitHubAction": false,
-                        "deploymentRollbackEnabled": false,
-                        "isMercurial": false
-                    }
+                    "alwaysOn": true,
+                    "appSettings": [
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName')), '2015-05-01').ConnectionString]"
+                        }
+                    ]
                 },
-                {
-                    "name": "virtualNetwork",
-                    "type": "networkConfig",
-                    "apiVersion": "[variables('webApiVersion')]",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]"
-                    ],
-                    "properties": {
-                        "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('workloadVnetName'), variables('workloadAppRviSubnetName'))]",
-                        "swiftSupported": true
+                "resources": [
+                    {
+                        "type": "sourcecontrols",
+                        "apiVersion": "[variables('webApiVersion')]",
+                        "name": "web",
+                        "dependsOn": [
+                            "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]"
+                        ],
+                        "properties": {
+                            "repoUrl": "[variables('repoUrl')]",
+                            "branch": "[variables('branch')]",
+                            "isManualIntegration": true,
+                            "isGitHubAction": false,
+                            "deploymentRollbackEnabled": false,
+                            "isMercurial": false
+                        }
+                    },
+                    {
+                        "name": "virtualNetwork",
+                        "type": "networkConfig",
+                        "apiVersion": "[variables('webApiVersion')]",
+                        "dependsOn": [
+                            "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
+                            "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]"
+                        ],
+                        "properties": {
+                            "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('workloadVnetName'), variables('workloadAppRviSubnetName'))]",
+                            "swiftSupported": true
+                        }
+                    },
+                    {
+                        "name": "[concat(variables('uniqueWebAppName'),'/appsettings')]",
+                        "type": "Microsoft.Web/sites/config",
+                        "apiVersion": "[variables('webApiVersion')]",
+                        "dependsOn": [
+                            "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
+                            "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]",
+                            "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/networkConfig/virtualNetwork')]"
+                        ],
+                        "properties": {
+                            "WEBSITE_VNET_ROUTE_ALL": "1"
+                        }
                     }
-                },
-                {
-                    "name": "[concat(variables('uniqueWebAppName'),'/appsettings')]",
-                    "type": "Microsoft.Web/sites/config",
-                    "apiVersion": "[variables('webApiVersion')]",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]",
-                        "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/networkConfig/virtualNetwork')]"
-                    ],
-                    "properties": {
-                        "WEBSITE_VNET_ROUTE_ALL": "1"
-                    }
-                }
-            ]
+                ]
+            }
         },
         {
             "name": "[concat(variables('uniqueWebAppName'),'/microsoft.insights/diag')]",
