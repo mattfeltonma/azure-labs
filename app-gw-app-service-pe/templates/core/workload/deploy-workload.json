@@ -822,7 +822,8 @@
                     },
                     "certPermissions": {
                         "value": [
-                            "create"
+                            "create",
+                            "get"
                         ]
                     }
                 },
