@@ -125,6 +125,7 @@
     },
     "variables": {
         "deployScriptApiVersion": "2020-10-01",
+        "diagnosticApiVersion": "2017-05-01-preview",
         "managedIdentityApiVersion": "2018-11-30",
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
@@ -756,7 +757,62 @@
                         "WEBSITE_VNET_ROUTE_ALL": "1"
                     }
                 }
-
+            ]
+        },
+        {
+            "name": "[concat(variables('uniqueWebAppName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.Web/sites/providers/diagnosticSettings",
+            "apiVersion": "[variables('diagnosticApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]"
+            ],
+            "properties": {
+                "name": "diag",
+                "workspaceId": "[parameters('laWorkspaceResourceId')]",
+                "logs": [
+                    {
+                        "category": "AppServiceAntivirusScanAuditLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceHTTPLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceConsoleLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceAppLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceFileAuditLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceAuditLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceIPSecAuditLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServicePlatformLogs",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
             ]
         },
         {
@@ -764,6 +820,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
+                "[concat('Microsoft.Web/sites/',variables('uniqueWebAppName'),'/providers/microsoft.insights/diagnosticSettings/diag')]",
                 "[resourceId('Microsoft.Web/sites', variables('uniqueWebAppName'))]",
                 "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/sourcecontrols/web')]",
                 "[concat('Microsoft.Web/sites/', variables('uniqueWebAppName'),'/networkConfig/virtualNetwork')]"
@@ -1144,11 +1201,47 @@
             }
         },
         {
+            "name": "[concat(variables('appGwName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.KeyVault/vaults/providers/diagnosticSettings",
+            "apiVersion": "[variables('diagnosticApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/applicationGateways', variables('appGwName'))]"
+            ],
+            "properties": {
+                "name": "diag",
+                "workspaceId": "[parameters('laWorkspaceResourceId')]",
+                "logs": [
+                    {
+                        "category": "ApplicationGatewayAccessLog",
+                        "enabled": true
+                    },
+                    {
+                        "category": "ApplicationGatewayPerformanceLog",
+                        "enabled": true
+                    },
+                    {
+                        "category": "ApplicationGatewayFirewallLog",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        {
             "name": "[variables('appGwRouteTableUpdateDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'))]"
+                "[concat('Microsoft.Network/applicationGateways/',variables('appGwName'),'/providers/microsoft.insights/diagnosticSettings/diag')]"
             ],
             "properties": {
                 "mode": "Incremental",
