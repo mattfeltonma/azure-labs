@@ -68,9 +68,8 @@
                 },
                 "snat": {
                     "privateRanges": [
-                        "[parameters('sharedServicesVnetCidr')]",
                         "[parameters('transitVnetCidr')]",
-                        "[parameters('workloadVnetCidr')]"
+                        "[parameters('sharedServicesVnetCidr')]"
                     ]
                 },
                 "sku": {
