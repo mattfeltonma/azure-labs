@@ -1077,7 +1077,9 @@
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/https_port')]"
                             },
                             "protocol": "Https",
-                            "sslCertificate": "[resourceId('Microsoft.Network/applicationGateways/sslCertificates', variables('appGwName'),variables('appGwCertName'))]",
+                            "sslCertificate": {
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/sslCertificates', variables('appGwName'),variables('appGwCertName'))]"
+                            },
                             "hostNames": [
                                 "[concat('*.',parameters('customWebDomain'))]"
                             ],
