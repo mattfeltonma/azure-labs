@@ -1133,8 +1133,6 @@
             "name": "[variables('appGwRouteTableUpdateDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "subscriptionId": "[parameters('transitVnetSubscriptionId')]",
-            "resourceGroup": "[parameters('transitVnetResourceGroupName')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'))]"
             ],

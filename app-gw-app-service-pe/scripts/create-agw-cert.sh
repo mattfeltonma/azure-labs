@@ -49,24 +49,26 @@ POLICY=$(cat << EOF
 }
 EOF
 )
-
 echo $POLICY >> ./policy.json
 
-# Create a new certificate in Azure Key Vault to be used by the Application Gateway
-az keyvault certificate create \
---name=$AGW_CERT_NAME \
---policy=@./policy.json \
---vault-name=$KV_NAME
+AGW_CERT_SECRET_ID=$(az keyvault certificate show --name $AGW_CERT_NAME --vault-name=$KV_NAME --query=sid --output=tsv --quiet 2>null)
+if [ -z "$AGW_CERT_SECRET_ID"]
+then
+  # Create a new certificate in Azure Key Vault to be used by the Application Gateway
+  az keyvault certificate create \
+  --name=$AGW_CERT_NAME \
+  --policy=@./policy.json \
+  --vault-name=$KV_NAME
 
-# Add pause to allow for cert to fully be created
-sleep 20
+  # Add pause to allow for cert to fully be created
+  sleep 20
 
-# Get the certificate secret id
-AGW_CERT_SECRET_ID=$(az keyvault certificate show \
---name=$AGW_CERT_NAME \
---vault-name=$KV_NAME \
---query=sid \
---output=tsv)
+  # Get the certificate secret id
+  AGW_CERT_SECRET_ID=$(az keyvault certificate show \
+  --name=$AGW_CERT_NAME \
+  --vault-name=$KV_NAME \
+  --query=sid \
+  --output=tsv)
 
 # Remove the version so Application Gateway always pulls the most recent cert
 AGW_CERT_SECRET_ID=$(echo $AGW_CERT_SECRET_ID | sed 's/\/[^/]*$//')
