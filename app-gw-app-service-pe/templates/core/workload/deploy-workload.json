@@ -276,6 +276,20 @@
                             "priority": 200,
                             "direction": "Inbound"
                         }
+                    },
+                    {
+                        "name": "AllowInternetHttps",
+                        "properties": {
+                            "description": "Allow incoming HTTPS from the Internet",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 300,
+                            "direction": "Inbound"
+                        }
                     }
                 ]
             }
