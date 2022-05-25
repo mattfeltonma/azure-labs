@@ -1045,13 +1045,13 @@
                         "properties": {
                             "RuleType": "empty",
                             "httpListener": {
-                                "id": "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'), '/httpListeners/http_listener')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/http_listener')]"
                             },
                             "backendAddressPool": {
-                                "id": "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'), '/backendAddressPools/empty')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/empty')]"
                             },
                             "backendHttpSettings": {
-                                "id": "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'), '/backendHttpSettingsCollection/http_httpsetting')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/http_httpsetting')]"
                             }
                         }
                     },
