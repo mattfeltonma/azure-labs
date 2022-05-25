@@ -976,7 +976,9 @@
                         "name": "webapp",
                         "properties": {
                             "backendAddresses": [
-                                "[concat(variables('uniqueWebAppName'),'.azurewebsites.net')]"
+                                {
+                                    "fqdn": "[concat(variables('uniqueWebAppName'),'.azurewebsites.net')]"
+                                }
                             ]
                         }
                     }
@@ -1043,7 +1045,7 @@
                     {
                         "Name": "empty",
                         "properties": {
-                            "RuleType": "empty",
+                            "RuleType": "Basic",
                             "httpListener": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/http_listener')]"
                             },
@@ -1058,7 +1060,7 @@
                     {
                         "Name": "webapp",
                         "properties": {
-                            "RuleType": "webapp",
+                            "RuleType": "Basic",
                             "httpListener": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/https_listener')]"
                             },
