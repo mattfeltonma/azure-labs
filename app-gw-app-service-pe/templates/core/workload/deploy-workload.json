@@ -1060,13 +1060,13 @@
                         "properties": {
                             "RuleType": "webapp",
                             "httpListener": {
-                                "id": "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'), '/httpListeners/https_listener')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/https_listener')]"
                             },
                             "backendAddressPool": {
-                                "id": "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'), '/backendAddressPools/webapp')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/webapp')]"
                             },
                             "backendHttpSettings": {
-                                "id": "[resourceId('Microsoft.Network/applicationGateways',variables('appGwName'), '/backendHttpSettingsCollection/https_httpsetting')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/https_httpsetting')]"
                             }
                         }
                     }
