@@ -86,7 +86,7 @@
                     }
                 ],
                 "enabledForTemplateDeployment": true,
-                "enablePurgeProtection": true,
+                "enablePurgeProtection": false,
                 "networkAcls": {
                     "bypass": "AzureServices",
                     "virtualNetworkRules": [],
