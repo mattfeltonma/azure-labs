@@ -1023,23 +1023,6 @@
                             ],
                             "requireServerNameIndication": false
                         }
-                    },
-                    {
-                        "name": "https_listener",
-                        "properties": {
-                            "frontendIPConfiguration": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPubFrontEnd')]"
-                            },
-                            "frontendPort": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/https_port')]"
-                            },
-                            "protocol": "Https",
-                            "sslCertificate": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('appGwName')),'/sslCertificates/',variables('appGwCertName'))]",
-                            "hostNames": [
-                                "[concat('*.',parameters('customWebDomain'))]"
-                            ],
-                            "requireServerNameIndication": false
-                        }
                     }
                 ],
                 "requestRoutingRules": [
@@ -1055,21 +1038,6 @@
                             },
                             "backendHttpSettings": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/http_httpsetting')]"
-                            }
-                        }
-                    },
-                    {
-                        "Name": "webapp",
-                        "properties": {
-                            "RuleType": "Basic",
-                            "httpListener": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/https_listener')]"
-                            },
-                            "backendAddressPool": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/webapp')]"
-                            },
-                            "backendHttpSettings": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/https_httpsetting')]"
                             }
                         }
                     }
