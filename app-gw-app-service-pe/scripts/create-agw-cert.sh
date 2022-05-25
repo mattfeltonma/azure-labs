@@ -51,7 +51,12 @@ EOF
 )
 echo $POLICY >> ./policy.json
 
-AGW_CERT_SECRET_ID=$(az keyvault certificate show --name $AGW_CERT_NAME --vault-name=$KV_NAME --query=sid --output=tsv --quiet 2>null)
+AGW_CERT_SECRET_ID=$(az keyvault certificate show \
+--name $AGW_CERT_NAME \
+--vault-name=$KV_NAME \
+--query=sid \
+--output=tsv 2>null)
+
 if [ -z "$AGW_CERT_SECRET_ID"]
 then
   # Create a new certificate in Azure Key Vault to be used by the Application Gateway
