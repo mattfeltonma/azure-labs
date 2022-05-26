@@ -14,6 +14,7 @@ In addition to the above, the lab comes with the following features:
 5. Key Vault instance deployed with a Private Endpoint in the Workload Virtual Network and stores the certificate used for the Application Gateway listener.
 6. [Application Gateway is configured with a User-Assigned Managed Identity](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs) which has been granted appropriate permissions to access certificates stored in the Key Vault instance.
 7. All Virtual Networks configured to use D[NS proxy feature of Azure Firewall](https://docs.microsoft.com/en-us/azure/firewall/dns-settings#dns-proxy) for resolution to Azure Private DNS Zones.
+8. All Network Security Groups used are configured with NSG Flow Logs and Traffic Analytics.
 
 
 ![lab image](images/lab-diagram.svg)
