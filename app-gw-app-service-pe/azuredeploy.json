@@ -8,10 +8,10 @@
                 "description": "Specify a custom domain name to be used for private access to the application via the Application Gateway. This will be created as an Azure Private DNS Zone"
             }
         },
-        "keyVaultAdmin": {
+        "keyVaultAdminObjectId": {
             "type": "string",
             "metadata": {
-                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+                "description": "The object id of the user that will have full permissions on the central Key Vault in the Shared Services subscription"
             }
         },
         "location": {
@@ -85,7 +85,6 @@
     "variables": {
         "resourcesApiVersion": "2020-06-01",
         "cloudAddressSpace": "10.0.0.0/8",
-        "appGwPrivateIp": "10.0.3.4",
         "sharedSvcDevServerIp": "10.1.0.5",
         "sharedSvcRgDeploymentName": "[concat('deploy-shared-rg',parameters('uniqueData'))]",
         "sharedSvcSubDeploymentName": "[concat('deploy-shared-sub', parameters('uniqueData'))]",
@@ -95,7 +94,6 @@
         "sharedSvcVnetCidr": "10.1.0.0/16",
         "sharedSvcVnetSubnetDevCidr": "10.1.0.0/24",
         "sharedSvcVnetSubnetPeCidr": "10.1.2.0/24",
-        "transitAppGwSubnetCidr": "10.0.3.0/27",
         "transitBastionSubnetCidr": "10.0.1.0/27",
         "transitRgDeploymentName": "[concat('deploy-transit',parameters('uniqueData'))]",
         "transitSubDeploymentName": "[concat('deploy-transit-sub',parameters('uniqueData'))]",
@@ -105,15 +103,18 @@
         "transitTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/transit/'))]",
         "transitTemplatesFile": "[concat(variables('transitTemplatesUri'), 'deploy-transit.json')]",
         "transitVnetCidr": "10.0.0.0/16",
+        "workloadAppGwPrivateIp": "10.2.0.4",
         "workloadRgDeploymentName": "[concat('deploy-workload',parameters('uniqueData'))]",
         "workloadSubDeploymentName": "[concat('deploy-workload-sub', parameters('uniqueData'))]",
         "workloadRgName": "[concat('rg-workload-',parameters('uniqueData'))]",
-        "workloadTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/workload/'))]",
+        "workloadTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/workload/'))]",
         "workloadTemplatesFile": "[concat(variables('workloadTemplatesUri'), 'deploy-workload.json')]",
         "workloadVnetCidr": "10.2.0.0/16",
-        "workloadVnetSubnetAppSvcPeCidr": "10.2.0.0/24",
-        "workloadVnetSubnetAppSvcRviCidr": "10.2.1.0/24",
-        "workloadVnetSubnetSvcCidr": "10.2.2.0/24"
+        "workloadVnetSubnetAgwCidr": "10.2.0.0/27",
+        "workloadVnetSubnetAppPeCidr": "10.2.1.0/24",
+        "workloadVnetSubnetAppRviCidr": "10.2.2.0/24",
+        "workloadVnetSubnetDataCidr": "10.2.3.0/24",        
+        "workloadVnetSubnetSvcCidr": "10.2.4.0/24"
     },
     "resources": [
         {
@@ -205,17 +206,8 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "appGwPrivateIp": {
-                        "value": "[variables('appGwPrivateIp')]"
-                    },
                     "cloudAddressSpace": {
                         "value": "[variables('cloudAddressSpace')]"
-                    },
-                    "customWebDomain": {
-                        "value": "[parameters('customWebDomain')]"
-                    },
-                    "keyVaultAdminObjectId": {
-                        "value": "[parameters('keyVaultAdmin')]"
                     },
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
@@ -228,9 +220,6 @@
                     },
                     "sharedSvcSubscriptionId": {
                         "value": "[parameters('sharedServicesSubId')]"
-                    },
-                    "transitAppGwSubnetCidr": {
-                        "value": "[variables('transitAppGwSubnetCidr')]"
                     },
                     "transitBastionSubnetCidr": {
                         "value": "[variables('transitBastionSubnetCidr')]"
@@ -274,17 +263,14 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "centralKeyVaultName": {
-                        "value": "[reference(variables('transitRgDeploymentName')).outputs.centralKeyVaultName.value]"
-                    },
-                    "centralKeyVaultResourceId": {
-                        "value": "[reference(variables('transitRgDeploymentName')).outputs.centralKeyVaultResourceId.value]"
-                    },
                     "devServerIp": {
                         "value": "[variables('sharedSvcDevServerIp')]"
                     },
                     "firewallIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
                     },
                     "lawResourceId": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.lawResourceId.value]"
@@ -347,14 +333,8 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "appGwCertName": {
-                        "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwCertName.value]"
-                    },
-                    "appGwName": {
-                        "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwName.value]"
-                    },
-                    "appGwRouteTableName": {
-                        "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwRouteTableName.value]"
+                    "appGwPrivateIp": {
+                        "value": "[variables('workloadAppGwPrivateIp')]"
                     },
                     "customWebDomain": {
                         "value": "[parameters('customWebDomain')]"
@@ -362,11 +342,11 @@
                     "dnsServerIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
                     },
-                    "dsScriptUmiResourceId": {
-                        "value": "[reference(variables('transitRgDeploymentName')).outputs.dsScriptUmiResourceId.value]"
-                    },
                     "firewallIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
                     },
                     "laWorkspaceResourceId": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.lawResourceId.value]"
@@ -389,13 +369,19 @@
                     "workloadVnetCidr": {
                         "value": "[variables('workloadVnetCidr')]"
                     },
-                    "workloadVnetSubnetAppCidr": {
-                        "value": "[variables('workloadVnetSubnetAppSvcPeCidr')]"
+                    "workloadVnetSubnetAgwCidr": {
+                        "value": "[variables('workloadVnetSubnetAgwCidr')]"
                     },
-                    "workloadVnetSubnetRviCidr": {
-                        "value": "[variables('workloadVnetSubnetAppSvcRviCidr')]"
+                    "workloadVnetSubnetAppPeCidr": {
+                        "value": "[variables('workloadVnetSubnetAppPeCidr')]"
                     },
-                    "workloadVnetSubnetSupportCidr": {
+                    "workloadVnetSubnetAppRviCidr": {
+                        "value": "[variables('workloadVnetSubnetAppRviCidr')]"
+                    },
+                    "workloadVnetSubnetDataCidr": {
+                        "value": "[variables('workloadVnetSubnetDataCidr')]"
+                    },
+                    "workloadVnetSubnetSvcCidr": {
                         "value": "[variables('workloadVnetSubnetSvcCidr')]"
                     },
                     "tags": {
@@ -413,21 +399,9 @@
         }
     ],
     "outputs": {
-        "applicationGatewayName": {
-            "type": "string",
-            "value": "[reference(variables('transitRgDeploymentName')).outputs.appGwName.value]"
-        },
         "appServiceDnsName": {
             "type": "string",
             "value": "[reference(variables('workloadRgDeploymentName')).outputs.appSvcDnsName.value]"
-        },
-        "transitResourceGroupName": {
-            "type": "string",
-            "value": "[variables('transitRgName')]"
-        },
-        "workloadKeyVaultName": {
-            "type": "string",
-            "value": "[reference(variables('transitRgDeploymentName')).outputs.centralKeyVaultName.value]"
         }
     }
 }

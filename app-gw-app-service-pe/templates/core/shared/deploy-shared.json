@@ -2,18 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "centralKeyVaultName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the Key Vault in the Shared Services subscription"
-            }
-        },
-        "centralKeyVaultResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource ID of the Key Vault in the SHared Services subscription"
-            }
-        },
         "devServerIp": {
             "type": "string",
             "metadata": {
@@ -24,6 +12,12 @@
             "type": "string",
             "metadata": {
                 "description": "The IP address of the Azure Firewall where traffic will be routed to"
+            }
+        },
+        "keyVaultAdminObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object id of the user account that will control the centralized Key Vault"
             }
         },
         "lawResourceId": {
@@ -125,7 +119,10 @@
         "devNsgName": "[concat('nsg-dev', parameters('uniqueData'))]",
         "devVmDeploymentName": "deploy-dev-vm",
         "devVmName": "vmwdev01",
+        "keyVaultDeploymentName": "deploy-kv-cent",
+        "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
+        "keyVaultNamePrefix": "kvcnt",
         "location": "[resourceGroup().location]",
         "devVmDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-windows-dev-vm.json')]",
         "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
@@ -150,15 +147,51 @@
     },
     "resources": [
         {
+            "name": "[variables('keyVaultDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "defaultAction": {
+                        "value": "Deny"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdminObjectId')]"
+                    },
+                    "keyVaultNamePrefix": {
+                        "value": "[variables('keyVaultNamePrefix')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('keyVaultDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "name": "[variables('usernameSecretDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [],
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('keyVaultDeploymentName'))]"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[parameters('centralKeyVaultName')]"
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
                     },
                     "location": {
                         "value": "[variables('location')]"
@@ -188,7 +221,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[parameters('centralKeyVaultName')]"
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
                     },
                     "location": {
                         "value": "[variables('location')]"
@@ -421,7 +454,7 @@
                             "properties": {
                                 "allowVirtualNetworkAccess": "true",
                                 "allowForwardedTraffic": "true",
-                                "allowGatewayTransit": "false",
+                                "allowGatewayTransit": "true",
                                 "useRemoteGateways": "false",
                                 "remoteVirtualNetwork": {
                                     "id": "[resourceId(variables('sharedSvcSubId'), variables('sharedSvcRgName'), 'Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
@@ -464,10 +497,10 @@
                         "value": "[variables('sharedSvcVnetName')]"
                     },
                     "resourceName": {
-                        "value": "[parameters('centralKeyVaultName')]"
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.keyVaultName.value]"
                     },
                     "resourceIdentifier": {
-                        "value": "[parameters('centralKeyVaultResourceId')]"
+                        "value": "[reference(variables('keyVaultDeploymentName')).outputs.KeyVaultResourceId.value]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
