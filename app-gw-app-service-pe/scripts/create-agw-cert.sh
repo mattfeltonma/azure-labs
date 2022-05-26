@@ -75,6 +75,7 @@ then
   --query=sid \
   --output=tsv)
 fi
+
 # Remove the version so Application Gateway always pulls the most recent cert
 AGW_CERT_SECRET_ID=$(echo $AGW_CERT_SECRET_ID | sed 's/\/[^/]*$//')
 
