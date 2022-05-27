@@ -167,7 +167,7 @@
                                 },
                                 "rules": [
                                     {
-                                        "name": "AllowAll",
+                                        "name": "AllowOnPremRemoteAccess",
                                         "ipProtocols": [
                                             "TCP"
                                         ],
@@ -181,7 +181,7 @@
                                         "sourceIpGroups": [],
                                         "destinationIpGroups": [],
                                         "destinationAddresses": [
-                                            "*"
+                                            "[parameters('cloudAddressSpace')]"
                                         ],
                                         "ruleConditionType": "NetworkRuleCondition",
                                         "ruleType": "NetworkRule"
