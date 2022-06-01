@@ -90,7 +90,7 @@
         "resourcesApiVersion": "2020-06-01",
         "cloudAddressSpace": "10.0.0.0/8",
         "sharedSvcLinuxDevServerIp": "10.1.0.5",
-        "sharedSvcWindowsDevServerIp": "10.1.0.5",
+        "sharedSvcWindowsDevServerIp": "10.1.0.6",
         "sharedSvcRgDeploymentName": "[concat('deploy-shared-rg',parameters('uniqueData'))]",
         "sharedSvcSubDeploymentName": "[concat('deploy-shared-sub', parameters('uniqueData'))]",
         "sharedSvcRgName": "[concat('rg-shared-',parameters('uniqueData'))]",
