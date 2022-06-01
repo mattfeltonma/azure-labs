@@ -89,7 +89,8 @@
     "variables": {
         "resourcesApiVersion": "2020-06-01",
         "cloudAddressSpace": "10.0.0.0/8",
-        "sharedSvcDevServerIp": "10.1.0.5",
+        "sharedSvcLinuxDevServerIp": "10.1.0.5",
+        "sharedSvcWindowsDevServerIp": "10.1.0.5",
         "sharedSvcRgDeploymentName": "[concat('deploy-shared-rg',parameters('uniqueData'))]",
         "sharedSvcSubDeploymentName": "[concat('deploy-shared-sub', parameters('uniqueData'))]",
         "sharedSvcRgName": "[concat('rg-shared-',parameters('uniqueData'))]",
@@ -253,8 +254,11 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "devServerIp": {
-                        "value": "[variables('sharedSvcDevServerIp')]"
+                    "devLinuxServerIp": {
+                        "value": "[variables('sharedSvcLinuxDevServerIp')]"
+                    },
+                    "devWindowsServerIp": {
+                        "value": "[variables('sharedSvcWindowsDevServerIp')]"
                     },
                     "dnsServerIp": {
                         "value": "[reference(variables('transitRgDeploymentName')).outputs.firewallIp.value]"

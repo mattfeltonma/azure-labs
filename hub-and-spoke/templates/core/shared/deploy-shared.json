@@ -2,10 +2,16 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "devServerIp": {
+        "devLinuxServerIp": {
             "type": "string",
             "metadata": {
-                "description": "The IP assigned to the virtual machine running used for deploying code"
+                "description": "The IP assigned to the Linux development virtual machine"
+            }
+        },
+        "devWindowsServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP assigned to the Windows development virtual machine"
             }
         },
         "dnsServerIp": {
@@ -538,7 +544,7 @@
                         "value": "[parameters('vmAdminUsername')]"
                     },
                     "serverIpAddress": {
-                        "value": "[parameters('devServerIp')]"
+                        "value": "[parameters('devLinuxServerIp')]"
                     },
                     "myWorkspaceId": {
                         "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
@@ -588,7 +594,7 @@
                         "value": "[parameters('vmAdminUsername')]"
                     },
                     "serverIpAddress": {
-                        "value": "[parameters('devServerIp')]"
+                        "value": "[parameters('devWindowsServerIp')]"
                     },
                     "myWorkspaceId": {
                         "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
