@@ -33,13 +33,6 @@
                 "description": "The Log and Analytics workspace secret"
             }
         },
-        "osDiskSize": {
-            "type": "int",
-            "metadata": {
-                "description": "The size of the OS disk in GB"
-            },
-            "defaultValue": 100
-        },
         "serverIpAddress": {
             "type": "string",
             "metadata": {
@@ -167,7 +160,6 @@
                 "storageProfile": {
                     "osDisk": {
                         "createOption": "fromImage",
-                        "diskSizeGB": "[parameters('osDiskSize')]",
                         "managedDisk": {
                             "storageAccountType": "[variables('osDiskType')]"
                         }
