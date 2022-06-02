@@ -2,10 +2,16 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "devServerIp": {
+        "devLinuxServerIp": {
             "type": "string",
             "metadata": {
-                "description": "The IP assigned to the virtual machine running used for deploying code"
+                "description": "The IP assigned to the Linux development virtual machine"
+            }
+        },
+        "devWindowsServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP assigned to the Windows development virtual machine"
             }
         },
         "dnsServerIp": {
@@ -124,9 +130,12 @@
         "deployKeyVaultPe": "deploy-keyvaultprivateendpoint",
         "devNsgFlowLogDeploymentName": "deploy-devflowlog",
         "devNsgName": "[concat('nsg-dev', parameters('uniqueData'))]",
-        "devVmDeploymentName": "deploy-dev-vm",
-        "devVmDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-dev-vm.json')]",
-        "devVmName": "vmldev01",
+        "devLinuxVmDeploymentName": "deploy-dev-linux-vm",
+        "devLinuxVmName": "vmldev01",
+        "devLinuxVmDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-dev-vm.json')]",
+        "devWinVmDeploymentName": "deploy-dev-win-vm",
+        "devWinVmName": "vmwdev01",
+        "devWinVmDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-windows-dev-vm.json')]",
         "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "location": "[resourceGroup().location]",
@@ -519,7 +528,7 @@
             }
         },
         {
-            "name": "[variables('devVmDeploymentName')]",
+            "name": "[variables('devLinuxVmDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
@@ -535,7 +544,7 @@
                         "value": "[parameters('vmAdminUsername')]"
                     },
                     "serverIpAddress": {
-                        "value": "[parameters('devServerIp')]"
+                        "value": "[parameters('devLinuxServerIp')]"
                     },
                     "myWorkspaceId": {
                         "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
@@ -556,14 +565,64 @@
                         "value": "[variables('vmSku')]"
                     },
                     "vmName": {
-                        "value": "[variables('devVmName')]"
+                        "value": "[variables('devLinuxVmName')]"
                     },
                     "vnetName": {
                         "value": "[variables('sharedSvcVnetName')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('devVmDeploymentUri')]",
+                    "uri": "[variables('devLinuxVmDeploymentUri')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('devWinVmDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('devLinuxVmDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "serverIpAddress": {
+                        "value": "[parameters('devWindowsServerIp')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
+                    },
+                    "subnetName": {
+                        "value": "[variables('sharedSvcDevSubnetName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('devWinVmName')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('sharedSvcVnetName')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('devWinVmDeploymentUri')]",
                     "contentVersion": "1.0.0.0"
                 }
             }

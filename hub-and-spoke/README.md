@@ -5,7 +5,7 @@ This deployable lab provides a simple way to experiment with Azure workloads in 
 
 A [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli). [UDRs (User defined routes)](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined) are used to route all outgoing traffic and traffic between spokes through the Azure Firewall in the hub Virtual Network. The Azure Firewall is also configured as the DNS provider for the attached Virtual Network. Private DNS Zones for common Azure services are deployed and linked to the hub virtual network to support PrivateLink integrations.
 
-In the Shared Services Virtual Network an Ubuntu (virtual machine) is deployed and is pre-loaded with Azure CLI, kubectl, and Docker. 
+In the Shared Services Virtual Network Ubuntu and Windows VMs are deployed as utility servers. The Windows VM comes loaded with Google Chrome, Visual Studio Code, Azure CLI, and Azure PowerShell. The Linux VM comes loaded with Azure CLI, kubectl, and Docker.
 
 The Workload Virtual Network is deployed with an app, data, and supported services (PaaS services behind Private Endpoints). The workload resource group also contains a user-assigned managed identity which has been given permissions to get and list secrets in a Key Vault instance.
 
@@ -32,7 +32,7 @@ Additional features included:
 
 ## Installation with Azure Portal
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fmaster%2Fhub-and-spoke%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fhub-and-spoke-v2%2Fhub-and-spoke%2Fazuredeploy.json)
 
 ## Installation with Azure CLI
 1. Set the following variables:

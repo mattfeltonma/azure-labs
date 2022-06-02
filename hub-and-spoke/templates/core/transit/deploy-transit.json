@@ -238,8 +238,7 @@
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRanges": [
-                                "443",
-                                "4443"
+                                "443"
                             ],
                             "sourceAddressPrefix": "GatewayManager",
                             "destinationAddressPrefix": "*",
@@ -252,7 +251,7 @@
                         "name": "AllowDataPlane",
                         "properties": {
                             "description": "Allows Azure Bastion data plane traffic",
-                            "protocol": "Tcp",
+                            "protocol": "*",
                             "sourcePortRange": "*",
                             "destinationPortRanges": [
                                 "8080",
@@ -297,7 +296,7 @@
                         "name": "AllowOutboundDataPlane",
                         "properties": {
                             "description": "Allows Azure Bastion data plane traffic",
-                            "protocol": "Tcp",
+                            "protocol": "*",
                             "sourcePortRange": "*",
                             "destinationPortRanges": [
                                 "8080",
@@ -328,7 +327,7 @@
                         "name": "AllowOutboundInternet",
                         "properties": {
                             "description": "Allows Bastion to validate certificates",
-                            "protocol": "Tcp",
+                            "protocol": "*",
                             "sourcePortRange": "*",
                             "destinationPortRange": "80",
                             "sourceAddressPrefix": "*",
@@ -342,7 +341,7 @@
                         "name": "AllowOutboundVirtualNetwork",
                         "properties": {
                             "description": "Allows Bastion to connect to VMs over SSH and RDP",
-                            "protocol": "Tcp",
+                            "protocol": "*",
                             "sourcePortRange": "*",
                             "destinationPortRanges": [
                                 "3389",
