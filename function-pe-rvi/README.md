@@ -26,9 +26,9 @@ Additional features included:
 ## Prerequisites
 1. You must hold at least the Contributor role within each Azure subscription you configure the template to deploy resources to.
 
-2. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance. This will be used for the keyVaultAdmin parameter of the template.
+2. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance. This will be used for the keyVaultAdmin parameter of the template. Ensure you are using the most up to date version of az cli.
 
-**az ad user show --id someuser@sometenant.com --query objectId --output tsv**
+**az ad user show --id someuser@sometenant.com --query id --output tsv**
 
 3. Enable Network Watcher in the region you plan to deploy the resources using the Azure Portal method described in this link. Do not use the CLI option because the templates expect the Network Watcher resource to be named NetworkWatcher_REGION, such as NetworkWatcher_eastus2. The CLI names the resource watcher_REGION such as watcher_eastus2 which will cause the deployment of the environment to fail.
 
