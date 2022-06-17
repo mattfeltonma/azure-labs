@@ -238,7 +238,7 @@
                                 "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
                             },
                             {
-                                "name": "AllowIntraAzureTraffic",
+                                "name": "AllowInfraAzureTraffic",
                                 "priority": 200,
                                 "action": {
                                     "type": "Allow"
