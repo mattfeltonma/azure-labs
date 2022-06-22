@@ -8,6 +8,12 @@
                 "description": "The summarized IP address space used for this lab"
             }
         },
+        "devSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The subnet CIDR assigned to the subnet containing the development virtual machines"
+            }
+        },   
         "onPremisesAddressSpace": {
             "type": "string",
             "metadata": {
@@ -29,6 +35,12 @@
                 "description": "Data used to append to resources to ensure uniqueness"
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "workloadVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The subnet CIDR assigned to the workload virtual network"
+            }
         }
     },
     "variables": {
@@ -182,6 +194,35 @@
                                         "destinationIpGroups": [],
                                         "destinationAddresses": [
                                             "[parameters('cloudAddressSpace')]"
+                                        ],
+                                        "ruleConditionType": "NetworkRuleCondition",
+                                        "ruleType": "NetworkRule"
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            },
+                            {
+                                "name": "AllowDevVmWorkload",
+                                "priority": 400,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowDevVmToWorkloadVnet",
+                                        "ipProtocols": [
+                                            "*"
+                                        ],
+                                        "destinationPorts": [
+                                            "*"
+                                        ],
+                                        "sourceAddresses": [
+                                            "[parameters('devSubnetCidr')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "destinationIpGroups": [],
+                                        "destinationAddresses": [
+                                            "[parameters('workloadVnetCidr')]"
                                         ],
                                         "ruleConditionType": "NetworkRuleCondition",
                                         "ruleType": "NetworkRule"

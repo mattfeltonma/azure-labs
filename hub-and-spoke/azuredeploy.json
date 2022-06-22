@@ -216,6 +216,9 @@
                     },
                     "onPremisesAddressSpace": {
                         "value": "[parameters('onPremisesAddressSpace')]"
+                    },
+                    "sharedSvcDevSubnetCidr": {
+                        "value": "[variables('sharedSvcVnetSubnetDevCidr')]"
                     },           
                     "transitBastionSubnetCidr": {
                         "value": "[variables('transitBastionSubnetCidr')]"
@@ -234,7 +237,10 @@
                     },
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
-                    }
+                    },
+                    "workloadVnetCidr": {
+                        "value": "[variables('workloadVnetCidr')]"
+                    },
                 },
                 "templateLink": {
                     "uri": "[variables('transitTemplatesFile')]",

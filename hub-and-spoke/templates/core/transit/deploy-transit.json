@@ -20,7 +20,13 @@
             "metadata": {
                 "description": "The IP address block used on-premises"
             }
-        },        
+        },
+        "sharedSvcDevSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the Dev subnet in the Shared Services virtual network"
+            }
+        },      
         "transitBastionSubnetCidr": {
             "type": "string",
             "metadata": {
@@ -60,6 +66,12 @@
                 "description": "Data used to append to resources to ensure uniqueness"
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "workloadVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the Workload virtual network"
+            }
         }
     },
     "variables": {
@@ -193,6 +205,9 @@
                     "cloudAddressSpace": {
                         "value": "[parameters('cloudAddressSpace')]"
                     },
+                    "devSubnetCidr": {
+                        "value": "[parameters('sharedSvcDevSubnetCidr')]"
+                    },
                     "onPremisesAddressSpace": {
                         "value": "[parameters('onPremisesAddressSpace')]"
                     },
@@ -201,6 +216,9 @@
                     },
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
+                    },
+                    "workloadVnetCidr": {
+                        "value": "[parameters('workloadVnetCidr')]"
                     }
                 },
                 "templateLink": {
