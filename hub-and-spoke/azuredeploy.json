@@ -240,7 +240,7 @@
                     },
                     "workloadVnetCidr": {
                         "value": "[variables('workloadVnetCidr')]"
-                    },
+                    }
                 },
                 "templateLink": {
                     "uri": "[variables('transitTemplatesFile')]",
