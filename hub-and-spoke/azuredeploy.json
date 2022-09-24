@@ -219,7 +219,10 @@
                     },
                     "sharedSvcDevSubnetCidr": {
                         "value": "[variables('sharedSvcVnetSubnetDevCidr')]"
-                    },           
+                    },   
+                    "sharedSvcVnetCidr": {
+                        "value": "[variables('sharedSvcVnetCidr')]"
+                    },  
                     "transitBastionSubnetCidr": {
                         "value": "[variables('transitBastionSubnetCidr')]"
                     },
