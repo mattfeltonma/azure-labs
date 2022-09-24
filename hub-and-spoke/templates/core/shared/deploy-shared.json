@@ -409,7 +409,7 @@
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]"
                             },
-                            "privateEndpointNetworkPolicies": "Disabled"
+                            "privateEndpointNetworkPolicies": "Enabled"
                         }
                     }
                 ],
@@ -628,6 +628,6 @@
             }
         }
     ],
-    "outputs": {        
+    "outputs": {
     }
 }

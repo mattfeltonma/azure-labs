@@ -444,7 +444,7 @@
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('svcNsgName'))]"
                             },    
-                            "privateEndpointNetworkPolicies": "Disabled"
+                            "privateEndpointNetworkPolicies": "Enabled"
                         }
                     }
                 ],
