@@ -13,11 +13,13 @@ Additional features included:
 
 * Azure Bastion provisioned in the hub to provide SSH and RDP (Remote Desktop Protocol) to deployed virtual machines
 * Azure Firewall configured to send diagnostic logs to an instance of Log Analytics Workspace to allow for review of the traffic flowing to and from the Azure Function
+* Virtual Network Gateway deployed to the hub and configured to route traffic through Azure Firewall
 * An Azure Key Vault instance which stores the user configured VM administrator username and password
 * An Azure Key Vault instance for workloads deployed into the workload resource group
 * All instances of Azure Key Vault are deployed with a Private Endpoint
 * All subnets that support Network Security Groups are configured with them
 * Network Security Groups are configured with NSG Flow Logs which are set to an Azure Storage Account and Traffic Analytics
+* Subnets are configured so that Private Endpoints support Network Security Groups
 
 ![lab image](images/lab_image.svg)
 
