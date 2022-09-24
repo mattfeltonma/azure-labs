@@ -148,7 +148,7 @@
         "secretDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-secret.json')]",
         "sharedSvcDevSubnetName": "snet-dev",
         "sharedSvcPeSvcSubnetName": "snet-pe",
-        "sharedSvcRouteTableName": "[concat('rt-shared', parameters('uniqueData'))]",
+        "sharedSvcRouteTableName": "rt-dev",
         "sharedSvcRgName": "[resourceGroup().name]",
         "sharedSvcSubId": "[subscription().subscriptionId]",
         "sharedSvcVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
@@ -409,7 +409,7 @@
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]"
                             },
-                            "privateEndpointNetworkPolicies": "Disabled"
+                            "privateEndpointNetworkPolicies": "Enabled"
                         }
                     }
                 ],
@@ -433,7 +433,7 @@
                         "allowVirtualNetworkAccess": "true",
                         "allowForwardedTraffic": "true",
                         "allowGatewayTransit": "false",
-                        "useRemoteGateways": "false",
+                        "useRemoteGateways": "true",
                         "remoteVirtualNetwork": {
                             "id": "[parameters('transitVnetResourceId')]"
                         }
@@ -628,6 +628,6 @@
             }
         }
     ],
-    "outputs": {        
+    "outputs": {
     }
 }

@@ -121,7 +121,8 @@
                                     {
                                         "name": "AllowNtp",
                                         "ipProtocols": [
-                                            "TCP"
+                                            "TCP",
+                                            "UDP"
                                         ],
                                         "destinationPorts": [
                                             "123"
@@ -151,7 +152,8 @@
                                     {
                                         "name": "AllowNtp",
                                         "ipProtocols": [
-                                            "TCP"
+                                            "TCP",
+                                            "UDP"
                                         ],
                                         "destinationPorts": [
                                             "123"
