@@ -200,8 +200,7 @@
             },
             "sku": {
                 "name": "Standard"
-            },
-            "zones": []
+            }
         },
         {
             "name": "[variables('firewallPublicIpName')]",
@@ -961,8 +960,8 @@
                 "vpnType": "RouteBased",
                 "vpnGatewayGeneration": "Generation2",
                 "sku": {
-                    "name": "VpnGw2",
-                    "tier": "VpnGw2"
+                    "name": "VpnGw2AZ",
+                    "tier": "VpnGw2AZ"
                 }
             }
         }
