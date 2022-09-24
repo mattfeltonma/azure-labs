@@ -129,7 +129,9 @@
         "storageTablesPrivateDnsZoneName": "privatelink.table.core.windows.net",
         "storageTablesPlLinkName": "[concat(variables('storageTablesPrivateDnsZoneName'), '-link')]",
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
-        "vnetStandardDdosProtection": false
+        "vnetStandardDdosProtection": false,
+        "vnetGatewayPublicIpName": "pip-vng",
+        "vnetGatewayName": "[concat('vng', parameters('uniqueData'))]"
     },
     "resources": [
         {
@@ -176,6 +178,19 @@
         },
         {
             "name": "[variables('bastionPublicIpName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
+        {
+            "name": "[variables('vnetGatewayPublicIpName')]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
@@ -904,6 +919,51 @@
             },
             "resources": [
             ]
+        },
+        {
+            "name": "[variables('vnetGatewayName')]",
+            "type": "Microsoft.Network/virtualNetworkGateways",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIpAddresses', variables('vnetGatewayPublicIpName'))]",
+                "[resourceId('Microsoft.Network/bastionHosts',variables('bastionName'))]"
+            ],
+            "properties": {
+                "enableBgp": true,
+                "gatewayType": "vpn",
+                "ipConfigurations": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('transitVnetName'), 'GatewaySubnet')]"
+                            },
+                            "publicIpAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('vnetGatewayPublicIpName'))]"
+                            }
+                        }
+                    }
+                ],
+                "bgpSettings": {
+                    "asn": 65515,
+                    "bgpPeeringAddresses": [
+                        {
+                            "ipconfigurationId": "[concat(resourceId('Microsoft.Network/virtualNetworkGateways',variables('vnetGatewayName')), '/ipConfigurations/default')]",
+                            "customBgpIpAddresses": [
+                            ]
+                        }
+                    ]
+                },
+                "vpnType": "RouteBased",
+                "vpnGatewayGeneration": "Generation2",
+                "sku": {
+                    "name": "VpnGw2",
+                    "tier": "VpnGw2"
+                }
+            }
         }
     ],
     "outputs": {
