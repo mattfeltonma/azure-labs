@@ -130,7 +130,7 @@
         "storageTablesPlLinkName": "[concat(variables('storageTablesPrivateDnsZoneName'), '-link')]",
         "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
         "vnetStandardDdosProtection": false,
-        "vnetGatewayPublicIpName": "pip-vng",
+        "vnetGatewayPublicIpName": "[concat('pip-vng', parameters('uniqueData'))]",
         "vnetGatewayName": "[concat('vng', parameters('uniqueData'))]"
     },
     "resources": [
@@ -200,7 +200,8 @@
             },
             "sku": {
                 "name": "Standard"
-            }
+            },
+            "zones": []
         },
         {
             "name": "[variables('firewallPublicIpName')]",
