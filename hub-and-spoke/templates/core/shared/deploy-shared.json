@@ -399,7 +399,8 @@
                             },
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('devNsgName'))]"
-                            }
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
                         }
                     },
                     {
