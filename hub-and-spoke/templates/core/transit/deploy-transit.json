@@ -454,7 +454,8 @@
                     {
                         "name": "[variables('gatewaySubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('transitGatewaySubnetCidr')]"
+                            "addressPrefix": "[parameters('transitGatewaySubnetCidr')]",
+                            "privateEndpointNetworkPolicies": "Enabled"
                         }
                     },
                     {
@@ -463,13 +464,15 @@
                             "addressPrefix": "[parameters('transitBastionSubnetCidr')]",
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
-                            }
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
                         }
                     },
                     {
                         "name": "[variables('fwPayloadSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[parameters('transitFwSubnetPayCidr')]"
+                            "addressPrefix": "[parameters('transitFwSubnetPayCidr')]",
+                            "privateEndpointNetworkPolicies": "Enabled"
                         }
                     }
                 ],
@@ -835,7 +838,8 @@
                                             "addressPrefix": "[parameters('transitGatewaySubnetCidr')]",
                                             "routeTable": {
                                                 "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableVngName'))]"
-                                            }
+                                            },
+                                            "privateEndpointNetworkPolicies": "Enabled"
                                         }
                                     },
                                     {
@@ -844,13 +848,15 @@
                                             "addressPrefix": "[parameters('transitBastionSubnetCidr')]",
                                             "networkSecurityGroup": {
                                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
-                                            }
+                                            },
+                                            "privateEndpointNetworkPolicies": "Enabled"
                                         }
                                     },
                                     {
                                         "name": "[variables('fwPayloadSubnetName')]",
                                         "properties": {
-                                            "addressPrefix": "[parameters('transitFwSubnetPayCidr')]"
+                                            "addressPrefix": "[parameters('transitFwSubnetPayCidr')]",
+                                            "privateEndpointNetworkPolicies": "Enabled"
                                         }
                                     }
                                 ],
