@@ -1,5 +1,11 @@
 # Azure Hub and Spoke Base Lab
 
+## Updates
+* 9/25/2022
+* * Added Virtual Network Gateway and configured it to support BGP
+* * Added route table to GatewaySubnet with routes for both shared services and workload vnets to point to Azure Firewall
+* * Modified all subnets in shared services and workload vnets to enable Private Endpoint Network Policies to support NSGs support for Private Endpoints and routing enhancements
+
 ## Overview
 This deployable lab provides a simple way to experiment with Azure workloads in an enterprise-like hub and spoke environment. Three resource groups are deployed with one for transit resources, one for shared services, and one for a workload.
 
