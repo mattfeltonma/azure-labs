@@ -785,7 +785,7 @@
             }
         },
         {
-            "name": "[concat(variables('dnsResolver'),'/',variables('dnsResolverInbound'))]",
+            "name": "[concat(variables('dnsResolver'),'/',variables('vnetSubnetSharedSvcDnsIn'))]",
             "type": "Microsoft.Network/dnsResolvers/inboundEndpoints",
             "apiVersion": "[variables('dnsResolverApiVersion')]",
             "location": "[variables('location')]",
@@ -807,7 +807,7 @@
             }
         },
         {
-            "name": "[concat(variables('dnsResolver'),'/',variables('dnsResolverOutbound'))]",
+            "name": "[concat(variables('dnsResolver'),'/',variables('vnetSubnetSharedSvcDnsOut'))]",
             "type": "Microsoft.Network/dnsResolvers/inboundEndpoints",
             "apiVersion": "[variables('dnsResolverApiVersion')]",
             "location": "[variables('location')]",
