@@ -82,7 +82,7 @@
     },
     "variables": {
         "dnsApiVersion": "2018-09-01",
-        "dnsResolverApiVersion": "2020-04-01",
+        "dnsResolverApiVersion": "2022-07-01",
         "networkApiVersion": "2020-04-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
@@ -273,7 +273,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('deploySecretPassword')]",
+                    "uri": "[variables('deploymentUriSecret')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
