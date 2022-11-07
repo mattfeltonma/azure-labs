@@ -812,7 +812,7 @@
             "apiVersion": "[variables('dnsResolverApiVersion')]",
             "location": "[variables('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/dnsResolvers/inboundEndpoints', variables('dnsResolver'), variables('dnsResolverInbound'))]"
+                "[resourceId('Microsoft.Network/dnsResolvers/inboundEndpoints', variables('dnsResolver'), variables('vnetSubnetSharedSvcDnsIn'))]"
             ],
             "tags": "[parameters('tags')]",
             "properties": {
@@ -826,7 +826,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/dnsResolvers/inboundEndpoints', variables('dnsResolver'), variables('dnsResolverOutbound'))]"
+                "[resourceId('Microsoft.Network/dnsResolvers/inboundEndpoints', variables('dnsResolver'), variables('vnetSubnetSharedSvcDnsOut'))]"
             ],
             "properties": {
                 "mode": "Incremental",
