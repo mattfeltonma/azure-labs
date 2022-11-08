@@ -89,7 +89,6 @@
     "variables": {
         "resourcesApiVersion": "2020-06-01",
         "cloudRegionAddressSpace": "10.0.0.0/13",
-        "sharedSvcIpDnsInResolver": "10.1.0.4",
         "sharedSvcIpLinuxDevServer": "10.1.2.5",
         "sharedSvcIpWindowsDevServer": "10.1.2.6",
         "sharedSvcRgDeployNamePh1": "[concat('deploy-shared-rg-phase1-',parameters('uniqueData'))]",
@@ -224,9 +223,6 @@
                     },
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
-                    },
-                    "sharedSvcIpDnsInResolver": {
-                        "value": "[variables('sharedSvcIpDnsInResolver')]"
                     },
                     "sharedSvcVnetCidr": {
                         "value": "[variables('sharedSvcVnetCidr')]"
