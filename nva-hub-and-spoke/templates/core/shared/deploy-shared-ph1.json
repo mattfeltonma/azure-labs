@@ -316,7 +316,7 @@
                         "name": "AllowUdpDns",
                         "properties": {
                             "description": "Allow Udp DNS queries to resolver",
-                            "protocol": "Tcp",
+                            "protocol": "Udp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "53",
                             "sourceAddressPrefixes": [
