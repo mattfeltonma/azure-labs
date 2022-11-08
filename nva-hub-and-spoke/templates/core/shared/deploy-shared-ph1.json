@@ -826,7 +826,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/dnsResolvers/inboundEndpoints', variables('dnsResolver'), variables('dnsResolverOutbound'))]"
+                "[resourceId('Microsoft.Network/dnsResolvers/outboundEndpoints', variables('dnsResolver'), variables('dnsResolverOutbound'))]"
             ],
             "properties": {
                 "mode": "Incremental",
