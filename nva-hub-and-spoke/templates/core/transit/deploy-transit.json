@@ -709,6 +709,9 @@
                     "cloudRegionAddressSpace": {
                         "value": "[parameters('cloudRegionAddressSpace')]"
                     },
+                    "innerGatewayIp": {
+                        "value": "[parameters('transitVnetSubnetGatewayNvaInner')]"
+                    },
                     "innerNicIpAddress": {
                         "value": "[parameters('transitIpNvaVm2Inner')]"
                     },
@@ -723,6 +726,9 @@
                     },
                     "onPremisesAddressSpace": {
                         "value": "[parameters('onPremisesAddressSpace')]"
+                    },
+                    "outerGatewayIp": {
+                        "value": "[parameters('transitVnetSubnetGatewayNvaOuter')]"
                     },
                     "outerNicPrivateIpAddress": {
                         "value": "[parameters('transitIpNvaVm2Outer')]"
