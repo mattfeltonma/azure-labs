@@ -153,6 +153,7 @@
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
+                "enableIPForwarding": true,
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
@@ -177,6 +178,7 @@
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
+                "enableIPForwarding": true,
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
