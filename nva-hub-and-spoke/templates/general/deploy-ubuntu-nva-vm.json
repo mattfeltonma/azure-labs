@@ -147,7 +147,9 @@
                         "properties": {
                             "privateIPAllocationMethod": "Static",
                             "privateIPAddress": "[parameters('outerNicPrivateIpAddress')]",
-                            "publicIPAddress": "[parameters('outerNicPublicIpAddress')]",
+                            "publicIPAddress": {
+                                "id": "[parameters('outerNicPublicIpAddress')]"
+                            },
                             "subnet": {
                                 "id": "[variables('outerSubnetRef')]"
                             }
