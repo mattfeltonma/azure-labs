@@ -194,6 +194,7 @@
         "deploymentUriNvaLinuxVm": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-nva-vm.json')]",
         "gatewayName": "[concat('vng', parameters('uniqueData'))]",
         "nsgNameBastion": "[concat('nsg-bst', parameters('uniqueData'))]",
+        "nsgNameOuter": "[concat('nsg-outer', parameters('uniqueData'))]",
         "publicIpBastion": "[concat('pip-bst', parameters('uniqueData'))]",
         "publicIpGateway": "[concat('pip-vng', parameters('uniqueData'))]",
         "publicIpVm1": "pip-nva-vm1",
@@ -451,6 +452,45 @@
             }
         },
         {
+            "name": "[variables('nsgNameOuter')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowSshHealthProbes",
+                        "properties": {
+                            "description": "Allows health probes from Azure Load Balancer",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 2000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('vnetNameTransit')]",
             "apiVersion": "[variables('networkApiVersion')]",
@@ -494,6 +534,9 @@
                         "name": "[variables('vnetSubnetTransitNvaOuter')]",
                         "properties": {
                             "addressPrefix": "[parameters('transitVnetSubnetCidrNvaOuter')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameOuter'))]"
+                            },
                             "privateEndpointNetworkPolicies": "Enabled"
                         }
                     }
