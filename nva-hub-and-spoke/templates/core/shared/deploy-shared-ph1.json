@@ -978,7 +978,7 @@
                                 "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
                                 "dhcpOptions": {
                                     "dnsServers": [
-                                        "[reference(variables('dnsResolverInbound')).ipConfigurations[0].properties.privateIpAddress]"
+                                        "[reference(variables('dnsResolverInbound')).ipConfigurations[0].privateIpAddress]"
                                     ]
                                 }
                             }
@@ -991,7 +991,7 @@
     "outputs": {
         "dnsResolverInboundIp": {
             "type": "string",
-            "value": "[reference(variables('dnsResolverInbound')).ipConfigurations[0].properties.privateIpAddress]"
+            "value": "[reference(variables('dnsResolverInbound')).ipConfigurations[0].privateIpAddress]"
         }
     }
 }
