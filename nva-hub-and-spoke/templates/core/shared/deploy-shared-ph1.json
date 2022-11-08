@@ -612,7 +612,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/privateDnsZones', variables('dnsZoneAks'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSharedSvc'))]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('dnsZoneAks'), '/virtualNetworkLinks/', variables('dnsZoneLinkAcr'))]"
+                "[concat('Microsoft.Network/privateDnsZones/',variables('dnsZoneAcr'), '/virtualNetworkLinks/', variables('dnsZoneLinkAcr'))]"
             ],
             "properties": {
                 "registrationEnabled": false,
