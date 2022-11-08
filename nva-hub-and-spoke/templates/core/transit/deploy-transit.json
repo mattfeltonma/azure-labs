@@ -33,7 +33,7 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
-        "nsgStorageAccountName": {
+        "nsgStorageResourceId": {
             "type": "string",
             "metadata": {
                 "description": "The resource id of the Azure Storage Account used to store NSG flow logs"
@@ -198,7 +198,9 @@
         "publicIpGateway": "[concat('pip-vng', parameters('uniqueData'))]",
         "publicIpVm1": "pip-nva-vm1",
         "publicIpVm2": "pip-nva-vm2",
+        "resourceGroupTransit": "[resourceGroup().name]",
         "routeTableVngName": "rt-vng",
+        "subscriptionIdTransit": "[subscription().subscriptionId]",
         "vmNameVm1": "[concat('vm-nva1-',parameters('uniqueData'))]",
         "vmNameVm2": "[concat('vm-nva2-',parameters('uniqueData'))]",
         "vmSku": "Standard_D4s_v5",
@@ -439,7 +441,7 @@
                         "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameBastion'))]"
                     },
                     "targetStorageResourceId": {
-                        "value": "[parameters('nsgStorageAccountName')]"
+                        "value": "[parameters('nsgStorageResourceId')]"
                     }
                 },
                 "templateLink": {
@@ -552,7 +554,7 @@
                                 "allowGatewayTransit": "true",
                                 "useRemoteGateways": "false",
                                 "remoteVirtualNetwork": {
-                                    "id": "[resourceId(parameters('sharedSvcSubscriptionId'), parameters('sharedSvcResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('sharedSvcVnetName'))]"
+                                    "id": "[resourceId(variables('subscriptionIdTransit'), variables('resourceGroupTransit'), 'Microsoft.Network/virtualNetworks', variables('vnetNameTransit'))]"
                                 }
                             }
                         }
