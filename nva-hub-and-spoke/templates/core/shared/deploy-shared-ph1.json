@@ -2,6 +2,12 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "cloudRegionAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block of address space used in this Azure region"
+            }
+        },
         "keyVaultAdmin": {
             "type": "string",
             "metadata": {
@@ -14,6 +20,12 @@
                 "description": "The resource group where the Network Watcher instances are stored"
             },
             "defaultValue": "NetworkWatcherRG"
+        },
+        "onPremisesAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block of address space used on-premises"
+            }
         },
         "sharedSvcVnetCidr": {
             "type": "string",
@@ -110,7 +122,7 @@
         "dnsZoneStorageFile": "privatelink.file.core.windows.net",
         "dnsZoneStorageQueue": "privatelink.queue.core.windows.net",
         "dnsZoneStorageTable": "privatelink.table.core.windows.net",
-        "dnsZoneLinkAcr":  "[concat(variables('dnsZoneAcr'), '-link')]",
+        "dnsZoneLinkAcr": "[concat(variables('dnsZoneAcr'), '-link')]",
         "dnsZoneLinkAks": "[concat(variables('dnsZoneAks'), '-link')]",
         "dnsZoneLinkAppServices": "[concat(variables('dnsZoneAppServices'), '-link')]",
         "dnsZoneLinkAzureSql": "[concat(variables('dnsZoneAzureSql'), '-link')]",
@@ -282,7 +294,42 @@
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
-                "securityRules": []
+                "securityRules": [
+                    {
+                        "name": "AllowTcpDns",
+                        "properties": {
+                            "description": "Allow TCP DNS queries to resolver",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "53",
+                            "sourceAddressPrefixes": [
+                                "[parameters('onPremisesAddressSpace')]",
+                                "[parameters('cloudRegionAddressSpace')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowUdpDns",
+                        "properties": {
+                            "description": "Allow Udp DNS queries to resolver",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "53",
+                            "sourceAddressPrefixes": [
+                                "[parameters('onPremisesAddressSpace')]",
+                                "[parameters('cloudRegionAddressSpace')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1001,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
             }
         },
         {

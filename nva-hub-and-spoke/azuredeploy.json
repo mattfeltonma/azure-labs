@@ -218,11 +218,17 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "cloudRegionAddressSpace": {
+                        "value": "[variables('cloudRegionAddressSpace')]"
+                    },
                     "keyVaultAdmin": {
                         "value": "[parameters('keyVaultAdmin')]"
                     },
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
+                    "onPremisesAddressSpace": {
+                        "value": "[parameters('onPremisesAddressSpace')]"
                     },
                     "sharedSvcVnetCidr": {
                         "value": "[variables('sharedSvcVnetCidr')]"
