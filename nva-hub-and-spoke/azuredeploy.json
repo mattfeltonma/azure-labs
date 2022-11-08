@@ -101,7 +101,7 @@
         "sharedSvcVnetCidr": "10.1.0.0/16",
         "sharedSvcVnetSubnetCidrDev": "10.1.2.0/24",
         "sharedSvcVnetSubnetCidrDnsIn": "10.1.0.0/28",
-        "sharedSvcVnetSUbnetCidrDnsOut": "10.1.1.0/28",
+        "sharedSvcVnetSubnetCidrDnsOut": "10.1.1.0/28",
         "sharedSvcVnetSubnetCidrPe": "10.1.3.0/24",
         "transitIpIlbOuter": "10.0.1.20",
         "transitIpNvaVm1Inner": "10.0.1.4",
@@ -118,6 +118,8 @@
         "transitVnetSubnetCidrGateway": "10.0.0.0/27",
         "transitVnetSubnetCidrNvaInner": "10.0.1.0/24",
         "transitVnetSubnetCidrNvaOuter": "10.0.2.0/24",
+        "transitVnetSubnetGatewayNvaInner": "10.0.1.1",
+        "transitVnetSubnetGatewayNvaOuter": "10.0.2.1",
         "workloadRgDeploymentName": "[concat('deploy-workload',parameters('uniqueData'))]",
         "workloadRgName": "[concat('rg-workload-',parameters('uniqueData'))]",
         "workloadSubDeploymentName": "[concat('deploy-workload-sub', parameters('uniqueData'))]",
@@ -341,6 +343,12 @@
                     },
                     "transitVnetSubnetCidrNvaOuter": {
                         "value": "[variables('transitVnetSubnetCidrNvaOuter')]"
+                    },
+                    "transitVnetSubnetGatewayNvaInner": {
+                        "value": "[variables('transitVnetSubnetGatewayNvaInner')]"
+                    },
+                    "transitVnetSubnetGatewayNvaOuter": {
+                        "value": "[variables('transitVnetSubnetGatewayNvaOuter')]"
                     },
                     "transitVnetCidr": {
                         "value": "[variables('transitVnetCidr')]"

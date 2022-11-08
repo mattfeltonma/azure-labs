@@ -135,6 +135,18 @@
                 "description": "The IP address block assigned to the outer subnet in the Transit virtual network"
             }
         },
+        "transitVnetSubnetGatewayNvaInner": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the gateway for the subnet the outer nic is in"
+            }
+        },
+        "transitVnetSubnetGatewayNvaOuter": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the gateway for the subnet the outer nic is in"
+            }
+        },
         "transitVnetCidr": {
             "type": "string",
             "metadata": {
@@ -627,6 +639,9 @@
                     "innerNicIpAddress": {
                         "value": "[parameters('transitIpNvaVm1Inner')]"
                     },
+                    "innerGatewayIp": {
+                        "value": "[parameters('transitVnetSubnetGatewayNvaInner')]"
+                    },
                     "innerSubnetName": {
                         "value": "[variables('vnetSubnetTransitNvaInner')]"
                     },
@@ -644,6 +659,9 @@
                     },
                     "outerNicPublicIpAddress": {
                         "value": "[resourceId('Microsoft.Network/publicIpAddresses',variables('publicIpVm1'))]"
+                    },
+                    "outerGatewayIp": {
+                        "value": "[parameters('transitVnetSubnetGatewayNvaOuter')]"
                     },
                     "outerSubnetName": {
                         "value": "[variables('vnetSubnetTransitNvaOuter')]"

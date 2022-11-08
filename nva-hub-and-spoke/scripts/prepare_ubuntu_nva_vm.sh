@@ -27,7 +27,7 @@ sysctl -p
 # Configure routing
 cat << EOF |
 [Unit]
-Description=Configure vrf and routing for machine'\n'
+Description=Configure vrf and routing for machine
 
 [Service]
 Type=oneshot
@@ -36,10 +36,10 @@ RemainAfterExit=yes
 ExecStart=/bin/bash -c "ip link add vrflan type vrf table 10"
 ExecStart=/bin/bash -c "ip link set dev vrflan up"
 ExecStart=/bin/bash -c "ip link set dev eth1 master vrflan"
-ExecStart=/bin/bash -c "ip route add table 10 0.0.0.0/0 via 10.0.0.1"
-ExecStart=/bin/bash -c "ip route add table 10 168.63.129.16 via 10.0.1.1"
-ExecStart=/bin/bash -c "ip route add table 10 $1 via 10.0.1.1"
-ExecStart=/bin/bash -c "ip route add table 10 $2 via 10.0.1.1"
+ExecStart=/bin/bash -c "ip route add table 10 0.0.0.0/0 via $4"
+ExecStart=/bin/bash -c "ip route add table 10 168.63.129.16 via $3"
+ExecStart=/bin/bash -c "ip route add table 10 $1 via $3"
+ExecStart=/bin/bash -c "ip route add table 10 $2 via $3"
 ExecStart=/bin/bash -c "ip route add table 10 unreachable default metric 4278198272"
 ExecStart=/bin/bash -c "ip route add $1 dev vrflan"
 ExecStart=/bin/bash -c "ip route add $2 dev vrflan"
@@ -66,7 +66,7 @@ iptables -A FORWARD -i eth1 -o vrflan -m state --state RELATED,ESTABLISHED -j AC
 iptables -A FORWARD -i vrflan -o eth1 -j ACCEPT
 
 # # Log traffic that is dropped
-iptables -A FORWARD -j LOG --log-prefix "Dropping FORWARD traffic: "
+iptables -A FORWARD -i eth0 -j LOG --log-prefix "Dropping FORWARD traffic on eth0: "
 iptables -A FORWARD -i eth0 -j DROP
 
 # # Allow SSH traffic in eth0 and eth1
@@ -77,8 +77,8 @@ iptables -A INPUT -p tcp --dport ssh -j ACCEPT
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 # # Drop all other traffic sent directly to routers
-iptables --log-prefix "Dropping INPUT traffic: "
-iptables -A INPUT -j DROP
+iptables -A INPUT -i eth0 -j LOG --log-prefix "Dropping INPUT traffic on eth0: "
+iptables -A INPUT -eth0 -j DROP
 
 # # Allow return traffic from sessions that interact with processes running on machine (such as ssh)
 iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT

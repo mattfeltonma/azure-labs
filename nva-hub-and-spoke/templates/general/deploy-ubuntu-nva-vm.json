@@ -26,6 +26,12 @@
                 "description": "The IP address assigned to the inner nic"
             }
         },
+        "innerGatewayIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the gateway for the subnet the outer nic is in"
+            }
+        },
         "innerSubnetName": {
             "type": "string",
             "metadata": {
@@ -55,6 +61,12 @@
             "type": "string",
             "metadata": {
                 "description": "The IP address space used in on-premises"
+            }
+        },
+        "outerGatewayIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the gateway for the subnet the outer nic is in"
             }
         },
         "outerNicPrivateIpAddress": {
@@ -259,7 +271,7 @@
                             "fileUris": [
                                 "[variables('scriptUrl')]"
                             ],
-                            "commandToExecute": "[concat('sh ',variables('scriptName'), ' ',parameters('cloudRegionAddressSpace'), ' ', parameters('onPremisesAddressSpace'))]"
+                            "commandToExecute": "[concat('sh ',variables('scriptName'), ' ',parameters('cloudRegionAddressSpace'), ' ',parameters('onPremisesAddressSpace'), ' ',parameters('innerGatewayIp'), ' ',parameters('outerGatewayIp'))]"
                         }
                     }
                 },
