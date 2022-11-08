@@ -522,6 +522,14 @@
                         "name": "[variables('vnetSubnetSharedSvcDnsIn')]",
                         "properties": {
                             "addressPrefix": "[parameters('sharedSvcVnetSubnetCidrDnsIn')]",
+                            "delegations": [
+                                {
+                                    "name": "delegationToDnsResolver",
+                                    "properties": {
+                                        "serviceName": "Microsoft.Network/dnsResolvers"
+                                    }
+                                }
+                            ],
                             "routeTable": {
                                 "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableSharedSvc'))]"
                             },
@@ -535,6 +543,14 @@
                         "name": "[variables('vnetSubnetSharedSvcDnsOut')]",
                         "properties": {
                             "addressPrefix": "[parameters('sharedSvcVnetSubnetCidrDnsOut')]",
+                            "delegations": [
+                                {
+                                    "name": "delegationToDnsResolver",
+                                    "properties": {
+                                        "serviceName": "Microsoft.Network/dnsResolvers"
+                                    }
+                                }
+                            ],
                             "routeTable": {
                                 "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableSharedSvc'))]"
                             },
@@ -910,6 +926,14 @@
                                         "name": "[variables('vnetSubnetSharedSvcDnsIn')]",
                                         "properties": {
                                             "addressPrefix": "[parameters('sharedSvcVnetSubnetCidrDnsIn')]",
+                                            "delegations": [
+                                                {
+                                                    "name": "delegationToDnsResolver",
+                                                    "properties": {
+                                                        "serviceName": "Microsoft.Network/dnsResolvers"
+                                                    }
+                                                }
+                                            ],
                                             "routeTable": {
                                                 "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableSharedSvc'))]"
                                             },
@@ -923,6 +947,14 @@
                                         "name": "[variables('vnetSubnetSharedSvcDnsOut')]",
                                         "properties": {
                                             "addressPrefix": "[parameters('sharedSvcVnetSubnetCidrDnsOut')]",
+                                            "delegations": [
+                                                {
+                                                    "name": "delegationToDnsResolver",
+                                                    "properties": {
+                                                        "serviceName": "Microsoft.Network/dnsResolvers"
+                                                    }
+                                                }
+                                            ],
                                             "routeTable": {
                                                 "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableSharedSvc'))]"
                                             },
