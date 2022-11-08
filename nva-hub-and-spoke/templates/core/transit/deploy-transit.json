@@ -8,6 +8,24 @@
                 "description": "The IP address block assigned to this Azure region"
             }
         },
+        "dnsServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the Inbound Private DNS Resolver"
+            }
+        },
+        "lawName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Log Analytics Workspace"
+            }
+        },
+        "lawResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Log Analytics Workspace"
+            }
+        },
         "networkWatcherRg": {
             "type": "string",
             "metadata": {
@@ -15,10 +33,28 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
+        "nsgStorageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Azure Storage Account used to store NSG flow logs"
+            }
+        },
         "onPremisesAddressSpace": {
             "type": "string",
             "metadata": {
                 "description": "The IP address block used on-premises"
+            }
+        },
+        "sharedSvcResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group containing the shared services resources"
+            }
+        },
+        "sharedSvcSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id containing the shared services resources"
             }
         },
         "sharedSvcVnetSubnetCidrDev": {
@@ -33,16 +69,16 @@
                 "description": "The IP address block assigned to the Shared Services virtual network"
             }
         },
-        "transitIpDnsResolverInbound": {
+        "sharedSvcVnetName": {
             "type": "string",
             "metadata": {
-                "description": "The IP address assigned to the inbound DNS resolver"
+                "description": "The name of the shared services virtual network"
             }
         },
-        "transitIpDnsResolverOutbound": {
+        "sharedSvcVnetResourceId": {
             "type": "string",
             "metadata": {
-                "description": "The IP address assigned to the outbound DNS resolver"
+                "description": "The resource id of the Shared Services virtual network"
             }
         },
         "transitIpIlbOuter": {
@@ -127,7 +163,7 @@
                 "description": "The IP address block assigned to the Workload virtual network"
             }
         },
-         "vmAdminPassword": {
+        "vmAdminPassword": {
             "type": "securestring",
             "metadata": {
                 "description": "Password for the VMs that are created"
@@ -143,103 +179,41 @@
     "variables": {
         "diagnosticApiVersion": "2017-05-01-preview",
         "dnsApiVersion": "2018-09-01",
-        "dnsResolverApiVersion": "2022-07-01",
         "networkApiVersion": "2020-07-01",
         "resourcesApiVersion": "2020-06-01",
         "storageApiVersion": "2019-06-01",
         "location": "[resourceGroup().location]",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
-        "acrPrivateDnsZoneName": "privatelink.azurecr.io",
-        "acrPlLinkName": "[concat(variables('acrPrivateDnsZoneName'), '-link')]",
-        "appServicesPrivateDnsZoneName": "privatelink.azurewebsites.net",
-        "appServicesPlLinkName": "[concat(variables('appServicesPrivateDnsZoneName'), '-link')]",
-        "azureSqlPrivateDnsZoneName": "privatelink.database.windows.net",
-        "azureSqlPlLinkName": "[concat(variables('azureSqlPrivateDnsZoneName'), '-link')]",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
-        "bastionNsgName": "[concat('nsg-bst', parameters('uniqueData'))]",
-        "bastionPublicIpName": "[concat('pip-bst', parameters('uniqueData'))]",
-        "deployBastionNsgFlowLog": "deploy-bastionnsgflowlog",
-        "deployDnsServerSettings": "deploy-dnsserversettings",
-        "deployLaw": "deploy-sharedsvclaw",
+        "deployNsgFlowLogBastion": "deploy-bastionnsgflowlog",
         "deployNvaVm1": "deploy-nvavm1",
         "deployNvaVm2": "deploy-nvavm2",
-        "keyVaultPrivateDnsZoneName": "privatelink.vaultcore.azure.net",
-        "keyVaultPlLinkName": "[concat(variables('keyVaultPrivateDnsZoneName'), '-link')]",
-        "kubernetesPrivateDnsZoneName": "[concat('privatelink.', variables('location'),'.azmk8s.io')]",
-        "kubernetesPlLinkName": "[concat(variables('kubernetesPrivateDnsZoneName'), '-link')]",
-        "lawDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-law.json')]",
-        "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
-        "nvaLinuxVmDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-nva-vm.json')]",
-        "nvaVm1IpName": "pip-nva-vm1",
-        "nvaVm2IpName": "pip-nva-vm2",
-        "nvaVm1Name": "vm-nva1",
-        "nvaVm2Name": "vm-nva2",
-        "nvaVmSku": "Standard_D4s_v5",
+        "deploySharedSvcPeering": "deploy-sharedsvc-peering",
+        "deployUdrSharedSvc": "deploy-udr-sharedsvc",
+        "deploymentUriNsg": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
+        "deploymentUriNvaLinuxVm": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-nva-vm.json')]",
+        "gatewayName": "[concat('vng', parameters('uniqueData'))]",
+        "nsgNameBastion": "[concat('nsg-bst', parameters('uniqueData'))]",
+        "publicIpBastion": "[concat('pip-bst', parameters('uniqueData'))]",
+        "publicIpGateway": "[concat('pip-vng', parameters('uniqueData'))]",
+        "publicIpVm1": "pip-nva-vm1",
+        "publicIpVm2": "pip-nva-vm2",
         "routeTableVngName": "rt-vng",
-        "storageBlobsPrivateDnsZoneName": "privatelink.blob.core.windows.net",
-        "storageBlobsPlLinkName": "[concat(variables('storageBlobsPrivateDnsZoneName'), '-link')]",
-        "storageDfsPrivateDnsZoneName": "privatelink.dfs.core.windows.net",
-        "storageDfsPlLinkName": "[concat(variables('storageDfsPrivateDnsZoneName'), '-link')]",
-        "storageFilesPrivateDnsZoneName": "privatelink.file.core.windows.net",
-        "storageFilesPlLinkName": "[concat(variables('storageFilesPrivateDnsZoneName'), '-link')]",
-        "storageQueuesPrivateDnsZoneName": "privatelink.queue.core.windows.net",
-        "storageQueuesPlLinkName": "[concat(variables('storageQueuesPrivateDnsZoneName'), '-link')]",
-        "storageTablesPrivateDnsZoneName": "privatelink.table.core.windows.net",
-        "storageTablesPlLinkName": "[concat(variables('storageTablesPrivateDnsZoneName'), '-link')]",
-        "transitVnetName": "[concat('vnet-transit', parameters('uniqueData'))]",
-        "transitVnetSubnetBastionName": "AzureBastionSubnet",
-        "transitVnetSubnetGatewayName": "GatewaySubnet",
-        "transitVnetSubnetNvaInnerName": "snet-nvainner",
-        "transitVnetSubnetNvaOuterName": "snet-nvaouter",
-        "vnetStandardDdosProtection": false,
-        "vnetGatewayPublicIpName": "[concat('pip-vng', parameters('uniqueData'))]",
-        "vnetGatewayName": "[concat('vng', parameters('uniqueData'))]"
+        "vmNameVm1": "[concat('vm-nva1-',parameters('uniqueData'))]",
+        "vmNameVm2": "[concat('vm-nva2-',parameters('uniqueData'))]",
+        "vmSku": "Standard_D4s_v5",
+        "vnetNameTransit": "[concat('vnet-transit', parameters('uniqueData'))]",
+        "vnetPeeringSharedToTransit": "peersharedtotransit",
+        "vnetPeeringTransitToShared": "peertransittoshared",
+        "vnetSubnetTransitBastion": "AzureBastionSubnet",
+        "vnetSubnetTransitGateway": "GatewaySubnet",
+        "vnetSubnetTransitNvaInner": "snet-nvainner",
+        "vnetSubnetTransitNvaOuter": "snet-nvaouter",
+        "vnetStandardDdosProtection": false
     },
     "resources": [
         {
-            "name": "[variables('deployLaw')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('lawDeploymentUri')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "[variables('storageApiVersion')]",
-            "name": "[variables('logStorageAccountName')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "kind": "StorageV2",
-            "sku": {
-                "name": "Standard_RAGRS"
-            },
-            "properties": {
-                "networkAcls": {
-                    "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
-                    "ipRules": [],
-                    "defaultAction": "Deny"
-                },
-                "supportsHttpsTrafficOnly": true
-            }
-        },
-        {
-            "name": "[variables('bastionPublicIpName')]",
+            "name": "[variables('publicIpBastion')]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
@@ -252,7 +226,7 @@
             }
         },
         {
-            "name": "[variables('nvaVm1IpName')]",
+            "name": "[variables('publicIpVm1')]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
@@ -265,7 +239,7 @@
             }
         },
         {
-            "name": "[variables('nvaVm2IpName')]",
+            "name": "[variables('publicIpVm2')]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
@@ -278,7 +252,7 @@
             }
         },
         {
-            "name": "[variables('vnetGatewayPublicIpName')]",
+            "name": "[variables('publicIpGateway')]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
@@ -291,7 +265,7 @@
             }
         },
         {
-            "name": "[variables('bastionNsgName')]",
+            "name": "[variables('nsgNameBastion')]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
@@ -439,14 +413,12 @@
             }
         },
         {
-            "name": "[variables('deployBastionNsgFlowLog')]",
+            "name": "[variables('deployNsgFlowLogBastion')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]",
-                "[concat('Microsoft.Resources/deployments/',variables('deployLaw'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('logStorageAccountName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameBastion'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -458,32 +430,32 @@
                         "value": "[variables('location')]"
                     },
                     "targetLaWorkspaceResourceId": {
-                        "value": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]"
+                        "value": "[parameters('lawResourceId')]"
                     },
                     "targetNsgName": {
-                        "value": "[variables('bastionNsgName')]"
+                        "value": "[variables('nsgNameBastion')]"
                     },
                     "targetNsgResourceId": {
-                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('bastionNsgName'))]"
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameBastion'))]"
                     },
                     "targetStorageResourceId": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
+                        "value": "[parameters('nsgStorageAccountName')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('nsgDeploymentUri')]",
+                    "uri": "[variables('deploymentUriNsg')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
             "type": "Microsoft.Network/virtualNetworks",
-            "name": "[variables('transitVnetName')]",
+            "name": "[variables('vnetNameTransit')]",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployBastionNsgFlowLog'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployNsgFlowLogBastion'))]"
             ],
             "properties": {
                 "addressSpace": {
@@ -493,50 +465,107 @@
                 },
                 "subnets": [
                     {
-                        "name": "[variables('transitVnetSubnetGatewayName')]",
+                        "name": "[variables('vnetSubnetTransitGateway')]",
                         "properties": {
                             "addressPrefix": "[parameters('transitVnetSubnetCidrGateway')]",
                             "privateEndpointNetworkPolicies": "Enabled"
                         }
                     },
                     {
-                        "name": "[variables('transitVnetSubnetBastionName')]",
+                        "name": "[variables('vnetSubnetTransitBastion')]",
                         "properties": {
                             "addressPrefix": "[parameters('transitVnetSubnetCidrBastion')]",
                             "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameBastion'))]"
                             },
                             "privateEndpointNetworkPolicies": "Enabled"
                         }
                     },
                     {
-                        "name": "[variables('transitVnetSubnetNvaInnerName')]",
+                        "name": "[variables('vnetSubnetTransitNvaInner')]",
                         "properties": {
                             "addressPrefix": "[parameters('transitVnetSubnetCidrNvaInner')]",
                             "privateEndpointNetworkPolicies": "Enabled"
                         }
                     },
                     {
-                        "name": "[variables('transitVnetSubnetNvaOuterName')]",
+                        "name": "[variables('vnetSubnetTransitNvaOuter')]",
                         "properties": {
                             "addressPrefix": "[parameters('transitVnetSubnetCidrNvaOuter')]",
                             "privateEndpointNetworkPolicies": "Enabled"
                         }
                     }
                 ],
-                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
+                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
+                "dhcpOptions": {
+                    "dnsServers": [
+                        "[parameters('dnsServerIp')]"
+                    ]
+                }
             },
             "resources": [
+                {
+                    "name": "[variables('vnetPeeringTransitToShared')]",
+                    "type": "virtualNetworkPeerings",
+                    "apiVersion": "[variables('networkApiVersion')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetNameTransit'))]"
+                    ],
+                    "properties": {
+                        "allowVirtualNetworkAccess": "true",
+                        "allowForwardedTraffic": "true",
+                        "allowGatewayTransit": "false",
+                        "useRemoteGateways": "true",
+                        "remoteVirtualNetwork": {
+                            "id": "[parameters('sharedSvcVnetResourceId')]"
+                        }
+                    }
+                }
             ]
         },
-        { 
+        {
+            "name": "[variables('deploySharedSvcPeering')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
+            "resourceGroup": "[parameters('sharedSvcResourceGroupName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameTransit'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('sharedSvcVnetName'),'/',variables('vnetPeeringSharedToTransit'))]",
+                            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                            "apiVersion": "[variables('networkApiVersion')]",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "allowVirtualNetworkAccess": "true",
+                                "allowForwardedTraffic": "true",
+                                "allowGatewayTransit": "true",
+                                "useRemoteGateways": "false",
+                                "remoteVirtualNetwork": {
+                                    "id": "[resourceId(parameters('sharedSvcSubscriptionId'), parameters('sharedSvcResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('sharedSvcVnetName'))]"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
             "name": "[variables('deployNvaVm1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployLaw'))]",
-                "[resourceId('Microsoft.Network/publicIpAddresses', variables('nvaVm1IpName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deploySharedSvcPeering'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -554,13 +583,13 @@
                         "value": "[parameters('transitIpNvaVm1Inner')]"
                     },
                     "innerSubnetName": {
-                        "value": "[variables('transitVnetSubnetNvaInnerName')]"
+                        "value": "[variables('vnetSubnetTransitNvaInner')]"
                     },
                     "myWorkspaceId": {
-                        "value": "[reference(variables('deployLaw')).outputs.logAnalyticsWorkspaceId.value]"
+                        "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
                     },
                     "myWorkspaceKey": {
-                        "value": "[reference(variables('deployLaw')).outputs.logAnalyticsWorkspaceKey.value]"
+                        "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
                     },
                     "onPremisesAddressSpace": {
                         "value": "[parameters('onPremisesAddressSpace')]"
@@ -569,10 +598,10 @@
                         "value": "[parameters('transitIpNvaVm1Outer')]"
                     },
                     "outerNicPublicIpAddress": {
-                        "value": "[resourceId('Microsoft.Network/publicIpAddresses',variables('nvaVm1IpName'))]"
+                        "value": "[resourceId('Microsoft.Network/publicIpAddresses',variables('publicIpVm1'))]"
                     },
                     "outerSubnetName": {
-                        "value": "[variables('transitVnetSubnetNvaOuterName')]"
+                        "value": "[variables('vnetSubnetTransitNvaOuter')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -581,30 +610,29 @@
                         "value": "[parameters('uniqueData')]"
                     },
                     "virtualMachineSize": {
-                        "value": "[variables('nvaVmSku')]"
+                        "value": "[variables('vmSku')]"
                     },
                     "vmName": {
-                        "value": "[variables('nvaVm1Name')]"
+                        "value": "[variables('vmNameVm1')]"
                     },
                     "vnetName": {
-                        "value": "[variables('transitVnetName')]"
+                        "value": "[variables('vnetNameTransit')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('nvaLinuxVmDeploymentUri')]",
+                    "uri": "[variables('deploymentUriNvaLinuxVm')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
-        { 
+        {
             "name": "[variables('deployNvaVm2')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployLaw'))]",
-                "[resourceId('Microsoft.Network/publicIpAddresses', variables('nvaVm2IpName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployNvaVm1'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployNvaVm1'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameTransit'))]",
+                "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpVm2'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -622,13 +650,13 @@
                         "value": "[parameters('transitIpNvaVm2Inner')]"
                     },
                     "innerSubnetName": {
-                        "value": "[variables('transitVnetSubnetNvaInnerName')]"
+                        "value": "[variables('vnetSubnetTransitNvaInner')]"
                     },
                     "myWorkspaceId": {
-                        "value": "[reference(variables('deployLaw')).outputs.logAnalyticsWorkspaceId.value]"
+                        "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
                     },
                     "myWorkspaceKey": {
-                        "value": "[reference(variables('deployLaw')).outputs.logAnalyticsWorkspaceKey.value]"
+                        "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
                     },
                     "onPremisesAddressSpace": {
                         "value": "[parameters('onPremisesAddressSpace')]"
@@ -637,10 +665,10 @@
                         "value": "[parameters('transitIpNvaVm2Outer')]"
                     },
                     "outerNicPublicIpAddress": {
-                        "value": "[resourceId('Microsoft.Network/publicIpAddresses',variables('nvaVm1IpName'))]"
+                        "value": "[resourceId('Microsoft.Network/publicIpAddresses',variables('publicIpVm2'))]"
                     },
                     "outerSubnetName": {
-                        "value": "[variables('transitVnetSubnetNvaOuterName')]"
+                        "value": "[variables('vnetSubnetTransitNvaOuter')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -649,466 +677,30 @@
                         "value": "[parameters('uniqueData')]"
                     },
                     "virtualMachineSize": {
-                        "value": "[variables('nvaVmSku')]"
+                        "value": "[variables('vmSku')]"
                     },
                     "vmName": {
-                        "value": "[variables('nvaVm2Name')]"
+                        "value": "[variables('vmNameVm2')]"
                     },
                     "vnetName": {
-                        "value": "[variables('transitVnetName')]"
+                        "value": "[variables('vnetNameTransit')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('nvaLinuxVmDeploymentUri')]",
+                    "uri": "[variables('deploymentUriNvaLinuxVm')]",
                     "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('appServicesPrivateDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('appServicesPrivateDnsZoneName'), '/', variables('appServicesPlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('appServicesPrivateDnsZoneName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployNvaVm2'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('acrPrivateDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('acrPrivateDnsZoneName'), '/', variables('acrPlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('acrPrivateDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('appServicesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('appServicesPlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('kubernetesPrivateDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('kubernetesPrivateDnsZoneName'), '/', variables('kubernetesPlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('kubernetesPrivateDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('appServicesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('appServicesPlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('azureSqlPrivateDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('azureSqlPrivateDnsZoneName'), '/', variables('azureSqlPlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('azureSqlPrivateDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('kubernetesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('kubernetesPlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('storageFilesPrivateDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('storageFilesPrivateDnsZoneName'), '/', variables('storageFilesPlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('storageFilesPrivateDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('azureSqlPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('azureSqlPlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('storageBlobsPrivateDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('storageBlobsPrivateDnsZoneName'), '/', variables('storageBlobsPlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('storageBlobsPrivateDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('storageFilesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageFilesPlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('storageTablesPrivateDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('storageTablesPrivateDnsZoneName'), '/', variables('storageTablesPlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('storageBlobsPrivateDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('storageBlobsPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageBlobsPlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('storageDfsPrivateDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('storageDfsPrivateDnsZoneName'), '/', variables('storageDfsPlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('storageDfsPrivateDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('storageTablesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageTablesPlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('storageQueuesPrivateDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('storageQueuesPrivateDnsZoneName'), '/', variables('storageQueuesPlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('storageQueuesPrivateDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('storageDfsPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageDfsPlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[variables('keyVaultPrivateDnsZoneName')]",
-            "location": "global"
-        },
-        {
-            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
-            "name": "[concat(variables('keyVaultPrivateDnsZoneName'), '/', variables('keyVaultPlLinkName'))]",
-            "location": "global",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('keyVaultPrivateDnsZoneName'))]",
-                "[concat('Microsoft.Network/privateDnsZones/',variables('storageQueuesPrivateDnsZoneName'), '/virtualNetworkLinks/', variables('storageQueuesPlLinkName'))]"
-            ],
-            "properties": {
-                "registrationEnabled": false,
-                "virtualNetwork": {
-                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]"
-                }
-            }
-        },
-        {
-            "name": "[variables('routeTableVngName')]",
-            "type": "Microsoft.Network/routeTables",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones/virtualNetworkLinks',variables('keyVaultPrivateDnsZoneName'),variables('keyVaultPlLinkName'))]"
-            ],
-            "properties": {
-                "routes": [
-                    {
-                        "name": "udr-shared",
-                        "properties": {
-                            "addressPrefix": "[parameters('sharedSvcVnetCidr')]",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
-                        }
-                    },
-                    {
-                        "name": "udr-workload",
-                        "properties": {
-                            "addressPrefix": "[parameters('workloadVnetCidr')]",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
-                        }
-                    }
-
-
-                ],
-                "disableBgpRoutePropagation": "False"
-            },
-            "resources": [
-            ]
-        },
-        {
-            "name": "[variables('deployDnsServerSettings')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/azureFirewalls/',variables('firewallName'),'/providers/microsoft.insights/diagnosticSettings/diag')]",
-                "[resourceId('Microsoft.Network/routeTables',variables('routeTableVngName'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "resources": [
-                        {
-                            "type": "Microsoft.Network/virtualNetworks",
-                            "name": "[variables('transitVnetName')]",
-                            "apiVersion": "[variables('networkApiVersion')]",
-                            "location": "[variables('location')]",
-                            "tags": "[parameters('tags')]",
-                            "dependsOn": [
-                            ],
-                            "properties": {
-                                "addressSpace": {
-                                    "addressPrefixes": [
-                                        "[parameters('transitVnetCidr')]"
-                                    ]
-                                },
-                                "subnets": [
-                                    {
-                                        "name": "[variables('gatewaySubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('transitGatewaySubnetCidr')]",
-                                            "routeTable": {
-                                                "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableVngName'))]"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "name": "[variables('bastionSubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('transitBastionSubnetCidr')]",
-                                            "networkSecurityGroup": {
-                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastionNsgName'))]"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "name": "[variables('fwPayloadSubnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('transitFwSubnetPayCidr')]"
-                                        }
-                                    }
-                                ],
-                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
-                                "dhcpOptions": {
-                                    "dnsServers": [
-                                        "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
-                                    ]
-                                }
-                            },
-                            "resources": [
-                            ]
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "name": "[variables('bastionName')]",
-            "type": "Microsoft.Network/bastionHosts",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('transitVnetName'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployDnsServerSettings'))]"
-            ],
-            "tags": "[parameters('tags')]",
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "bastionConfig",
-                        "properties": {
-                            "subnet": {
-                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('transitVnetName'), variables('bastionSubnetName'))]"
-                            },
-                            "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('bastionPublicIpName'))]"
-                            },
-                            "privateIPAllocationMethod": "Dynamic"
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "name": "[concat(variables('bastionName'),'/microsoft.insights/diag')]",
-            "type": "Microsoft.Network/bastionHosts/providers/diagnosticSettings",
-            "apiVersion": "[variables('diagnosticApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/bastionHosts',variables('bastionName'))]"
-            ],
-            "properties": {
-                "name": "SendToWorkspace",
-                "workspaceId": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]",
-                "logs": [
-                    {
-                        "category": "BastionAuditLogs",
-                        "enabled": true
-                    }
-                ],
-                "metrics": [
-                ]
-            },
-            "resources": [
-            ]
-        },
-        {
-            "name": "[variables('vnetGatewayName')]",
-            "type": "Microsoft.Network/virtualNetworkGateways",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIpAddresses', variables('vnetGatewayPublicIpName'))]",
-                "[resourceId('Microsoft.Network/bastionHosts',variables('bastionName'))]"
-            ],
-            "properties": {
-                "enableBgp": true,
-                "gatewayType": "vpn",
-                "ipConfigurations": [
-                    {
-                        "name": "default",
-                        "properties": {
-                            "privateIPAllocationMethod": "Dynamic",
-                            "subnet": {
-                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('transitVnetName'), 'GatewaySubnet')]"
-                            },
-                            "publicIpAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('vnetGatewayPublicIpName'))]"
-                            }
-                        }
-                    }
-                ],
-                "bgpSettings": {
-                    "asn": 65515,
-                    "bgpPeeringAddresses": [
-                        {
-                            "ipconfigurationId": "[concat(resourceId('Microsoft.Network/virtualNetworkGateways',variables('vnetGatewayName')), '/ipConfigurations/default')]",
-                            "customBgpIpAddresses": [
-                            ]
-                        }
-                    ]
-                },
-                "vpnType": "RouteBased",
-                "vpnGatewayGeneration": "Generation2",
-                "sku": {
-                    "name": "VpnGw2AZ",
-                    "tier": "VpnGw2AZ"
                 }
             }
         }
     ],
     "outputs": {
-        "firewallIp": {
-            "type": "string",
-            "value": "[reference(variables('firewallName')).ipConfigurations[0].properties.privateIPAddress]"
-        },
-        "lawName": {
-            "type": "string",
-            "value": "[reference(variables('deployLaw')).outputs.logAnalyticsName.value]"
-        },
-        "lawResourceId": {
-            "type": "string",
-            "value": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]"
-        },
-        "nsgStorageAccountResourceId": {
-            "type": "string",
-            "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('logStorageAccountName'))]"
-        },
         "transitVnetName": {
             "type": "string",
-            "value": "[variables('transitVnetName')]"
+            "value": "[variables('vnetNameTransit')]"
         },
         "transitVnetResourceId": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Network/virtualNetworks',variables('transitVnetName'))]"
+            "value": "[resourceId('Microsoft.Network/virtualNetworks',variables('vnetNameTransit'))]"
         }
     }
 }

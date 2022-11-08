@@ -100,6 +100,7 @@
         "dnsResolver": "[concat('dnsresolv', parameters('uniqueData'))]",
         "dnsResolverInbound": "[concat('dnsresolvin', parameters('uniqueData'))]",
         "dnsResolverOutbound": "[concat('dnsresolvout', parameters('uniqueData'))]",
+        "dnsZoneAcr": "privatelink.azurecr.io",
         "dnsZoneAks": "[concat('privatelink.', variables('location'),'.azmk8s.io')]",
         "dnsZoneAppServices": "privatelink.azurewebsites.net",
         "dnsZoneAzureSql": "privatelink.database.windows.net",
@@ -109,6 +110,7 @@
         "dnsZoneStorageFile": "privatelink.file.core.windows.net",
         "dnsZoneStorageQueue": "privatelink.queue.core.windows.net",
         "dnsZoneStorageTable": "privatelink.table.core.windows.net",
+        "dnsZoneLinkAcr":  "[concat(variables('dnsZoneAcr'), '-link')]",
         "dnsZoneLinkAks": "[concat(variables('dnsZoneAks'), '-link')]",
         "dnsZoneLinkAppServices": "[concat(variables('dnsZoneAppServices'), '-link')]",
         "dnsZoneLinkAzureSql": "[concat(variables('dnsZoneAzureSql'), '-link')]",
@@ -577,6 +579,28 @@
         {
             "type": "Microsoft.Network/privateDnsZones",
             "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[variables('dnsZoneAcr')]",
+            "location": "global"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "[variables('dnsApiVersion')]",
+            "name": "[concat(variables('dnsZoneAcr'), '/', variables('dnsZoneLinkAcr'))]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('dnsZoneAcr'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSharedSvc'))]"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSharedSvc'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('dnsApiVersion')]",
             "name": "[variables('dnsZoneAks')]",
             "location": "global"
         },
@@ -587,7 +611,8 @@
             "location": "global",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/privateDnsZones', variables('dnsZoneAks'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSharedSvc'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSharedSvc'))]",
+                "[concat('Microsoft.Network/privateDnsZones/',variables('dnsZoneAks'), '/virtualNetworkLinks/', variables('dnsZoneLinkAcr'))]"
             ],
             "properties": {
                 "registrationEnabled": false,
@@ -992,6 +1017,26 @@
         "dnsResolverInboundIp": {
             "type": "string",
             "value": "[reference(variables('dnsResolverInbound')).ipConfigurations[0].privateIpAddress]"
+        },
+        "lawName": {
+            "type": "string",
+            "value": "[reference(variables('deployLaw')).outputs.logAnalyticsName.value]"
+        },
+        "lawResourceId": {
+            "type": "string",
+            "value": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]"
+        },
+        "nsgStorageAccountResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('storageAccountCent'))]"
+        },
+        "sharedSvcVnetName": {
+            "type": "string",
+            "value": "[variables('vnetSharedSvc')]"
+        },
+        "sharedSvcVnetResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualNetworks',variables('vnetSharedSvc'))]"
         }
     }
 }

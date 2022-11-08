@@ -257,6 +257,109 @@
                     "contentVersion": "1.0.0.0"
                 }
             }
+        },
+        {
+            "name": "[variables('transitRgDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('transitSubscriptionId')]",
+            "resourceGroup": "[variables('transitRgName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('sharedSvcRgDeployNamePh1'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "cloudRegionAddressSpace": {
+                        "value": "[variables('cloudRegionAddressSpace')]"
+                    },
+                    "dnsServerIp": {
+                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.dnsResolverInboundIp.value]"
+                    },
+                    "lawName": {
+                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.lawName.value]"
+                    },
+                    "lawResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.lawResourceId.value]"
+                    },
+                    "networkWatcherRg": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
+                    "nsgStorageResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.nsgStorageAccountResourceId.value]"
+                    },
+                    "onPremisesAddressSpace": {
+                        "value": "[parameters('onPremisesAddressSpace')]"
+                    },
+                    "sharedSvcResourceGroupName": {
+                        "value": "[variables('sharedSvcRgName')]"
+                    },
+                    "sharedSvcSubscriptionId": {
+                        "value": "[parameters('sharedSubscriptionId')]"
+                    },
+                    "sharedSvcVnetSubnetCidrDev": {
+                        "value": "[variables('sharedSvcVnetSubnetCidrDev')]"
+                    },
+                    "sharedSvcVnetCidr": {
+                        "value": "[variables('sharedSvcVnetCidr')]"
+                    },
+                    "sharedSvcVnetName": {
+                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.sharedSvcVnetName.value]"
+                    },
+                    "sharedSvcVnetResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.sharedSvcVnetResourceId.value]"
+                    },
+                    "transitIpIlbOuter": {
+                        "value": "[variables('transitIpIlbOuter')]"
+                    },
+                    "transitIpNvaVm1Inner": {
+                        "value": "[variables('transitIpNvaVm1Inner')]"
+                    },
+                    "transitIpNvaVm2Inner": {
+                        "value": "[variables('transitIpNvaVm2Inner')]"
+                    },
+                    "transitIpNvaVm1Outer": {
+                        "value": "[variables('transitIpNvaVm1Outer')]"
+                    },
+                    "transitIpNvaVm2Outer": {
+                        "value": "[variables('transitIpNvaVm2Outer')]"
+                    },
+                    "transitVnetSubnetCidrBastion": {
+                        "value": "[variables('transitVnetSubnetCidrBastion')]"
+                    },
+                    "transitVnetSubnetCidrGateway": {
+                        "value": "[variables('transitVnetSubnetCidrGateway')]"
+                    },
+                    "transitVnetSubnetCidrNvaInner": {
+                        "value": "[variables('transitVnetSubnetCidrNvaInner')]"
+                    },
+                    "transitVnetSubnetCidrNvaOuter": {
+                        "value": "[variables('transitVnetSubnetCidrNvaOuter')]"
+                    },
+                    "transitVnetCidr": {
+                        "value": "[variables('transitVnetCidr')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "workloadVnetCidr": {
+                        "value": "[variables('workloadVnetCidr')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('transitTemplatesFile')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
         }
     ],
     "outputs": {
