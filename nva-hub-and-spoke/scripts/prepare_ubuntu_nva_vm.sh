@@ -78,7 +78,7 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
 # # Drop all other traffic sent directly to routers
 iptables -A INPUT -i eth0 -j LOG --log-prefix "Dropping INPUT traffic on eth0: "
-iptables -A INPUT -eth0 -j DROP
+iptables -A INPUT -i eth0 -j DROP
 
 # # Allow return traffic from sessions that interact with processes running on machine (such as ssh)
 iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
