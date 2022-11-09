@@ -952,7 +952,7 @@
         "transitLoadBalancerNvaInnerIp": 
         {
             "type": "string",
-            "value": "[reference(variables('loadBalNameInternal')).properties.frontendIPConfigurations[0].privateIpAddress]"           
+            "value": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].properties.PrivateIPAddress]"           
         },
         "transitVnetName": {
             "type": "string",
