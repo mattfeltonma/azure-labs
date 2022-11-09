@@ -205,7 +205,7 @@
                             "subnet": {
                                 "id": "[variables('innerSubnetRef')]"
                             },
-                            "loadBalancerAddressPools": [
+                            "loadBalancerBackendAddressPools": [
                                 {
                                     "id": "[parameters('intLoadBalAddressPool')]"
                                 }
