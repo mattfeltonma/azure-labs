@@ -706,7 +706,7 @@
                 ],
                 "backendAddressPools": [
                     {
-                        "name": "[variables('loadBalBeAddPoolNameExt')]",
+                        "name": "[variables('loadBalBeAddPoolNameExt')]"
                     }
                 ],
                 "loadBalancingRules": [
@@ -752,7 +752,7 @@
                 ],
                 "backendAddressPools": [
                     {
-                        "name": "[variables('loadBalBeAddPoolNameInt')]",
+                        "name": "[variables('loadBalBeAddPoolNameInt')]"
                     }
                 ],
                 "loadBalancingRules": [
