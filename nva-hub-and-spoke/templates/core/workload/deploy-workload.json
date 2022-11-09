@@ -38,6 +38,18 @@
                 "description": "The resource id of the Storage Account for NSG Flow logs"
             }
         },
+        "sharedSvcResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group containing the shared services resources"
+            }
+        },
+        "sharedSvcSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id containing the shared services resources"
+            }
+        },
         "transitResourceGroupName": {
             "type": "string",
             "metadata": {
@@ -531,10 +543,10 @@
                         "value": "[variables('location')]"
                     },
                     "privateDnsZoneResourceGroup": {
-                        "value": "[parameters('transitResourceGroupName')]"
+                        "value": "[parameters('sharedSvcResourceGroupName')]"
                     },
                     "privateDnsZoneSubscription": {
-                        "value": "[parameters('transitVnetSubscriptionId')]"
+                        "value": "[parameters('sharedSvcSubscriptionId')]"
                     },
                     "privateEndpointSubnetName": {
                         "value": "[variables('workloadVnetSvcSubnetName')]"
