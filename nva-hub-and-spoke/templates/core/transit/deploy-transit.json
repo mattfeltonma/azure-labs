@@ -707,13 +707,6 @@
                 "backendAddressPools": [
                     {
                         "name": "[variables('loadBalBeAddPoolNameExt')]",
-                        "properties": {
-                            "backendIPConfigurations": [
-                                {
-                                    "name": "[variables('loadBalBeAddPoolNameExt')]"
-                                }
-                            ]
-                        }
                     }
                 ],
                 "loadBalancingRules": [
@@ -760,13 +753,6 @@
                 "backendAddressPools": [
                     {
                         "name": "[variables('loadBalBeAddPoolNameInt')]",
-                        "properties": {
-                            "backendIPConfigurations": [
-                                {
-                                    "name": "[variables('loadBalBeAddPoolNameInt')]"
-                                }
-                            ]
-                        }
                     }
                 ],
                 "loadBalancingRules": [
