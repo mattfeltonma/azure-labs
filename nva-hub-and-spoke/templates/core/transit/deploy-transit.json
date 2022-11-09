@@ -812,10 +812,10 @@
                         "value": "[parameters('cloudRegionAddressSpace')]"
                     },
                     "extLoadBalAddressPool": {
-                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAdressPools', variables('loadBalNameExternal'), variables('loadBalBeAddPoolNameExt'))]"
+                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalNameExternal'), variables('loadBalBeAddPoolNameExt'))]"
                     },
                     "intLoadBalAddressPool": {
-                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAdressPools', variables('loadBalNameInternal'), variables('loadBalBeAddPoolNameInt'))]"
+                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalNameInternal'), variables('loadBalBeAddPoolNameInt'))]"
                     },
                     "innerNicIpAddress": {
                         "value": "[parameters('transitIpNvaVm1Inner')]"
@@ -891,10 +891,10 @@
                         "value": "[parameters('cloudRegionAddressSpace')]"
                     },
                     "extLoadBalAddressPool": {
-                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAdressPools', variables('loadBalNameExternal'), variables('loadBalBeAddPoolNameExt'))]"
+                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalNameExternal'), variables('loadBalBeAddPoolNameExt'))]"
                     },
                     "intLoadBalAddressPool": {
-                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAdressPools', variables('loadBalNameInternal'), variables('loadBalBeAddPoolNameInt'))]"
+                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalNameInternal'), variables('loadBalBeAddPoolNameInt'))]"
                     },
                     "innerGatewayIp": {
                         "value": "[parameters('transitVnetSubnetGatewayNvaInner')]"
