@@ -198,6 +198,7 @@
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
         "deployNsgFlowLogBastion": "deploy-bastionnsgflowlog",
+        "deployNsgFlowLogOuter": "deploy-outernsgflowlog",
         "deployNvaVm1": "deploy-nvavm1",
         "deployNvaVm2": "deploy-nvavm2",
         "deploySharedSvcPeering": "deploy-sharedsvc-peering",
@@ -527,13 +528,50 @@
             }
         },
         {
+            "name": "[variables('deployNsgFlowLogOuter')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameOuter'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('nsgNameOuter')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameOuter'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[parameters('nsgStorageResourceId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNsg')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('vnetNameTransit')]",
             "apiVersion": "[variables('networkApiVersion')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployNsgFlowLogBastion'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deployNsgFlowLogBastion'))]",              
+                "[concat('Microsoft.Resources/deployments/', variables('deployNsgFlowLogOuter'))]"
             ],
             "properties": {
                 "addressSpace": {
