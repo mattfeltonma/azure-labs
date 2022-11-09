@@ -214,7 +214,6 @@
         "loadBalNameInternal": "[concat('lb-int-nva',parameters('uniqueData'))]",
         "loadBalProbeNameExt": "probe-ext-nva",
         "loadBalProbeNameInt": "probe-ixt-nva",
-        "loadBalRuleNameExt": "lbrule-elb-nva",
         "loadBalRuleNameInt": "lbrule-ilb-nva",
         "nsgNameBastion": "[concat('nsg-bst', parameters('uniqueData'))]",
         "nsgNameOuter": "[concat('nsg-outer', parameters('uniqueData'))]",
@@ -713,7 +712,7 @@
                 ],
                 "probes": [
                     {
-                        "name": "[variables('loadBalProbeNameInt')]",
+                        "name": "[variables('loadBalProbeNameExt')]",
                         "properties": {
                             "protocol": "Tcp",
                             "port": 22,
