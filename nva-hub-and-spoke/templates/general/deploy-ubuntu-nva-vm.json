@@ -178,7 +178,7 @@
                             "subnet": {
                                 "id": "[variables('outerSubnetRef')]"
                             },
-                            "loadBalancerAddressPools": [
+                            "loadBalancerBackendAddressPools": [
                                 {
                                     "id": "[parameters('extLoadBalAddressPool')]"
                                 }
