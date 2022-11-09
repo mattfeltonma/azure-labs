@@ -24,6 +24,11 @@ echo "net.ipv4.tcp_l3mdev_accept = 1" >> /etc/sysctl.conf
 echo "net.ipv4.udp_l3mdev_accept = 1" >> /etc/sysctl.conf
 sysctl -p
 
+# Create vrf and associate eth1 with it
+ip link add vrflan type vrf table 10
+ip link set dev vrflan up
+ip link set dev eth1 master vrflan
+
 # Configure routing
 cat << EOF |
 [Unit]
@@ -33,9 +38,6 @@ Description=Configure vrf and routing for machine
 Type=oneshot
 RemainAfterExit=yes
 
-ExecStart=/bin/bash -c "ip link add vrflan type vrf table 10"
-ExecStart=/bin/bash -c "ip link set dev vrflan up"
-ExecStart=/bin/bash -c "ip link set dev eth1 master vrflan"
 ExecStart=/bin/bash -c "ip route add table 10 0.0.0.0/0 via $4"
 ExecStart=/bin/bash -c "ip route add table 10 168.63.129.16 via $3"
 ExecStart=/bin/bash -c "ip route add table 10 $1 via $3"
