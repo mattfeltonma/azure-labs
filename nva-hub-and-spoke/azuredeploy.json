@@ -103,7 +103,7 @@
         "sharedSvcVnetSubnetCidrDnsIn": "10.1.0.0/28",
         "sharedSvcVnetSubnetCidrDnsOut": "10.1.1.0/28",
         "sharedSvcVnetSubnetCidrPe": "10.1.3.0/24",
-        "transitIpIlbOuter": "10.0.1.20",
+        "transitIpIlbInner": "10.0.1.20",
         "transitIpNvaVm1Inner": "10.0.1.4",
         "transitIpNvaVm2Inner": "10.0.1.5",
         "transitIpNvaVm1Outer": "10.0.2.4",
@@ -317,8 +317,8 @@
                     "sharedSvcVnetResourceId": {
                         "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.sharedSvcVnetResourceId.value]"
                     },
-                    "transitIpIlbOuter": {
-                        "value": "[variables('transitIpIlbOuter')]"
+                    "transitIpIlbInner": {
+                        "value": "[variables('transitIpIlbInner')]"
                     },
                     "transitIpNvaVm1Inner": {
                         "value": "[variables('transitIpNvaVm1Inner')]"

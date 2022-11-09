@@ -20,6 +20,18 @@
                 "description": "The IP address used in the Azure region"
             }
         },
+        "extLoadBalAddressPool": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the external load balancer address pool"
+            }
+        },
+        "intLoadBalAddressPool": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the internal load balancer address pool"
+            }
+        },
         "innerNicIpAddress": {
             "type": "string",
             "metadata": {
@@ -165,7 +177,12 @@
                             },
                             "subnet": {
                                 "id": "[variables('outerSubnetRef')]"
-                            }
+                            },
+                            "loadBalancerAddressPools": [
+                                {
+                                    "id": "[parameters('extLoadBalAddressPool')]"
+                                }
+                            ]
                         }
                     }
                 ]
@@ -187,7 +204,12 @@
                             "privateIPAddress": "[parameters('innerNicIpAddress')]",
                             "subnet": {
                                 "id": "[variables('innerSubnetRef')]"
-                            }
+                            },
+                            "loadBalancerAddressPools": [
+                                {
+                                    "id": "[parameters('intLoadBalAddressPool')]"
+                                }
+                            ]
                         }
                     }
                 ]
@@ -216,13 +238,13 @@
                     "networkInterfaces": [
                         {
                             "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('outerNicName'))]",
-                            "properties": { 
-                                "primary": true 
+                            "properties": {
+                                "primary": true
                             }
                         },
                         {
                             "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('innerNicName'))]",
-                            "properties": { 
+                            "properties": {
                                 "primary": false
                             }
                         }
