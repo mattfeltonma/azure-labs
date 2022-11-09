@@ -950,6 +950,11 @@
         }
     ],
     "outputs": {
+        "transitLoadBalancerNvaInnerIp": 
+        {
+            "type": "string",
+            "value": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].privateIpAddress]"           
+        },
         "transitVnetName": {
             "type": "string",
             "value": "[variables('vnetNameTransit')]"
