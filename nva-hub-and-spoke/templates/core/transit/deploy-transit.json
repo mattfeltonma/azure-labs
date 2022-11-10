@@ -57,18 +57,6 @@
                 "description": "The subscription id containing the shared services resources"
             }
         },
-        "sharedSvcVnetSubnetCidrDev": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address block assigned to the Dev subnet in the Shared Services virtual network"
-            }
-        },
-        "sharedSvcVnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address block assigned to the Shared Services virtual network"
-            }
-        },
         "sharedSvcVnetName": {
             "type": "string",
             "metadata": {
@@ -168,12 +156,6 @@
                 "description": "Data used to append to resources to ensure uniqueness"
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
-        },
-        "workloadVnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address block assigned to the Workload virtual network"
-            }
         },
         "vmAdminPassword": {
             "type": "securestring",

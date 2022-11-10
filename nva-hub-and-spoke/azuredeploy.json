@@ -305,12 +305,6 @@
                     "sharedSvcSubscriptionId": {
                         "value": "[parameters('sharedSubscriptionId')]"
                     },
-                    "sharedSvcVnetSubnetCidrDev": {
-                        "value": "[variables('sharedSvcVnetSubnetCidrDev')]"
-                    },
-                    "sharedSvcVnetCidr": {
-                        "value": "[variables('sharedSvcVnetCidr')]"
-                    },
                     "sharedSvcVnetName": {
                         "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.sharedSvcVnetName.value]"
                     },
@@ -358,9 +352,6 @@
                     },
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
-                    },
-                    "workloadVnetCidr": {
-                        "value": "[variables('workloadVnetCidr')]"
                     },
                     "vmAdminPassword": {
                         "value": "[parameters('vmAdminPassword')]"
