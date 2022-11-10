@@ -189,11 +189,9 @@
         }
     },
     "variables": {
-        "diagnosticApiVersion": "2017-05-01-preview",
-        "dnsApiVersion": "2018-09-01",
-        "networkApiVersion": "2020-07-01",
-        "resourcesApiVersion": "2020-06-01",
-        "storageApiVersion": "2019-06-01",
+        "_apiVersionDiagnostic": "2017-05-01-preview",
+        "_apiVersionNetwork": "2020-07-01",
+        "_apiVersionResource": "2020-06-01",
         "location": "[resourceGroup().location]",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
@@ -202,7 +200,6 @@
         "deployNvaVm1": "deploy-nvavm1",
         "deployNvaVm2": "deploy-nvavm2",
         "deploySharedSvcPeering": "deploy-sharedsvc-peering",
-        "deployUdrSharedSvc": "deploy-udr-sharedsvc",
         "deploymentUriNsg": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
         "deploymentUriNvaLinuxVm": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-nva-vm.json')]",
         "gatewayName": "[concat('vng', parameters('uniqueData'))]",
@@ -241,7 +238,7 @@
         {
             "name": "[variables('publicIpBastion')]",
             "type": "Microsoft.Network/publicIpAddresses",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -254,7 +251,7 @@
         {
             "name": "[variables('publicIpElb')]",
             "type": "Microsoft.Network/publicIpAddresses",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -267,7 +264,7 @@
         {
             "name": "[variables('publicIpVm1')]",
             "type": "Microsoft.Network/publicIpAddresses",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -280,7 +277,7 @@
         {
             "name": "[variables('publicIpVm2')]",
             "type": "Microsoft.Network/publicIpAddresses",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -293,7 +290,7 @@
         {
             "name": "[variables('publicIpGateway')]",
             "type": "Microsoft.Network/publicIpAddresses",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -306,7 +303,7 @@
         {
             "name": "[variables('nsgNameBastion')]",
             "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -454,7 +451,7 @@
         {
             "name": "[variables('deployNsgFlowLogBastion')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameBastion'))]"
@@ -490,7 +487,7 @@
         {
             "name": "[variables('nsgNameOuter')]",
             "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -529,7 +526,7 @@
         {
             "name": "[variables('deployNsgFlowLogOuter')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameOuter'))]"
@@ -565,7 +562,7 @@
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('vnetNameTransit')]",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
@@ -625,7 +622,7 @@
                 {
                     "name": "[variables('vnetPeeringTransitToShared')]",
                     "type": "virtualNetworkPeerings",
-                    "apiVersion": "[variables('networkApiVersion')]",
+                    "apiVersion": "[variables('_apiVersionNetwork')]",
                     "location": "[resourceGroup().location]",
                     "dependsOn": [
                         "[concat('Microsoft.Network/virtualNetworks/', variables('vnetNameTransit'))]"
@@ -645,7 +642,7 @@
         {
             "name": "[variables('deploySharedSvcPeering')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "resourceGroup": "[parameters('sharedSvcResourceGroupName')]",
             "dependsOn": [
@@ -662,7 +659,7 @@
                         {
                             "name": "[concat(parameters('sharedSvcVnetName'),'/',variables('vnetPeeringSharedToTransit'))]",
                             "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
-                            "apiVersion": "[variables('networkApiVersion')]",
+                            "apiVersion": "[variables('_apiVersionNetwork')]",
                             "location": "[resourceGroup().location]",
                             "properties": {
                                 "allowVirtualNetworkAccess": "true",
@@ -681,7 +678,7 @@
         {
             "name": "[variables('loadBalNameExternal')]",
             "type": "Microsoft.Network/loadBalancers",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
@@ -726,7 +723,7 @@
         {
             "name": "[variables('loadBalNameInternal')]",
             "type": "Microsoft.Network/loadBalancers",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
@@ -794,7 +791,7 @@
         {
             "name": "[variables('deployNvaVm1')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalNameInternal'))]"
             ],
@@ -871,7 +868,7 @@
         {
             "name": "[variables('deployNvaVm2')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployNvaVm1'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameTransit'))]",

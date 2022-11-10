@@ -376,13 +376,65 @@
             }
         },
         {
+            "name": "[variables('sharedSvcRgDeployNamePh2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('resourcesApiVersion')]",
+            "subscriptionId": "[parameters('sharedSubscriptionId')]",
+            "resourceGroup": "[variables('sharedSvcRgName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('transitRgDeploymentName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "devLinuxServerIp": {
+                        "value": "[variables('sharedSvcIpLinuxDevServer')]"
+                    },
+                    "devWindowsServerIp": {
+                        "value": "[variables('sharedSvcIpWindowsDevServer')]"
+                    },
+                    "firewallIp": {
+                        "value": "[reference(variables('transitRgDeploymentName')).outputs.transitLoadBalancerNvaInnerIp.value]"
+                    },
+                    "lawResourceId": {
+                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.lawResourceId.value]"
+                    },
+                    "sharedSvcRtName": {
+                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.sharedSvcRtName.value]"
+                    },
+                    "sharedSvcVnetName": {
+                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.sharedSvcVnetName.value]"
+                    },
+                    "sharedSvcVnetSubnetNameDev": {
+                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.sharedSvcVnetSubnetNameDev.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('sharedSvcPh2TemplateFile')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "name": "[variables('workloadRgDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('resourcesApiVersion')]",
             "subscriptionId": "[parameters('sharedSubscriptionId')]",
             "resourceGroup": "[variables('workloadRgName')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('transitRgDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('sharedSvcRgDeployNamePh2'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -397,7 +449,7 @@
                         "value": "[parameters('keyVaultAdmin')]"
                     },
                     "lawResourceId": {
-                        "value":  "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.lawResourceId.value]"
+                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.lawResourceId.value]"
                     },
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"

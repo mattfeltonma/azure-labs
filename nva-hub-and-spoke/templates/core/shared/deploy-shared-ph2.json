@@ -1,0 +1,203 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "devLinuxServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP assigned to the Linux development virtual machine"
+            }
+        },
+        "devWindowsServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP assigned to the Windows development virtual machine"
+            }
+        },
+        "firewallIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the Azure Firewall where traffic will be routed to"
+            }
+        },
+        "lawResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Log Analytics Workspace in the Shared Services subscription"
+            }
+        },
+        "sharedSvcRtName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the route table associated to the subnets in the Shared Services virtual network"
+            }
+        },
+        "sharedSvcVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Shared Services virtual network"
+            }
+        },
+        "sharedSvcVnetSubnetNameDev": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the dev subnet in the Shared Services virtual network"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that wil be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "vmAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the VMs that are created"
+            }
+        },
+        "vmAdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Administrator name for VMs that are created"
+            }
+        }
+    },
+    "variables": {
+        "_apiVersionResource": "2020-06-01",
+        "location": "[resourceGroup().location]",
+        "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
+        "deploymentUriDevLinuxVm": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-dev-vm.json')]",
+        "deploymentUriDevWindowsVm": "[concat(variables('_generalTemplatesUri'), 'deploy-windows-dev-vm.json')]",
+        "deployUdrDefaultSharedSvc": "deploy-udr-shared-svc",
+        "deployVmLinuxDev": "deploy-vm-linux-dev",
+        "vmNameWindowsDev": "[concat('vmw-dev-',parameters('uniqueData'))]",
+        "vmSku": "Standard_D4s_v5"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('sharedSvcRtName'),'/',variables('deployUdrDefaultSharedSvc'))]",
+            "type": "Microsoft.Network/routeTables/routes",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "addressPrefix": "0.0.0.0/0",
+                "nextHopType": "VirtualAppliance",
+                "nextHopIpAddress": "[parameters('firewallIp')]"
+            }
+        },
+        {
+            "name": "[variables('deployVmLinuxDev')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deployUdrDefaultSharedSvc'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "serverIpAddress": {
+                        "value": "[parameters('devLinuxServerIp')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
+                    },
+                    "subnetName": {
+                        "value": "[parameters('sharedSvcVnetSubnetNameDev')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vnetName": {
+                        "value": "[parameters('sharedSvcVnetName')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriDevLinuxVm')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentUriDevWindowsVm')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentUriDevLinuxVm'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "serverIpAddress": {
+                        "value": "[parameters('devWindowsServerIp')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
+                    },
+                    "subnetName": {
+                        "value": "[parameters('sharedSvcVnetSubnetNameDev')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('vmNameWindowsDev')]"
+                    },
+                    "vnetName": {
+                        "value": "[parameters('sharedSvcVnetName')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriDevWindowsVm')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}

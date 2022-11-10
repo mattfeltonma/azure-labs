@@ -87,11 +87,11 @@
         }
     },
     "variables": {
-        "dnsApiVersion": "2018-09-01",
-        "dnsResolverApiVersion": "2022-07-01",
-        "networkApiVersion": "2020-04-01",
-        "resourcesApiVersion": "2020-06-01",
-        "storageApiVersion": "2019-06-01",
+        "_apiVersionDns": "2018-09-01",
+        "_apiVersionDnsResolver": "2022-07-01",
+        "_apiVersionNetwork": "2020-04-01",
+        "_apiVersionResource": "2020-06-01",
+        "_apiVersionStorage": "2019-06-01",
         "location": "[resourceGroup().location]",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "deployKeyVaultCentral": "deploy-central-keyvault",
@@ -137,7 +137,7 @@
         "nsgNamePe": "[concat('nsg-pe', parameters('uniqueData'))]",
         "nsgNameDev": "[concat('nsg-dev', parameters('uniqueData'))]",
         "resourceGroupSharedSvc": "[resourceGroup().name]",
-        "routeTableSharedSvc": "rt-shared-svc",
+        "routeTableSharedSvc": "rt-shared",
         "secretNamePassword": "adminpassword",
         "secretNameUsername": "adminusername",
         "storageAccountCent": "[concat('stcent', parameters('uniqueData'))]",
@@ -153,7 +153,7 @@
         {
             "name": "[variables('deployLaw')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
             ],
             "properties": {
@@ -174,7 +174,7 @@
         },
         {
             "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "[variables('storageApiVersion')]",
+            "apiVersion": "[variables('_apiVersionStorage')]",
             "name": "[variables('storageAccountCent')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
@@ -195,7 +195,7 @@
         {
             "name": "[variables('deployKeyVaultCentral')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployLaw'))]"
             ],
@@ -230,7 +230,7 @@
         {
             "name": "[variables('deploySecretUsername')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [],
             "properties": {
                 "mode": "Incremental",
@@ -260,7 +260,7 @@
         {
             "name": "[variables('deploySecretPassword')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [],
             "properties": {
                 "mode": "Incremental",
@@ -290,7 +290,7 @@
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('nsgNameDnsInResolver')]",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -335,7 +335,7 @@
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('nsgNameDnsOutResolver')]",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -345,7 +345,7 @@
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('nsgNameDev')]",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -355,7 +355,7 @@
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('nsgNamePe')]",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -365,7 +365,7 @@
         {
             "name": "[variables('deployNsgFlowLogDnsIn')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDnsInResolver'))]",
@@ -403,7 +403,7 @@
         {
             "name": "[variables('deployNsgFlowLogDnsOut')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployNsgFlowLogDnsIn'))]",
@@ -442,7 +442,7 @@
         {
             "name": "[variables('deployNsgFlowLogDev')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployNsgFlowLogDnsOut'))]",
@@ -481,7 +481,7 @@
         {
             "name": "[variables('deployNsgFlowLogPe')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployNsgFlowLogDev'))]",
@@ -520,7 +520,7 @@
         {
             "name": "[variables('routeTableSharedSvc')]",
             "type": "Microsoft.Network/routeTables",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
@@ -537,7 +537,7 @@
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('vnetSharedSvc')]",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
@@ -625,13 +625,13 @@
         },
         {
             "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[variables('dnsZoneAcr')]",
             "location": "global"
         },
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[concat(variables('dnsZoneAcr'), '/', variables('dnsZoneLinkAcr'))]",
             "location": "global",
             "dependsOn": [
@@ -647,13 +647,13 @@
         },
         {
             "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[variables('dnsZoneAks')]",
             "location": "global"
         },
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[concat(variables('dnsZoneAks'), '/', variables('dnsZoneLinkAks'))]",
             "location": "global",
             "dependsOn": [
@@ -670,13 +670,13 @@
         },
         {
             "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[variables('dnsZoneAppServices')]",
             "location": "global"
         },
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[concat(variables('dnsZoneAppServices'), '/', variables('dnsZoneLinkAppServices'))]",
             "location": "global",
             "dependsOn": [
@@ -693,13 +693,13 @@
         },
         {
             "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[variables('dnsZoneAzureSql')]",
             "location": "global"
         },
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[concat(variables('dnsZoneAzureSql'), '/', variables('dnsZoneLinkAzureSql'))]",
             "location": "global",
             "dependsOn": [
@@ -716,13 +716,13 @@
         },
         {
             "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[variables('dnsZoneKeyVault')]",
             "location": "global"
         },
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[concat(variables('dnsZoneKeyVault'), '/', variables('dnsZoneLinkKeyVault'))]",
             "location": "global",
             "dependsOn": [
@@ -739,13 +739,13 @@
         },
         {
             "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[variables('dnsZoneStorageBlob')]",
             "location": "global"
         },
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[concat(variables('dnsZoneStorageBlob'), '/', variables('dnsZoneLinkStorageBlob'))]",
             "location": "global",
             "dependsOn": [
@@ -762,13 +762,13 @@
         },
         {
             "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[variables('dnsZoneStorageDfs')]",
             "location": "global"
         },
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[concat(variables('dnsZoneStorageDfs'), '/', variables('dnsZoneLinkStorageDfs'))]",
             "location": "global",
             "dependsOn": [
@@ -785,13 +785,13 @@
         },
         {
             "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[variables('dnsZoneStorageFile')]",
             "location": "global"
         },
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[concat(variables('dnsZoneStorageFile'), '/', variables('dnsZoneLinkStorageFile'))]",
             "location": "global",
             "dependsOn": [
@@ -808,13 +808,13 @@
         },
         {
             "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[variables('dnsZoneStorageQueue')]",
             "location": "global"
         },
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[concat(variables('dnsZoneStorageQueue'), '/', variables('dnsZoneLinkStorageQueue'))]",
             "location": "global",
             "dependsOn": [
@@ -831,13 +831,13 @@
         },
         {
             "type": "Microsoft.Network/privateDnsZones",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[variables('dnsZoneStorageTable')]",
             "location": "global"
         },
         {
             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-            "apiVersion": "[variables('dnsApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDns')]",
             "name": "[concat(variables('dnsZoneStorageTable'), '/', variables('dnsZoneLinkStorageTable'))]",
             "location": "global",
             "dependsOn": [
@@ -855,7 +855,7 @@
         {
             "name": "[variables('dnsResolver')]",
             "type": "Microsoft.Network/dnsResolvers",
-            "apiVersion": "[variables('dnsResolverApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDnsResolver')]",
             "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetSharedSvc'))]"
@@ -870,7 +870,7 @@
         {
             "name": "[concat(variables('dnsResolver'),'/',variables('dnsResolverInbound'))]",
             "type": "Microsoft.Network/dnsResolvers/inboundEndpoints",
-            "apiVersion": "[variables('dnsResolverApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDnsResolver')]",
             "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/dnsResolvers', variables('dnsResolver'))]"
@@ -891,7 +891,7 @@
         {
             "name": "[concat(variables('dnsResolver'),'/',variables('dnsResolverOutbound'))]",
             "type": "Microsoft.Network/dnsResolvers/outboundEndpoints",
-            "apiVersion": "[variables('dnsResolverApiVersion')]",
+            "apiVersion": "[variables('_apiVersionDnsResolver')]",
             "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/dnsResolvers/inboundEndpoints', variables('dnsResolver'), variables('dnsResolverInbound'))]"
@@ -906,7 +906,7 @@
         {
             "name": "[variables('deployKeyVaultPe')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/dnsResolvers/outboundEndpoints', variables('dnsResolver'), variables('dnsResolverOutbound'))]"
             ],
@@ -956,7 +956,7 @@
         {
             "name": "[variables('deployVnetDnsSrvSettings')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deployKeyVaultPe'))]"
             ],
@@ -969,7 +969,7 @@
                         {
                             "type": "Microsoft.Network/virtualNetworks",
                             "name": "[variables('vnetSharedSvc')]",
-                            "apiVersion": "[variables('networkApiVersion')]",
+                            "apiVersion": "[variables('_apiVersionNetwork')]",
                             "location": "[variables('location')]",
                             "tags": "[parameters('tags')]",
                             "dependsOn": [
@@ -1077,9 +1077,21 @@
             "type": "string",
             "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('storageAccountCent'))]"
         },
+        "sharedSvcRtId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/routeTables',variables('routeTableSharedSvc'))]"
+        },
+        "sharedSvcRtName": {
+            "type": "string",
+            "value": "[variables('routeTableSharedSvc')]"
+        },
         "sharedSvcVnetName": {
             "type": "string",
             "value": "[variables('vnetSharedSvc')]"
+        },
+        "sharedSvcVnetSubnetNameDev": {
+            "type": "string",
+            "value": "[variables('vnetSubnetSharedSvcDev')]"
         },
         "sharedSvcVnetResourceId": {
             "type": "string",

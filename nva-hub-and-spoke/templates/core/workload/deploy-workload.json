@@ -116,9 +116,9 @@
         }
     },
     "variables": {
-        "managedIdentityApiVersion": "2018-11-30",
-        "networkApiVersion": "2020-07-01",
-        "resourcesApiVersion": "2020-06-01",
+        "_apiVersionManagedIdentity": "2018-11-30",
+        "_apiVersionNetwork": "2020-07-01",
+        "_apiVersionResource": "2020-06-01",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "appNsgName": "[concat('nsg-app',parameters('uniqueData'))]",
         "appNsgFlowLogDeploymentName": "deploy-appflowlog",
@@ -151,14 +151,14 @@
         {
             "name": "[variables('workloadUmi')]",
             "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-            "apiVersion": "[variables('managedIdentityApiVersion')]",
+            "apiVersion": "[variables('_apiVersionManagedIdentity')]",
             "tags": "[parameters('tags')]",
             "location": "[variables('location')]"
         },
         {
             "name": "[variables('deployKeyVaultApp')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
                 "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('workloadUmi'))]"
             ],
@@ -193,7 +193,7 @@
         {
             "name": "[variables('deployKeyVaultAppPerm')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/',variables('deployKeyVaultApp'))]"
             ],
@@ -222,7 +222,7 @@
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('appNsgName')]",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -232,7 +232,7 @@
         {
             "name": "[variables('appNsgFlowLogDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appNsgName'))]"
@@ -268,7 +268,7 @@
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('dataNsgName')]",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -278,7 +278,7 @@
         {
             "name": "[variables('dataNsgFlowLogDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/',variables('appNsgFlowLogDeploymentName'))]",
@@ -315,7 +315,7 @@
         {
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "[variables('svcNsgName')]",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -325,7 +325,7 @@
         {
             "name": "[variables('svcNsgFlowLogDeploymentName')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/',variables('dataNsgFlowLogDeploymentName'))]",
@@ -362,7 +362,7 @@
         {
             "name": "[variables('workloadAppRouteTableName')]",
             "type": "Microsoft.Network/routeTables",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
@@ -387,7 +387,7 @@
         {
             "name": "[variables('workloadDataRouteTableName')]",
             "type": "Microsoft.Network/routeTables",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
@@ -412,7 +412,7 @@
         {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('workloadVnetName')]",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
@@ -473,7 +473,7 @@
                 {
                     "name": "[variables('workloadToTransitPeeringName')]",
                     "type": "virtualNetworkPeerings",
-                    "apiVersion": "[variables('networkApiVersion')]",
+                    "apiVersion": "[variables('_apiVersionNetwork')]",
                     "location": "[resourceGroup().location]",
                     "dependsOn": [
                         "[concat('Microsoft.Network/virtualNetworks/', variables('workloadVnetName'))]"
@@ -493,7 +493,7 @@
         {
             "name": "[variables('transitToWorkloadPeeringName')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "subscriptionId": "[parameters('transitVnetSubscriptionId')]",
             "resourceGroup": "[parameters('transitResourceGroupName')]",
             "dependsOn": [
@@ -510,7 +510,7 @@
                         {
                             "name": "[concat(parameters('transitVnetName'),'/',variables('transitToWorkloadPeeringName'))]",
                             "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
-                            "apiVersion": "[variables('networkApiVersion')]",
+                            "apiVersion": "[variables('_apiVersionNetwork')]",
                             "location": "[resourceGroup().location]",
                             "properties": {
                                 "allowVirtualNetworkAccess": "true",
@@ -529,7 +529,7 @@
         {
             "name": "[variables('deployKeyVaultPe')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('transitToWorkloadPeeringName'))]"
             ],
