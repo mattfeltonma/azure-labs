@@ -141,12 +141,6 @@
                 "description": "The IP address block assigned to the Transit virtual network"
             }
         },
-        "workloadVnetCidr": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address block assigned to the workload virtual network"
-            }
-        },
         "tags": {
             "type": "object",
             "metadata": {
@@ -173,6 +167,12 @@
             "type": "string",
             "metadata": {
                 "description": "Administrator name for VMs that are created"
+            }
+        },
+        "workloadVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the workload virtual network"
             }
         }
     },

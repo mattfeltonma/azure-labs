@@ -302,6 +302,9 @@
                     "sharedSvcSubscriptionId": {
                         "value": "[parameters('sharedSubscriptionId')]"
                     },
+                    "sharedSvcVnetCidr": {
+                        "value": "[variables('sharedSvcVnetCidr')]"
+                    },
                     "sharedSvcVnetName": {
                         "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.sharedSvcVnetName.value]"
                     },
@@ -355,7 +358,10 @@
                     },
                     "vmAdminUserName": {
                         "value": "[parameters('vmAdminUsername')]"
-                    }
+                    },
+                    "workloadVnetCidr": {
+                        "value": "[variables('workloadVnetCidr')]"
+                    },
                 },
                 "templateLink": {
                     "uri": "[variables('transitTemplatesFile')]",
