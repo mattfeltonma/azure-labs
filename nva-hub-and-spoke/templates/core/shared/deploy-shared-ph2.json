@@ -81,6 +81,8 @@
         "deploymentUriDevWindowsVm": "[concat(variables('_generalTemplatesUri'), 'deploy-windows-dev-vm.json')]",
         "deployUdrDefaultSharedSvc": "deploy-udr-shared-svc",
         "deployVmLinuxDev": "deploy-vm-linux-dev",
+        "deployVmWindowsDev": "deploy-vm-windows-dev",
+        "vmNameLinuxDev": "[concat('vml-dev-',parameters('uniqueData'))]",
         "vmNameWindowsDev": "[concat('vmw-dev-',parameters('uniqueData'))]",
         "vmSku": "Standard_D4s_v5"
     },
@@ -135,7 +137,7 @@
                         "value": "[variables('vmSku')]"
                     },
                     "vmName": {
-                        "value": "[variables('vmSku')]"
+                        "value": "[variables('vmNameLinuxDev')]"
                     },
                     "vnetName": {
                         "value": "[parameters('sharedSvcVnetName')]"
@@ -148,7 +150,7 @@
             }
         },
         {
-            "name": "[variables('deploymentUriDevWindowsVm')]",
+            "name": "[variables('deployVmWindowsDev')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
