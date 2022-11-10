@@ -92,7 +92,6 @@
             "type": "Microsoft.Network/routeTables/routes",
             "apiVersion": "[variables('_apiVersionResource')]",
             "location": "[variables('location')]",
-            "tags": "[parameters('tags')]",
             "properties": {
                 "addressPrefix": "0.0.0.0/0",
                 "nextHopType": "VirtualAppliance",
