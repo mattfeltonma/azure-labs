@@ -75,7 +75,6 @@
     },
     "variables": {
         "_apiVersionResource": "2020-06-01",
-        "location": "[resourceGroup().location]",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "deploymentUriDevLinuxVm": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-dev-vm.json')]",
         "deploymentUriDevWindowsVm": "[concat(variables('_generalTemplatesUri'), 'deploy-windows-dev-vm.json')]",
