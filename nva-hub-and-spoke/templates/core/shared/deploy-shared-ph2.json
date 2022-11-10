@@ -82,8 +82,8 @@
         "deployUdrDefaultSharedSvc": "deploy-udr-shared-svc",
         "deployVmLinuxDev": "deploy-vm-linux-dev",
         "deployVmWindowsDev": "deploy-vm-windows-dev",
-        "vmNameLinuxDev": "[concat('vml-dev-',parameters('uniqueData'))]",
-        "vmNameWindowsDev": "[concat('vmw-dev-',parameters('uniqueData'))]",
+        "vmNameLinuxDev": "[concat('vmldev',parameters('uniqueData'))]",
+        "vmNameWindowsDev": "[concat('vmwdev',parameters('uniqueData'))]",
         "vmSku": "Standard_D4s_v5"
     },
     "resources": [
