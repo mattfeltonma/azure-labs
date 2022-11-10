@@ -51,6 +51,12 @@
                 "description": "The subscription id containing the shared services resources"
             }
         },
+        "sharedSvcVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the Shared Services virtual network"
+            }
+        },
         "sharedSvcVnetName": {
             "type": "string",
             "metadata": {
@@ -133,6 +139,12 @@
             "type": "string",
             "metadata": {
                 "description": "The IP address block assigned to the Transit virtual network"
+            }
+        },
+        "workloadVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the workload virtual network"
             }
         },
         "tags": {
@@ -969,6 +981,41 @@
             }
         },
         {
+            "name": "[variables('routeTableVngName')]",
+            "type": "Microsoft.Network/routeTables",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployNvaVm2'))]"
+            ],
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-shared",
+                        "properties": {
+                            "addressPrefix": "[parameters('sharedSvcVnetCidr')]",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].properties.PrivateIPAddress]"           
+                        }
+                    },
+                    {
+                        "name": "udr-workload",
+                        "properties": {
+                            "addressPrefix": "[parameters('workloadVnetCidr')]",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].properties.PrivateIPAddress]"           
+                        }
+                    }
+
+
+                ],
+                "disableBgpRoutePropagation": "False"
+            },
+            "resources": [
+            ]
+        },
+        {
             "name": "[variables('bastionName')]",
             "type": "Microsoft.Network/bastionHosts",
             "apiVersion": "[variables('_apiVersionNetwork')]",
@@ -976,7 +1023,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpBastion'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameTransit'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployNvaVm2'))]"
+                "[resourceId('Microsoft.Network/routeTables',variables('routeTableVngName'))]"
             ],
             "tags": "[parameters('tags')]",
             "properties": {
