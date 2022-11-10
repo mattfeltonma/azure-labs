@@ -91,7 +91,6 @@
             "name": "[concat(parameters('sharedSvcRtName'),'/',variables('deployUdrDefaultSharedSvc'))]",
             "type": "Microsoft.Network/routeTables/routes",
             "apiVersion": "[variables('_apiVersionResource')]",
-            "location": "[variables('location')]",
             "properties": {
                 "addressPrefix": "0.0.0.0/0",
                 "nextHopType": "VirtualAppliance",
