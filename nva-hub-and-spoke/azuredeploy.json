@@ -284,9 +284,6 @@
                     "dnsServerIp": {
                         "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.dnsResolverInboundIp.value]"
                     },
-                    "lawName": {
-                        "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.lawName.value]"
-                    },
                     "lawResourceId": {
                         "value": "[reference(variables('sharedSvcRgDeployNamePh1')).outputs.lawResourceId.value]"
                     },

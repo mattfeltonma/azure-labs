@@ -14,12 +14,6 @@
                 "description": "The IP address of the Inbound Private DNS Resolver"
             }
         },
-        "lawName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the Log Analytics Workspace"
-            }
-        },
         "lawResourceId": {
             "type": "string",
             "metadata": {
@@ -977,7 +971,7 @@
         {
             "name": "[variables('bastionName')]",
             "type": "Microsoft.Network/bastionHosts",
-            "apiVersion": "[variables('networkApiVersion')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpBastion'))]",
@@ -1057,7 +1051,7 @@
                     "asn": 65515,
                     "bgpPeeringAddresses": [
                         {
-                            "ipconfigurationId": "[concat(resourceId('Microsoft.Network/virtualNetworkGateways',variables('vnetGatewayName')), '/ipConfigurations/default')]",
+                            "ipconfigurationId": "[concat(resourceId('Microsoft.Network/virtualNetworkGateways',variables('gatewayName')), '/ipConfigurations/default')]",
                             "customBgpIpAddresses": [
                             ]
                         }
