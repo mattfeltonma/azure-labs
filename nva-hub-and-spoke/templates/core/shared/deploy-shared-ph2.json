@@ -154,7 +154,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deploymentUriDevLinuxVm'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deployVmLinuxDev'))]"
             ],
             "properties": {
                 "mode": "Incremental",
