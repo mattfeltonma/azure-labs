@@ -104,7 +104,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deployUdrDefaultSharedSvc'))]"
+                "[resourceId('Microsoft.Network/routeTables/routes', parameters('sharedSvcRtName'), variables('deployUdrDefaultSharedSvc'))]"
             ],
             "properties": {
                 "mode": "Incremental",
