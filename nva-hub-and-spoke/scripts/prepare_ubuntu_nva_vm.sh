@@ -30,15 +30,6 @@ then
     sysctl -p
 fi
 
-# Create vrf and associate eth1 with it
-ip link show vrflan
-if [ $? -eq 1 ]
-then
-    ip link add vrflan type vrf table 10
-    ip link set dev vrflan up
-    ip link set dev eth1 master vrflan
-fi
-
 # Configure routing
 ls -l /etc/systemd/system/routingconfig.service
 if [ $? -eq 2 ]
