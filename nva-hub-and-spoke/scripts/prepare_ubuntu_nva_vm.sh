@@ -2,7 +2,6 @@
 
 # Upgrade operating system
 apt-get update
-apt-get upgrade -y
 
 # Disable built-in firewall. Management will be done direct with iptables
 ufw disable
