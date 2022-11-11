@@ -15,22 +15,35 @@ echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo deb
 echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
 apt-get install iptables-persistent -y
 
-# Add support for vrf
+# Add kernal modules to support vrfs
 apt install linux-modules-extra-$(uname -r) -y
 
 # Enable IPv4 forwarding
 sed -r -i 's/#{1,}?net.ipv4.ip_forward ?= ?(0|1)/net.ipv4.ip_forward = 1/g' /etc/sysctl.conf
-echo "net.ipv4.tcp_l3mdev_accept = 1" >> /etc/sysctl.conf
-echo "net.ipv4.udp_l3mdev_accept = 1" >> /etc/sysctl.conf
-sysctl -p
+
+# Enable vrf support in network stack
+sysctl -p | grep -i "net.ipv4.tcp_l3"
+if [ $? -eq 1 ]
+then
+    echo "net.ipv4.tcp_l3mdev_accept = 1" >> /etc/sysctl.conf
+    echo "net.ipv4.udp_l3mdev_accept = 1" >> /etc/sysctl.conf
+    sysctl -p
+fi
 
 # Create vrf and associate eth1 with it
-ip link add vrflan type vrf table 10
-ip link set dev vrflan up
-ip link set dev eth1 master vrflan
+ip link show vrflan
+if [ $? -eq 1 ]
+then
+    ip link add vrflan type vrf table 10
+    ip link set dev vrflan up
+    ip link set dev eth1 master vrflan
+fi
 
 # Configure routing
-cat << EOF |
+ls -l /etc/systemd/system/routingconfig.service
+if [ $? -eq 2 ]
+then
+    cat << EOF |
 [Unit]
 Description=Configure vrf and routing for machine
 
@@ -38,6 +51,10 @@ Description=Configure vrf and routing for machine
 Type=oneshot
 RemainAfterExit=yes
 
+ExecStart=/bin/bash -c "ip link add vrflan type vrf table 10"
+ExecStart=/bin/bash -c "ip link set dev vrflan up"
+ExecStart=/bin/bash -c "ip link set dev eth1 master vrflan"
+ExecStart=/bin/bash -c "sleep 5"
 ExecStart=/bin/bash -c "ip route add table 10 0.0.0.0/0 via $4"
 ExecStart=/bin/bash -c "ip route add table 10 168.63.129.16 via $3"
 ExecStart=/bin/bash -c "ip route add table 10 $1 via $3"
@@ -49,11 +66,12 @@ ExecStart=/bin/bash -c "ip route add $2 dev vrflan"
 [Install]
 WantedBy=multi-user.target
 EOF
-awk '{print}' > /etc/systemd/system/routingconfig.service
+    awk '{print}' > /etc/systemd/system/routingconfig.service
 
-systemctl daemon-reload
-systemctl start routingconfig.service
-systemctl enable routingconfig.service
+    systemctl daemon-reload
+    systemctl start routingconfig.service
+    systemctl enable routingconfig.service
+fi
 
 #   Configure iptables
 # # Configure support for NAT for Internet-bound traffic
