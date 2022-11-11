@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Upgrade operating system
-apt update
-apt upgrade -y
+apt-get update
+apt-get upgrade -y
 
 # Disable built-in firewall. Management will be done direct with iptables
 ufw disable
 
 # Install tools
-apt install net-tools -y
+apt-get install net-tools -y
 
 # Install support for persistency to iptables
 echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
@@ -16,7 +16,7 @@ echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo deb
 apt-get install iptables-persistent -y
 
 # Add kernal modules to support vrfs
-apt install linux-modules-extra-$(uname -r) -y
+apt-get install linux-modules-extra-$(uname -r) -y
 
 # Enable IPv4 forwarding
 sed -r -i 's/#{1,}?net.ipv4.ip_forward ?= ?(0|1)/net.ipv4.ip_forward = 1/g' /etc/sysctl.conf
