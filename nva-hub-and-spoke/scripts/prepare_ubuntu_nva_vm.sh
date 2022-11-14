@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Upgrade operating system
+# Update repositories
+export DEBIAN_FRONTEND=noninteractive
+apt-get clean
 apt-get update
 
 # Disable built-in firewall. Management will be done direct with iptables
