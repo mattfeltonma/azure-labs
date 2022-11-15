@@ -16,7 +16,7 @@ echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo deb
 apt-get install iptables-persistent -y
 
 # Add kernal modules to support vrfs
-apt-get install linux-modules-extra-azure
+apt-get install linux-modules-extra-azure -y
 
 # Enable IPv4 forwarding
 sed -r -i 's/#{1,}?net.ipv4.ip_forward ?= ?(0|1)/net.ipv4.ip_forward = 1/g' /etc/sysctl.conf
