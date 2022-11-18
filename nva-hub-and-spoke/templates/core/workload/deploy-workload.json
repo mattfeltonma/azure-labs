@@ -515,7 +515,7 @@
                             "properties": {
                                 "allowVirtualNetworkAccess": "true",
                                 "allowForwardedTraffic": "true",
-                                "allowGatewayTransit": "false",
+                                "allowGatewayTransit": "true",
                                 "useRemoteGateways": "false",
                                 "remoteVirtualNetwork": {
                                     "id": "[resourceId(variables('workloadRgName'), 'Microsoft.Network/virtualNetworks', variables('workloadVnetName'))]"
