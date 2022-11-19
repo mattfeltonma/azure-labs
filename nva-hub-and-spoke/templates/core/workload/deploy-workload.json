@@ -532,7 +532,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks/virtualNetworkPeerings',variables('workloadVnetName'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks/virtualNetworkPeerings',variables('workloadVnetName'), variables('workloadToTransitPeeringName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
