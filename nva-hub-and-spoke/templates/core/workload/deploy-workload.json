@@ -127,6 +127,7 @@
         "deployKeyVaultApp": "deploy-kv-app",
         "deployKeyVaultPe": "deploy-kv-pe",
         "deployKeyVaultAppPerm": "deploy-kv-app-perm",
+        "deployWorkloadVnetPeering": "deploy-workload-vnet-peering",
         "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultNamePrefix": "kvapp",
@@ -457,7 +458,7 @@
                             "addressPrefix": "[parameters('workloadVnetSubnetSvcCidr')]",
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('svcNsgName'))]"
-                            },    
+                            },
                             "privateEndpointNetworkPolicies": "Enabled"
                         }
                     }
@@ -470,28 +471,10 @@
                 }
             },
             "resources": [
-                {
-                    "name": "[variables('workloadToTransitPeeringName')]",
-                    "type": "virtualNetworkPeerings",
-                    "apiVersion": "[variables('_apiVersionNetwork')]",
-                    "location": "[resourceGroup().location]",
-                    "dependsOn": [
-                        "[concat('Microsoft.Network/virtualNetworks/', variables('workloadVnetName'))]"
-                    ],
-                    "properties": {
-                        "allowVirtualNetworkAccess": "true",
-                        "allowForwardedTraffic": "true",
-                        "allowGatewayTransit": "false",
-                        "useRemoteGateways": "true",
-                        "remoteVirtualNetwork": {
-                            "id": "[parameters('transitVnetResourceId')]"
-                        }
-                    }
-                }
             ]
         },
         {
-            "name": "[variables('transitToWorkloadPeeringName')]",
+            "name": "[variables('deployWorkloadVnetPeering')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResource')]",
             "subscriptionId": "[parameters('transitVnetSubscriptionId')]",
@@ -527,11 +510,29 @@
             }
         },
         {
+            "name": "[concat(variables('workloadVnetName'),'/',variables('workloadToTransitPeeringName'))]",
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deployWorkloadVnetPeering'))]"
+            ],
+            "properties": {
+                "allowVirtualNetworkAccess": "true",
+                "allowForwardedTraffic": "true",
+                "allowGatewayTransit": "false",
+                "useRemoteGateways": "true",
+                "remoteVirtualNetwork": {
+                    "id": "[parameters('transitVnetResourceId')]"
+                }
+            }
+        },
+        {
             "name": "[variables('deployKeyVaultPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('transitToWorkloadPeeringName'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks/virtualNetworkPeerings',variables('workloadVnetName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
