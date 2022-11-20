@@ -39,6 +39,12 @@
                 "description": "The IP address block used on-premises"
             }
         },
+        "routerAsn": {
+            "type": "string",
+            "metadata": {
+                "description": "The ASN to assign to the router in the Quagga config"
+            }
+        },
         "sharedSvcResourceGroupName": {
             "type": "string",
             "metadata": {
@@ -883,6 +889,9 @@
                     "outerSubnetName": {
                         "value": "[variables('vnetSubnetTransitNvaOuter')]"
                     },
+                    "routerAsn": {
+                        "value": "[parameters('routerAsn')]"
+                    },
                     "tags": {
                         "value": "[parameters('tags')]"
                     },
@@ -961,6 +970,9 @@
                     },
                     "outerSubnetName": {
                         "value": "[variables('vnetSubnetTransitNvaOuter')]"
+                    },
+                    "routerAsn": {
+                        "value": "[parameters('routerAsn')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"

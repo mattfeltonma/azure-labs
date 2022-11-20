@@ -110,6 +110,7 @@
         "transitIpNvaVm2Outer": "10.0.129.20",
         "transitRgDeploymentName": "[concat('deploy-transit',parameters('uniqueData'))]",
         "transitRgName": "[concat('rg-transit-',parameters('uniqueData'))]",
+        "transitRouterAsn": "65001",
         "transitSubDeploymentName": "[concat('deploy-transit-sub',parameters('uniqueData'))]",
         "transitTemplatesFile": "[concat(variables('transitTemplatesUri'), 'deploy-transit.json')]",
         "transitTemplatesUri": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/transit/'))]",
@@ -295,6 +296,9 @@
                     },
                     "onPremisesAddressSpace": {
                         "value": "[parameters('onPremisesAddressSpace')]"
+                    },
+                    "routerAsn": {
+                        "value": "[variables('transitRouterAsn')]"
                     },
                     "sharedSvcResourceGroupName": {
                         "value": "[variables('sharedSvcRgName')]"

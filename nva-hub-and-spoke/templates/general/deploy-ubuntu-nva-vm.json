@@ -99,6 +99,12 @@
                 "description": "The name of the subnet in the transit virtual network that the outer nic will be created into"
             }
         },
+        "routerAsn": {
+            "type": "string",
+            "metadata": {
+                "description": "The ASN to assign to the router in the Quagga config"
+            }
+        },
         "tags": {
             "type": "object",
             "metadata": {
@@ -299,7 +305,7 @@
                             "fileUris": [
                                 "[variables('scriptUrl')]"
                             ],
-                            "commandToExecute": "[concat('sh ',variables('scriptName'), ' ',parameters('cloudRegionAddressSpace'), ' ',parameters('onPremisesAddressSpace'), ' ',parameters('innerGatewayIp'), ' ',parameters('outerGatewayIp'))]"
+                            "commandToExecute": "[concat('sh ',variables('scriptName'), ' ',parameters('cloudRegionAddressSpace'), ' ',parameters('onPremisesAddressSpace'), ' ',parameters('innerGatewayIp'), ' ',parameters('outerGatewayIp'), ' ',parameters('innerNicIpAddress'),' ',parameters('routerAsn'))]"
                         }
                     }
                 },
