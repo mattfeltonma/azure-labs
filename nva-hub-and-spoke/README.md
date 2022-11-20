@@ -1,25 +1,23 @@
-# Azure Hub and Spoke Base Lab
+# Azure Hub and Spoke Network Virtual Appliance Lab
 
 ## Updates
-* 9/25/2022
-* * Added Virtual Network Gateway and configured it to support BGP
-* * Added route table to GatewaySubnet with routes for both shared services and workload vnets to point to Azure Firewall
-* * Modified all subnets in shared services and workload vnets to enable Private Endpoint Network Policies to support NSGs support for Private Endpoints and routing enhancements
+* 11/20/2022 - Initial release
 
 ## Overview
-This deployable lab provides a simple way to experiment with Azure workloads in an enterprise-like hub and spoke environment. Three resource groups are deployed with one for transit resources, one for shared services, and one for a workload.
+Enterprises building in Azure often have requirements that demand the use of NVAs (network virtual appliances) such as a third-party firewall. These third-party solutions are often used in place of first-party solutions such as Azure Firewall and come licensing that makes it prohibitive to experiment with.
 
-A [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli). [UDRs (User defined routes)](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined) are used to route all outgoing traffic and traffic between spokes through the Azure Firewall in the hub Virtual Network. The Azure Firewall is also configured as the DNS provider for the attached Virtual Network. Private DNS Zones for common Azure services are deployed and linked to the hub virtual network to support PrivateLink integrations.
+This deployable lab seeks to address that challenge by providing a set of VMs (virtual machine) configured with open-source tools to allow the machine to act as a router and firewall. Each VM runs Ubuntu and is configured to use the [native VRF (virtual routing and forwarding) capability](https://www.kernel.org/doc/html/latest/networking/vrf.html) in the Linux kernal. [iptables] is used for a firewall and NAT (network address translation). [Quagga](https://www.nongnu.org/quagga/) is installed and ready to be configured to experiment with dynamic routing using BGP (border gateway protocol). The Ubuntu VMs include two network interfaces, one acting as the outer interface associated with a public IP and the other acting as an inner interface. The inner interface has been placed behind an Internal Load Balancer configured with [haports](https://learn.microsoft.com/en-us/azure/load-balancer/load-balancer-ha-ports-overview). The outer interface is configured as a backend to an External Load Balancer which can be used to serve up services behind the Ubuntu NVAs.
 
-In the Shared Services Virtual Network Ubuntu and Windows VMs are deployed as utility servers. The Windows VM comes loaded with Google Chrome, Visual Studio Code, Azure CLI, and Azure PowerShell. The Linux VM comes loaded with Azure CLI, kubectl, and Docker.
+A [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli). [UDRs (User defined routes)](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined) are used to route all outgoing traffic and traffic between spokes through the Ubuntu VMs in the hub Virtual Network. A [VPN VNG (Virtual Network Gateway)](https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways) is provisioned in the hub if on-premises connectivity is required.
+
+In the Shared Services Virtual Network contains an Azure Privat DNS Resolver and is linked to multiple common Azure Private DNS Zones used by Azure PaaS services. All virtual networks are configured to use the Private DNS Resolver for DNS resolution. Ubuntu and Windows VMs are deployed as utility servers. The Windows VM comes loaded with Google Chrome, Visual Studio Code, Azure CLI, and Azure PowerShell. The Linux VM comes loaded with Azure CLI, kubectl, and Docker. 
 
 The Workload Virtual Network is deployed with an app, data, and supported services (PaaS services behind Private Endpoints). The workload resource group also contains a user-assigned managed identity which has been given permissions to get and list secrets in a Key Vault instance.
 
 Additional features included:
 
 * Azure Bastion provisioned in the hub to provide SSH and RDP (Remote Desktop Protocol) to deployed virtual machines
-* Azure Firewall configured to send diagnostic logs to an instance of Log Analytics Workspace to allow for review of the traffic flowing to and from the Azure Function
-* Virtual Network Gateway deployed to the hub and configured to route traffic through Azure Firewall
+* Virtual Network Gateway deployed to the hub and configured to route traffic through the internal load balancer in front of the Ubuntu VMs.
 * An Azure Key Vault instance which stores the user configured VM administrator username and password
 * An Azure Key Vault instance for workloads deployed into the workload resource group
 * All instances of Azure Key Vault are deployed with a Private Endpoint
@@ -58,7 +56,7 @@ Additional features included:
 
 4. Deploy the lab using the command (tags parameter is optional): 
 
-   * **az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/hub-and-spoke/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID tags='{"mytag":"value"}'**
+   * **az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/nva-hub-and-spoke/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID tags='{"mytag":"value"}'**
 
 3.  You will be prompted to provide a password for the local administrator of the virtual machine. The username and password you set will be available to you as secrets in the "central" Key Vault provisioned as part of this lab.
 
