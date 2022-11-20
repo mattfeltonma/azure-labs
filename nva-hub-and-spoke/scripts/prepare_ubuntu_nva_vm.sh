@@ -11,9 +11,6 @@ ufw disable
 #   Install net tools
 apt-get -o DPkg::Lock::Timeout=30 install net-tools -y
 
-#   Install Quagga
-apt-get -o DPkg::Lock::Timeout=30 install quagga -y
-
 #   Install support for persistency to iptables
 echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
 echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
@@ -68,7 +65,9 @@ EOF
     systemctl enable routingconfig.service
 fi
 
-#   Configure Quagga
+#   Install and configure Quagga
+apt-get -o DPkg::Lock::Timeout=30 install quagga -y
+
 ls -l /var/log/zebra.log > /dev/null
 if [ $? -eq 2 ]
 then
