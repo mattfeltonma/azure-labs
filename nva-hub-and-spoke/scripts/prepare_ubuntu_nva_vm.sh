@@ -1,13 +1,14 @@
 #!/bin/bash
 
 #   Update repositories
-export DEBIAN_FRONTEND=noninteractive
-apt-get -o DPkg::Lock::Timeout=60 update && sleep 30
+export DEBIAN_FRONTEND=dialog
+apt-get -o DPkg::Lock::Timeout=60 update
 
 #   Disable built-in firewall. Management will be done direct with iptables
 ufw disable
 
 #   Install net tools
+export DEBIAN_FRONTEND=noninteractive
 apt-get -o DPkg::Lock::Timeout=30 install net-tools -y
 
 #   Install support for persistency to iptables
