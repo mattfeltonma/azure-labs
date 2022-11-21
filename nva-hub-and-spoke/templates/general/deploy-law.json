@@ -1,0 +1,63 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "laApiVersion": "2015-11-01-preview",
+        "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
+        "location": "[resourceGroup().location]"
+    },
+    "resources": [
+        {
+            "name": "[variables('laWorkspaceName')]",
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "apiVersion": "[variables('laApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "sku": {
+                    "name": "PerGB2018"
+                },
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled",
+                "retentionInDays": 30
+            },
+            "resources": []
+        }
+    ],
+    "outputs": {
+            "logAnalyticsName": {
+                "type": "string",
+                "value": "[variables('laWorkspaceName')]"
+            },
+            "logAnalyticsResourceId": {
+                "type": "string",
+                "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName'))]"
+            },
+            "logAnalyticsWorkspaceId": {
+                "type": "string",
+                "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')),'2015-03-20').customerId]"
+            },
+            "logAnalyticsWorkspaceKey": {
+                "type": "string",
+                "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
+            }
+    }
+}
