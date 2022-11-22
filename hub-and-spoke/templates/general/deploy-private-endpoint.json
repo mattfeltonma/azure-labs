@@ -87,17 +87,17 @@
         }
     },
     "variables": {
-        "networkApiVersion": "2020-05-01",
-        "resourceDeploymentsApiVersion": "2019-10-01",
-        "privateLinkEndpointName": "[substring(concat('pl',parameters('resourceName'),parameters('privateEndpointSubResource'),parameters('uniqueData')),0,24)]",
-        "privateLinkConnName": "[substring(concat('plconn',parameters('resourceName'),parameters('privateEndpointSubResource'),parameters('uniqueData')),0,24)]",
-        "privateEndpointIpDeploy": "deploy-getPeIp"
+        "_apiVersionNetworks": "2020-05-01",
+        "_apiVersionResources": "2019-10-01",
+        "deploymentNamePrivateEndpointIp": "[concat('deploy-',variables('privateEndpointName'))]",
+        "privateEndpointConnName": "[substring(concat('plconn',parameters('resourceName'),parameters('privateEndpointSubResource'),parameters('uniqueData')),0,24)]",
+        "privateEndpointName": "[substring(concat('pl',parameters('resourceName'),parameters('privateEndpointSubResource'),parameters('uniqueData')),0,24)]"
     },
     "resources": [
         {
             "type": "Microsoft.Network/privateEndpoints",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "name": "[variables('privateLinkEndpointName')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "name": "[variables('privateEndpointName')]",
             "location": "[parameters('privateEndpointLocation')]",
             "tags": "[parameters('tags')]",
             "properties": {
@@ -106,7 +106,7 @@
                 },
                 "privateLinkServiceConnections": [
                     {
-                        "name": "[variables('privateLinkConnName')]",
+                        "name": "[variables('privateEndpointConnName')]",
                         "properties": {
                             "privateLinkServiceId": "[parameters('resourceIdentifier')]",
                             "groupIds": [
@@ -119,11 +119,11 @@
         },
         {
             "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "name": "[concat(variables('privateLinkEndpointName'),'/default')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "name": "[concat(variables('privateEndpointName'),'/default')]",
             "location": "[parameters('privateEndpointLocation')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/privateEndpoints' , variables('privateLinkEndpointName'))]"
+                "[resourceId('Microsoft.Network/privateEndpoints' , variables('privateEndpointName'))]"
             ],
             "properties": {
                 "privateDnsZoneConfigs": [
@@ -137,11 +137,11 @@
             }
         },
         {
-            "name": "[variables('privateEndpointIpDeploy')]",
-            "apiVersion": "[variables('resourceDeploymentsApiVersion')]",
+            "name": "[variables('deploymentNamePrivateEndpointIp')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "type": "Microsoft.Resources/deployments",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/privateEndpoints/privateDnsZoneGroups', variables('privateLinkEndpointName'), 'default')]"
+                "[resourceId('Microsoft.Network/privateEndpoints/privateDnsZoneGroups', variables('privateEndpointName'), 'default')]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -150,10 +150,10 @@
                 },
                 "parameters": {
                     "networkApiVersion": {
-                        "value": "[variables('networkApiVersion')]"
+                        "value": "[variables('_apiVersionNetworks')]"
                     },
                     "privateEndpointNetworkInterface": {
-                        "value": "[reference(variables('privateLinkEndpointName')).networkInterfaces[0].id]"
+                        "value": "[reference(variables('privateEndpointName')).networkInterfaces[0].id]"
                     }
                 },
                 "template": {
@@ -181,7 +181,7 @@
     "outputs": {
         "privateEndpointIp": {
             "type": "string",
-            "value": "[reference(variables('privateEndpointIpDeploy')).outputs.privateEndpointIpAddress.value]"
+            "value": "[reference(variables('deploymentNamePrivateEndpointIp')).outputs.privateEndpointIpAddress.value]"
         }
     }
 }

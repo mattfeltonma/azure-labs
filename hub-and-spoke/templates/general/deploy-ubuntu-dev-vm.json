@@ -92,23 +92,25 @@
         }
     },
     "variables": {
-        "networkApiVersion": "2021-08-01",
-        "vmApiVersion": "2021-11-01",
-        "location": "[resourceGroup().location]",
-        "nicName": "[concat(parameters('vmName'),parameters('uniqueData'))]",
-        "osDiskType": "StandardSSD_LRS",
-        "scriptName": "prepare_ubuntu_dev_vm.sh",
-        "scriptUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../scripts/', variables('scriptName')))]",
-        "subnetRef": "[resourceId(parameters('vnetSubscriptionId'),parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('subnetName'))]"
+        "_apiVersionNetworks": "2021-08-01",
+        "_apiVersionVm": "2021-11-01",
+        "_location": "[resourceGroup().location]",
+        "managedDiskTypeOs": "StandardSSD_LRS",
+        "nicAcceleratedNetworking": "true",
+        "nicNamePrimary": "[concat(parameters('vmName'),parameters('uniqueData'))]",
+        "customScriptExtensionScriptName": "prepare_ubuntu_dev_vm.sh",
+        "customScriptExtensionScriptUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../scripts/', variables('customScriptExtensionScriptName')))]",
+        "vnetSubnetRef": "[resourceId(parameters('vnetSubscriptionId'),parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('subnetName'))]"
     },
     "resources": [
         {
-            "name": "[variables('nicName')]",
+            "name": "[variables('nicNamePrimary')]",
             "type": "Microsoft.Network/networkInterfaces",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "properties": {
+                "enableAcceleratedNetworking": "[variables('nicAcceleratedNetworking')]",
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
@@ -116,7 +118,7 @@
                             "privateIPAllocationMethod": "Static",
                             "privateIPAddress": "[parameters('serverIpAddress')]",
                             "subnet": {
-                                "id": "[variables('subnetRef')]"
+                                "id": "[variables('vnetSubnetRef')]"
                             }
                         }
                     }
@@ -126,11 +128,11 @@
         {
             "name": "[parameters('vmName')]",
             "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "[variables('vmApiVersion')]",
-            "location": "[variables('location')]",
+            "apiVersion": "[variables('_apiVersionVm')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrimary'))]"
             ],
             "properties": {
                 "diagnosticsProfile": {
@@ -144,7 +146,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicNamePrimary'))]"
                         }
                     ]
                 },
@@ -161,7 +163,7 @@
                     "osDisk": {
                         "createOption": "fromImage",
                         "managedDisk": {
-                            "storageAccountType": "[variables('osDiskType')]"
+                            "storageAccountType": "[variables('managedDiskTypeOs')]"
                         }
                     },
                     "imageReference": {
@@ -176,8 +178,8 @@
                 {
                     "name": "[concat(parameters('vmName'),'/CustomScriptExtension')]",
                     "type": "Microsoft.Compute/virtualMachines/extensions",
-                    "apiVersion": "[variables('vmApiVersion')]",
-                    "location": "[variables('location')]",
+                    "apiVersion": "[variables('_apiVersionVm')]",
+                    "location": "[variables('_location')]",
                     "tags": "[parameters('tags')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
@@ -191,17 +193,17 @@
                         },
                         "protectedSettings": {
                             "fileUris": [
-                                "[variables('scriptUrl')]"
+                                "[variables('customScriptExtensionScriptUrl')]"
                             ],
-                            "commandToExecute": "[concat('sh ', variables('scriptName'), ' ', parameters('adminUsername'))]"
+                            "commandToExecute": "[concat('sh ', variables('customScriptExtensionScriptName'), ' ', parameters('adminUsername'))]"
                         }
                     }
                 },
                 {
                     "type": "extensions",
                     "name": "Microsoft.Azure.NetworkWatcher",
-                    "apiVersion": "[variables('vmApiVersion')]",
-                    "location": "[variables('location')]",
+                    "apiVersion": "[variables('_apiVersionVm')]",
+                    "location": "[variables('_location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/CustomScriptExtension')]"
@@ -216,8 +218,8 @@
                 {
                     "type": "extensions",
                     "name": "OMSExtension",
-                    "apiVersion": "[variables('vmApiVersion')]",
-                    "location": "[variables('location')]",
+                    "apiVersion": "[variables('_apiVersionVm')]",
+                    "location": "[variables('_location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/Microsoft.Azure.NetworkWatcher')]"
@@ -239,8 +241,8 @@
                 {
                     "type": "extensions",
                     "name": "DependencyAgentLinux",
-                    "apiVersion": "[variables('vmApiVersion')]",
-                    "location": "[variables('location')]",
+                    "apiVersion": "[variables('_apiVersionVm')]",
+                    "location": "[variables('_location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/OMSExtension')]"
@@ -255,8 +257,8 @@
                 {
                     "type": "extensions",
                     "name": "AzureMonitorLinuxAgent",
-                    "apiVersion": "[variables('vmApiVersion')]",
-                    "location": "[variables('location')]",
+                    "apiVersion": "[variables('_apiVersionVm')]",
+                    "location": "[variables('_location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/DependencyAgentLinux')]"
