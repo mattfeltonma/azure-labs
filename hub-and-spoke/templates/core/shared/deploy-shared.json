@@ -141,11 +141,11 @@
         "deploymentUriPe": "[concat(variables('templatesUriGeneral'), 'deploy-private-endpoint.json')]",
         "deploymentUriNsgFlowLog": "[concat(variables('templatesUriGeneral'), 'deploy-nsg-flow-log.json')]",
         "deploymentUriWindowsDevVm": "[concat(variables('templatesUriGeneral'), 'deploy-windows-dev-vm.json')]",
-        "dnsZoneNameKeyVault": "privatelink.vaultcore.azure.net",
         "keyVaultSecretNameUsername": "adminusername",
         "keyVaultSecretNameUserPassword": "adminpassword",
         "nsgNameDev": "[concat('nsg-dev', parameters('uniqueData'))]",
         "nsgNameSupportSvcs": "[concat('nsg-svcs', parameters('uniqueData'))]",
+        "privateDnsZoneNameKeyVault": "privatelink.vaultcore.azure.net",
         "routeTableNameSharedSvcDev": "rt-dev",
         "rgNameSharedSvc": "[resourceGroup().name]",
         "subscriptionIdSharedSvc": "[subscription().subscriptionId]",
@@ -490,7 +490,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "privateDnsZoneName": {
-                        "value": "[variables('dnsZoneNameKeyVault')]"
+                        "value": "[variables('privateDnsZoneNameKeyVault')]"
                     },
                     "privateEndpointLocation": {
                         "value": "[variables('_location')]"
