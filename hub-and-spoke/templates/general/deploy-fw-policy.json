@@ -44,16 +44,16 @@
         }
     },
     "variables": {
-        "fwPolicyApiVersion": "2020-11-01",
-        "location": "[resourceGroup().location]",
-        "lzFwPolicyName": "[concat('fwpol',parameters('uniqueData'))]"
+        "_apiVersionFwPolicy": "2020-11-01",
+        "_location": "[resourceGroup().location]",
+        "azureFirewallPolicyName": "[concat('afwpol',parameters('uniqueData'))]"
     },
     "resources": [
         {
-            "name": "[variables('lzFwPolicyName')]",
+            "name": "[variables('azureFirewallPolicyName')]",
             "type": "Microsoft.Network/firewallPolicies",
-            "apiVersion": "[variables('fwPolicyApiVersion')]",
-            "location": "[variables('location')]",
+            "apiVersion": "[variables('_apiVersionFwPolicy')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "dnsSettings": {
@@ -68,10 +68,9 @@
                 {
                     "name": "DefaultDnatRuleCollectionGroup",
                     "type": "ruleCollectionGroups",
-                    "apiVersion": "[variables('fwPolicyApiVersion')]",
-                    "location": "[variables('fwPolicyApiVersion')]",
+                    "apiVersion": "[variables('_apiVersionFwPolicy')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]"
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('azureFirewallPolicyName'))]"
                     ],
                     "properties": {
                         "priority": 100,
@@ -82,11 +81,10 @@
                 {
                     "name": "DefaultNetworkRuleCollectionGroup",
                     "type": "ruleCollectionGroups",
-                    "apiVersion": "[variables('fwPolicyApiVersion')]",
-                    "location": "[variables('fwPolicyApiVersion')]",
+                    "apiVersion": "[variables('_apiVersionFwPolicy')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]",
-                        "[concat('Microsoft.Network/firewallPolicies/', variables('lzFwPolicyName'), '/ruleCollectionGroups/', 'DefaultDnatRuleCollectionGroup')]"
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('azureFirewallPolicyName'))]",
+                        "[concat('Microsoft.Network/firewallPolicies/', variables('azureFirewallPolicyName'), '/ruleCollectionGroups/', 'DefaultDnatRuleCollectionGroup')]"
                     ],
                     "properties": {
                         "priority": 200,
@@ -238,11 +236,10 @@
                 {
                     "name": "DefaultApplicationRuleCollectionGroup",
                     "type": "ruleCollectionGroups",
-                    "apiVersion": "[variables('fwPolicyApiVersion')]",
-                    "location": "[variables('fwPolicyApiVersion')]",
+                    "apiVersion": "[variables('_apiVersionFwPolicy')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]",
-                        "[concat('Microsoft.Network/firewallPolicies/', variables('lzFwPolicyName'), '/ruleCollectionGroups/', 'DefaultNetworkRuleCollectionGroup')]"
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('azureFirewallPolicyName'))]",
+                        "[concat('Microsoft.Network/firewallPolicies/', variables('azureFirewallPolicyName'), '/ruleCollectionGroups/', 'DefaultNetworkRuleCollectionGroup')]"
                     ],
                     "properties": {
                         "priority": 300,
@@ -355,7 +352,7 @@
     "outputs": {
         "firewallPolicyId": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Network/firewallPolicies', variables('lzFwPolicyName'))]"
+            "value": "[resourceId('Microsoft.Network/firewallPolicies', variables('azureFirewallPolicyName'))]"
         }
     }
 }
