@@ -63,7 +63,7 @@
                 "description": "The CIDR assigned to the subnet used for the VM used to deploy code"
             }
         },
-        "sharedSvcVnetSubnetSupportSvcCidr": {
+        "sharedSvcVnetSubnetSvcCidr": {
             "type": "string",
             "metadata": {
                 "description": "The CIDR assigned to the subnet used for support services served up behind private endpoints for central services"
@@ -129,9 +129,9 @@
         "deploymentNameKeyVaultCentral": "deploy-keyvault-central",
         "deploymentNameKvSecretUsername": "deploy-kv-secret-username",
         "deploymentNameKvSecretUserPassword": "deploy-kv-secret-user-password",
-        "deploymentNameNsgFlowLogDev": "deploy-flowlog-dev",
-        "deploymentNameNsgFlowLogSvc": "deploy-flowlog-svcs",
-        "deploymentNamePeKeyVault": "deploy-pe-keyvault",
+        "deploymentNameNsgFlowLogDev": "deploy-flowlog-dev-shared",
+        "deploymentNameNsgFlowLogSvc": "deploy-flowlog-svc-shared",
+        "deploymentNamePeKeyVault": "deploy-pe-keyvault-shared",
         "deploymentNameTransitVnetPeering": "deploy-vnetpeer-transit-to-shared",
         "deploymentNameVmLinuxDev": "deploy-dev-linux-vm",
         "deploymentNameVmWindowsDev": "deploy-dev-win-vm",
@@ -141,6 +141,7 @@
         "deploymentUriPe": "[concat(variables('templatesUriGeneral'), 'deploy-private-endpoint.json')]",
         "deploymentUriNsgFlowLog": "[concat(variables('templatesUriGeneral'), 'deploy-nsg-flow-log.json')]",
         "deploymentUriWindowsDevVm": "[concat(variables('templatesUriGeneral'), 'deploy-windows-dev-vm.json')]",
+        "keyVaultNamePrefix": "kvcnt",
         "keyVaultSecretNameUsername": "adminusername",
         "keyVaultSecretNameUserPassword": "adminpassword",
         "nsgNameDev": "[concat('nsg-dev', parameters('uniqueData'))]",
@@ -158,7 +159,7 @@
         "vnetPeeringTransitToShared": "peertransittoshared",
         "vnetStandardDdosProtection": false,
         "vnetSubnetNameSharedSvcDev": "snet-dev",
-        "vnetSubnetNameSharedSvcSupportSvc": "snet-svcs"
+        "vnetSubnetNameSharedSvcSvc": "snet-svc"
     },
     "resources": [
         {
@@ -177,7 +178,7 @@
                         "value": "[parameters('keyVaultAdmin')]"
                     },
                     "keyVaultNamePrefix": {
-                        "value": "kvcnt"
+                        "value": "[variables('keyVaultNamePrefix')]"
                     },
                     "laWorkspaceResourceId": {
                         "value": "[parameters('lawResourceId')]"
@@ -405,9 +406,9 @@
                         }
                     },
                     {
-                        "name": "[variables('vnetSubnetNameSharedSvcSupportSvc')]",
+                        "name": "[variables('vnetSubnetNameSharedSvcSvc')]",
                         "properties": {
-                            "addressPrefix": "[parameters('sharedSvcVnetSubnetSupportSvcCidr')]",
+                            "addressPrefix": "[parameters('sharedSvcVnetSubnetSvcCidr')]",
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSupportSvcs'))]"
                             },
