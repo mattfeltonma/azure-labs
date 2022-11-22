@@ -112,7 +112,7 @@
         "vnetSubnetCidrSharedSvcDev": "10.1.2.0/24",
         "vnetSubnetCidrSharedSvcDnsIn": "10.1.0.0/28",
         "vnetSubnetCidrSharedSvcDnsOut": "10.1.1.0/28",  
-        "vnetSubnetCidrSharedSvcPe": "10.1.3.0/24",
+        "vnetSubnetCidrSharedSvcSupportSvc": "10.1.3.0/24",
         "vnetSubnetCidrTransitBastion": "10.0.1.0/27",
         "vnetSubnetCidrTransitFw": "10.0.2.0/26",
         "vnetSubnetCidrTransitGateway": "10.0.0.0/27",
@@ -295,8 +295,8 @@
                     "sharedSvcVnetSubnetDevCidr": {
                         "value": "[variables('vnetSubnetCidrSharedSvcDev')]"
                     },
-                    "sharedSvcVnetSubnetPeCidr": {
-                        "value": "[variables('vnetSubnetCidrSharedSvcPe')]"
+                    "sharedSvcVnetSubnetSupportSvcCidr": {
+                        "value": "[variables('vnetSubnetCidrSharedSvcSupportSvc')]"
                     },
                     "transitResourceGroupName": {
                         "value": "[variables('rgNameTransit')]"

@@ -63,10 +63,10 @@
                 "description": "The CIDR assigned to the subnet used for the VM used to deploy code"
             }
         },
-        "sharedSvcVnetSubnetPeCidr": {
+        "sharedSvcVnetSubnetSupportSvcCidr": {
             "type": "string",
             "metadata": {
-                "description": "The CIDR assigned to the subnet used for private endpoints for central services"
+                "description": "The CIDR assigned to the subnet used for support services served up behind private endpoints for central services"
             }
         },
         "transitResourceGroupName": {
@@ -123,47 +123,48 @@
         }
     },
     "variables": {
-        "networkApiVersion": "2020-04-01",
-        "resourcesApiVersion": "2020-06-01",
-        "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
-        "deployKeyVaultCentral": "deploy-central-keyvault",
-        "deployKeyVaultPe": "deploy-keyvaultprivateendpoint",
-        "devNsgFlowLogDeploymentName": "deploy-devflowlog",
-        "devNsgName": "[concat('nsg-dev', parameters('uniqueData'))]",
-        "devLinuxVmDeploymentName": "deploy-dev-linux-vm",
-        "devLinuxVmName": "vmldev01",
-        "devLinuxVmDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-dev-vm.json')]",
-        "devWinVmDeploymentName": "deploy-dev-win-vm",
-        "devWinVmName": "vmwdev01",
-        "devWinVmDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-windows-dev-vm.json')]",
-        "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
-        "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
-        "location": "[resourceGroup().location]",
-        "nsgDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-nsg-flow-log.json')]",
-        "peDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-private-endpoint.json')]",
-        "peeringSharedToTransit": "peersharedtotransit",
-        "peeringTransitToShared": "peertransittoshared",
-        "peNsgFlowLogDeploymentName": "deploy-peflowlog",
-        "privateEndpointNsgName": "[concat('nsg-pe', parameters('uniqueData'))]",
-        "secretDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-secret.json')]",
-        "sharedSvcDevSubnetName": "snet-dev",
-        "sharedSvcPeSvcSubnetName": "snet-pe",
-        "sharedSvcRouteTableName": "rt-dev",
-        "sharedSvcRgName": "[resourceGroup().name]",
-        "sharedSvcSubId": "[subscription().subscriptionId]",
-        "sharedSvcVnetName": "[concat('vnet-shared', parameters('uniqueData'))]",
-        "userNameSecretDeploymentName": "deploy-usernamesecret",
-        "userNameSecretName": "adminusername",
-        "userPasswordSecretDeploymentName": "deploy-userpasswordsecret",
-        "userPasswordSecretName": "adminpassword",
+        "_apiVersionNetworks": "2020-04-01",
+        "_apiVersionResources": "2020-06-01",
+        "_location": "[resourceGroup().location]",
+        "deploymentNameKeyVaultCentral": "deploy-keyvault-central",
+        "deploymentNameKvSecretUsername": "deploy-kv-secret-username",
+        "deploymentNameKvSecretUserPassword": "deploy-kv-secret-user-password",
+        "deploymentNameNsgFlowLogDev": "deploy-flowlog-dev",
+        "deploymentNameNsgFlowLogSvc": "deploy-flowlog-svcs",
+        "deploymentNamePeKeyVault": "deploy-pe-keyvault",
+        "deploymentNameTransitVnetPeering": "deploy-vnetpeer-transit-to-shared",
+        "deploymentNameVmLinuxDev": "deploy-dev-linux-vm",
+        "deploymentNameVmWindowsDev": "deploy-dev-win-vm",
+        "deploymentUriKeyVault": "[concat(variables('templatesUriGeneral'), 'deploy-key-vault.json')]",
+        "deploymentUriKeyVaultSecret": "[concat(variables('templatesUriGeneral'), 'deploy-keyvault-secret.json')]",
+        "deploymentUriLinuxDevVm": "[concat(variables('templatesUriGeneral'), 'deploy-ubuntu-dev-vm.json')]",
+        "deploymentUriPe": "[concat(variables('templatesUriGeneral'), 'deploy-private-endpoint.json')]",
+        "deploymentUriNsgFlowLog": "[concat(variables('templatesUriGeneral'), 'deploy-nsg-flow-log.json')]",
+        "deploymentUriWindowsDevVm": "[concat(variables('templatesUriGeneral'), 'deploy-windows-dev-vm.json')]",
+        "dnsZoneNameKeyVault": "privatelink.vaultcore.azure.net",
+        "keyVaultSecretNameUsername": "adminusername",
+        "keyVaultSecretNameUserPassword": "adminpassword",
+        "nsgNameDev": "[concat('nsg-dev', parameters('uniqueData'))]",
+        "nsgNameSupportSvcs": "[concat('nsg-svcs', parameters('uniqueData'))]",
+        "routeTableNameSharedSvcDev": "rt-dev",
+        "rgNameSharedSvc": "[resourceGroup().name]",
+        "subscriptionIdSharedSvc": "[subscription().subscriptionId]",
+        "templatesUriGeneral": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
+        "vmNameLinuxDev": "vmldev01",
+        "vmNameWindowsDev": "vmwdev01",
         "vmSku": "Standard_D4s_v5",
-        "vnetStandardDdosProtection": false
+        "vnetNameSharedSvc": "[concat('vnet-shared', parameters('uniqueData'))]",
+        "vnetPeeringSharedToTransit": "peersharedtotransit",
+        "vnetPeeringTransitToShared": "peertransittoshared",
+        "vnetStandardDdosProtection": false,
+        "vnetSubnetNameSharedSvcDev": "snet-dev",
+        "vnetSubnetNameSharedSvcSupportSvc": "snet-svcs"
     },
     "resources": [
         {
-            "name": "[variables('deployKeyVaultCentral')]",
+            "name": "[variables('deploymentNameKeyVaultCentral')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [
             ],
             "properties": {
@@ -189,27 +190,27 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('keyVaultDeploymentUri')]",
+                    "uri": "[variables('deploymentUriKeyVault')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
-            "name": "[variables('usernameSecretDeploymentName')]",
+            "name": "[variables('deploymentNameKvSecretUsername')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[reference(variables('deployKeyVaultCentral')).outputs.keyVaultName.value]"
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.keyVaultName.value]"
                     },
                     "location": {
-                        "value": "[variables('location')]"
+                        "value": "[variables('_location')]"
                     },
                     "secretName": {
-                        "value": "[variables('usernameSecretName')]"
+                        "value": "[variables('keyVaultSecretNameUsername')]"
                     },
                     "secretValue": {
                         "value": "[parameters('vmAdminUsername')]"
@@ -219,27 +220,27 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('secretDeploymentUri')]",
+                    "uri": "[variables('deploymentUriKeyVaultSecret')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
-            "name": "[variables('userPasswordSecretDeploymentName')]",
+            "name": "[variables('deploymentNameKvSecretUserPassword')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "keyVaultName": {
-                        "value": "[reference(variables('deployKeyVaultCentral')).outputs.keyVaultName.value]"
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.keyVaultName.value]"
                     },
                     "location": {
-                        "value": "[variables('location')]"
+                        "value": "[variables('_location')]"
                     },
                     "secretName": {
-                        "value": "[variables('userPasswordSecretName')]"
+                        "value": "[variables('keyVaultSecretNameUserPassword')]"
                     },
                     "secretValue": {
                         "value": "[parameters('vmAdminPassword')]"
@@ -249,16 +250,16 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('secretDeploymentUri')]",
+                    "uri": "[variables('deploymentUriKeyVaultSecret')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
             "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[variables('devNsgName')]",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
+            "name": "[variables('nsgNameDev')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "securityRules": []
@@ -266,21 +267,21 @@
         },
         {
             "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[variables('privateEndpointNsgName')]",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
+            "name": "[variables('nsgNameSupportSvcs')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "securityRules": []
             }
         },
         {
-            "name": "[variables('peNsgFlowLogDeploymentName')]",
+            "name": "[variables('deploymentNameNsgFlowLogSvc')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSupportSvcs'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -289,35 +290,35 @@
                         "value": "[parameters('uniqueData')]"
                     },
                     "location": {
-                        "value": "[variables('location')]"
+                        "value": "[variables('_location')]"
                     },
                     "targetLaWorkspaceResourceId": {
                         "value": "[parameters('lawResourceId')]"
                     },
                     "targetNsgName": {
-                        "value": "[variables('privateEndpointNsgName')]"
+                        "value": "[variables('nsgNameSupportSvcs')]"
                     },
                     "targetNsgResourceId": {
-                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('privateEndpointNsgName'))]"
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameSupportSvcs'))]"
                     },
                     "targetStorageResourceId": {
                         "value": "[parameters('nsgStorageAccountResourceId')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('nsgDeploymentUri')]",
+                    "uri": "[variables('deploymentUriNsgFlowLog')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
-            "name": "[variables('devNsgFlowLogDeploymentName')]",
+            "name": "[variables('deploymentNameNsgFlowLogDev')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('peNsgFlowLogDeploymentName'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('devNsgName'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNsgFlowLogSvc'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDev'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -326,35 +327,35 @@
                         "value": "[parameters('uniqueData')]"
                     },
                     "location": {
-                        "value": "[variables('location')]"
+                        "value": "[variables('_location')]"
                     },
                     "targetLaWorkspaceResourceId": {
                         "value": "[parameters('lawResourceId')]"
                     },
                     "targetNsgName": {
-                        "value": "[variables('devNsgName')]"
+                        "value": "[variables('nsgNameDev')]"
                     },
                     "targetNsgResourceId": {
-                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('devNsgName'))]"
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameDev'))]"
                     },
                     "targetStorageResourceId": {
                         "value": "[parameters('nsgStorageAccountResourceId')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('nsgDeploymentUri')]",
+                    "uri": "[variables('deploymentUriNsgFlowLog')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
-            "name": "[variables('sharedSvcRouteTableName')]",
+            "name": "[variables('routeTableNameSharedSvcDev')]",
             "type": "Microsoft.Network/routeTables",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('devNsgFlowLogDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameNsgFlowLogDev'))]"
             ],
             "properties": {
                 "routes": [
@@ -374,14 +375,14 @@
         },
         {
             "type": "Microsoft.Network/virtualNetworks",
-            "name": "[variables('sharedSvcVnetName')]",
-            "apiVersion": "[variables('networkApiVersion')]",
-            "location": "[variables('location')]",
+            "name": "[variables('vnetNameSharedSvc')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('devNsgName'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]",
-                "[resourceId('Microsoft.Network/routeTables', variables('sharedSvcRouteTableName'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDev'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSupportSvcs'))]",
+                "[resourceId('Microsoft.Network/routeTables', variables('routeTableNameSharedSvcDev'))]"
             ],
             "properties": {
                 "addressSpace": {
@@ -391,24 +392,24 @@
                 },
                 "subnets": [
                     {
-                        "name": "[variables('sharedSvcDevSubnetName')]",
+                        "name": "[variables('vnetSubnetNameSharedSvcDev')]",
                         "properties": {
                             "addressPrefix": "[parameters('sharedSvcVnetSubnetDevCidr')]",
                             "routeTable": {
-                                "id": "[resourceId('Microsoft.Network/routeTables',variables('sharedSvcRouteTableName'))]"
+                                "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameSharedSvcDev'))]"
                             },
                             "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('devNsgName'))]"
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDev'))]"
                             },
                             "privateEndpointNetworkPolicies": "Enabled"
                         }
                     },
                     {
-                        "name": "[variables('sharedSvcPeSvcSubnetName')]",
+                        "name": "[variables('vnetSubnetNameSharedSvcSupportSvc')]",
                         "properties": {
-                            "addressPrefix": "[parameters('sharedSvcVnetSubnetPeCidr')]",
+                            "addressPrefix": "[parameters('sharedSvcVnetSubnetSupportSvcCidr')]",
                             "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('privateEndpointNsgName'))]"
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSupportSvcs'))]"
                             },
                             "privateEndpointNetworkPolicies": "Enabled"
                         }
@@ -423,12 +424,12 @@
             },
             "resources": [
                 {
-                    "name": "[variables('peeringSharedToTransit')]",
+                    "name": "[variables('vnetPeeringSharedToTransit')]",
                     "type": "virtualNetworkPeerings",
-                    "apiVersion": "[variables('networkApiVersion')]",
+                    "apiVersion": "[variables('_apiVersionNetworks')]",
                     "location": "[resourceGroup().location]",
                     "dependsOn": [
-                        "[concat('Microsoft.Network/virtualNetworks/', variables('sharedSvcVnetName'))]"
+                        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetNameSharedSvc'))]"
                     ],
                     "properties": {
                         "allowVirtualNetworkAccess": "true",
@@ -443,13 +444,13 @@
             ]
         },
         {
-            "name": "[variables('peeringTransitToShared')]",
+            "name": "[variables('deploymentNameTransitVnetPeering')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "resourceGroup": "[parameters('transitResourceGroupName')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -460,9 +461,9 @@
                     "variables": {},
                     "resources": [
                         {
-                            "name": "[concat(parameters('transitVnetName'),'/',variables('peeringTransitToShared'))]",
+                            "name": "[concat(parameters('transitVnetName'),'/',variables('vnetPeeringTransitToShared'))]",
                             "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
-                            "apiVersion": "[variables('networkApiVersion')]",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
                             "location": "[resourceGroup().location]",
                             "properties": {
                                 "allowVirtualNetworkAccess": "true",
@@ -470,7 +471,7 @@
                                 "allowGatewayTransit": "true",
                                 "useRemoteGateways": "false",
                                 "remoteVirtualNetwork": {
-                                    "id": "[resourceId(variables('sharedSvcSubId'), variables('sharedSvcRgName'), 'Microsoft.Network/virtualNetworks', variables('sharedSvcVnetName'))]"
+                                    "id": "[resourceId(variables('subscriptionIdSharedSvc'), variables('rgNameSharedSvc'), 'Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
                                 }
                             }
                         }
@@ -479,20 +480,20 @@
             }
         },
         {
-            "name": "[variables('deployKeyVaultPe')]",
+            "name": "[variables('deploymentNamePeKeyVault')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('peeringTransitToShared'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameTransitVnetPeering'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "privateDnsZoneName": {
-                        "value": "[variables('keyVaultDnsZoneName')]"
+                        "value": "[variables('dnsZoneNameKeyVault')]"
                     },
                     "privateEndpointLocation": {
-                        "value": "[variables('location')]"
+                        "value": "[variables('_location')]"
                     },
                     "privateDnsZoneResourceGroup": {
                         "value": "[parameters('transitResourceGroupName')]"
@@ -501,19 +502,19 @@
                         "value": "[parameters('transitSubscriptionId')]"
                     },
                     "privateEndpointSubnetName": {
-                        "value": "[variables('sharedSvcPeSvcSubnetName')]"
+                        "value": "[variables('vnetSubnetNameSharedSvcDev')]"
                     },
                     "privateEndpointSubResource": {
                         "value": "vault"
                     },
                     "privateEndpointVnetName": {
-                        "value": "[variables('sharedSvcVnetName')]"
+                        "value": "[variables('vnetNameSharedSvc')]"
                     },
                     "resourceName": {
-                        "value": "[reference(variables('deployKeyVaultCentral')).outputs.keyVaultName.value]"
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.keyVaultName.value]"
                     },
                     "resourceIdentifier": {
-                        "value": "[reference(variables('deployKeyVaultCentral')).outputs.KeyVaultResourceId.value]"
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.KeyVaultResourceId.value]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -523,17 +524,17 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('peDeploymentUri')]",
+                    "uri": "[variables('deploymentUriPe')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
-            "name": "[variables('devLinuxVmDeploymentName')]",
+            "name": "[variables('deploymentNameVmLinuxDev')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deployKeyVaultPe'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNamePeKeyVault'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -554,7 +555,7 @@
                         "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
                     },
                     "subnetName": {
-                        "value": "[variables('sharedSvcDevSubnetName')]"
+                        "value": "[variables('vnetSubnetNameSharedSvcDev')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -566,24 +567,24 @@
                         "value": "[variables('vmSku')]"
                     },
                     "vmName": {
-                        "value": "[variables('devLinuxVmName')]"
+                        "value": "[variables('vmNameLinuxDev')]"
                     },
                     "vnetName": {
-                        "value": "[variables('sharedSvcVnetName')]"
+                        "value": "[variables('vnetNameSharedSvc')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('devLinuxVmDeploymentUri')]",
+                    "uri": "[variables('deploymentUriLinuxDevVm')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
-            "name": "[variables('devWinVmDeploymentName')]",
+            "name": "[variables('deploymentNameVmWindowsDev')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('resourcesApiVersion')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('devLinuxVmDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameVmLinuxDev'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -604,7 +605,7 @@
                         "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
                     },
                     "subnetName": {
-                        "value": "[variables('sharedSvcDevSubnetName')]"
+                        "value": "[variables('vnetSubnetNameSharedSvcDev')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -616,14 +617,14 @@
                         "value": "[variables('vmSku')]"
                     },
                     "vmName": {
-                        "value": "[variables('devWinVmName')]"
+                        "value": "[variables('vmNameWindowsDev')]"
                     },
                     "vnetName": {
-                        "value": "[variables('sharedSvcVnetName')]"
+                        "value": "[variables('vnetNameSharedSvc')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('devWinVmDeploymentUri')]",
+                    "uri": "[variables('deploymentUriWindowsDevVm')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
