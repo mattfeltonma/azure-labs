@@ -560,7 +560,7 @@
             "name": "[concat(variables('privateDnsZoneNameAppService'), '/', variables('privateDnsZoneLinkAppService'))]",
             "location": "global",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneLinkAppService'))]",
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneNameAppService'))]",
                 "[resourceId('Microsoft.Network/azureFirewalls',variables('azureFirewallName'))]"
             ],
             "properties": {
