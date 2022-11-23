@@ -683,7 +683,7 @@
         {
             "type": "Microsoft.Network/privateDnsZones",
             "apiVersion": "[variables('_apiVersionDns')]",
-            "name": "[variables('privateDnsZoneLinkStorageTable')]",
+            "name": "[variables('privateDnsZoneNameStorageTable')]",
             "location": "global"
         },
         {
