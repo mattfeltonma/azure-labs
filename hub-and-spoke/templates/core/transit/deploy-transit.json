@@ -138,7 +138,6 @@
         "publicIpNameVng": "[concat('pip-vng', parameters('uniqueData'))]",
         "routeTableNameVng": "rt-vng",
         "storageAccountNameNsg": "[concat('stcent', parameters('uniqueData'))]",
-        "subscriptionIdTransit": "[subscription().subscriptionId]",
         "vnetNameTransit": "[concat('vnet-transit', parameters('uniqueData'))]",
         "vnetSubnetNameAzFwPayload": "AzureFirewallSubnet",
         "vnetSubnetNameGateway": "GatewaySubnet",
