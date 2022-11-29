@@ -27,6 +27,12 @@
                 "description": "The IP address block assigned to the Dev subnet in the Shared Services virtual network"
             }
         },
+        "sharedSvcDnsInSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the Private DNS Resolver inbound endpoint subnet in the Shared Services virtual network"
+            }
+        },
         "sharedSvcResourceGroupName": {
             "type": "string",
             "metadata": {
@@ -243,6 +249,9 @@
                     },
                     "devSubnetCidr": {
                         "value": "[parameters('sharedSvcDevSubnetCidr')]"
+                    },
+                    "dnsSubnetCidr": {
+                        "value": "[parameters('sharedSvcDnsInSubnetCidr')]"
                     },
                     "onPremisesAddressSpace": {
                         "value": "[parameters('onPremisesAddressSpace')]"

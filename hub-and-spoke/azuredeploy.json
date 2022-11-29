@@ -222,6 +222,9 @@
                     "sharedSvcDevSubnetCidr": {
                         "value": "[variables('vnetSubnetCidrSharedSvcDev')]"
                     },
+                    "sharedSvcDnsInSubnetCidr": {
+                        "value": "[variables('vnetSubnetCidrSharedSvcDnsIn')]"
+                    },
                     "sharedSvcResourceGroupName": {
                         "value": "[variables('rgNameSharedSvc')]"
                     },

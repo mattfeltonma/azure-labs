@@ -13,6 +13,12 @@
             "metadata": {
                 "description": "The subnet CIDR assigned to the subnet containing the development virtual machines"
             }
+        },
+        "dnsSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The subnet CIDR assigned to the subnet containing the Private DNS Resolver Inbound Endpoint"
+            }
         },   
         "onPremisesAddressSpace": {
             "type": "string",
@@ -202,8 +208,39 @@
                                 "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
                             },
                             {
-                                "name": "AllowDevVmWorkload",
+                                "name": "AllowDns",
                                 "priority": 400,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowDnsToInboundEndpoint",
+                                        "ipProtocols": [
+                                            "TCP",
+                                            "UDP"
+                                        ],
+                                        "destinationPorts": [
+                                            "53"
+                                        ],
+                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]",
+                                            "[parameters('onPremisesAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "destinationIpGroups": [],
+                                        "destinationAddresses": [
+                                            "[parameters('dnsSubnetCidr')]"
+                                        ],
+                                        "ruleConditionType": "NetworkRuleCondition",
+                                        "ruleType": "NetworkRule"
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            },
+                            {
+                                "name": "AllowDevVmWorkload",
+                                "priority": 500,
                                 "action": {
                                     "type": "Allow"
                                 },
