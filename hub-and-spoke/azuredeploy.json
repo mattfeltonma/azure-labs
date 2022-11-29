@@ -88,7 +88,7 @@
     },
     "variables": {
         "_apiVersionresources": "2020-06-01",
-        "cloudAddressSpace": "10.0.0.0/8",
+        "cloudRegionAddressSpace": "10.0.0.0/13",
         "rgDeploymentNameSharedSvc": "[concat('deploy-shared-rg',parameters('uniqueData'))]",
         "rgDeploymentNameTransit": "[concat('deploy-transit',parameters('uniqueData'))]",
         "rgDeploymentNameWorkload": "[concat('deploy-workload',parameters('uniqueData'))]",
@@ -211,7 +211,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "cloudAddressSpace": {
-                        "value": "[variables('cloudAddressSpace')]"
+                        "value": "[variables('cloudRegionAddressSpace')]"
                     },
                     "networkWatcherRg": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
@@ -230,10 +230,10 @@
                     },
                     "sharedSvcSubscriptionId": {
                         "value": "[parameters('sharedSubscriptionId')]"
-                    },  
+                    },
                     "sharedSvcVnetCidr": {
                         "value": "[variables('vnetCidrSharedSvc')]"
-                    },  
+                    },
                     "transitBastionSubnetCidr": {
                         "value": "[variables('vnetSubnetCidrTransitBastion')]"
                     },
@@ -274,14 +274,23 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "azureFirewallAz": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.azureFirewallAz.value]"
+                    },
+                    "azureFirewallName": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.azureFirewallName.value]"
+                    },
+                    "azureFirewallPolicyResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.azureFirewallPolicyResourceId.value]"
+                    },
+                    "cloudRegionAddressSpace": {
+                        "value": "[variables('cloudRegionAddressSpace')]"
+                    },
                     "devLinuxServerIp": {
                         "value": "[variables('vmIpSharedSvcLinuxDevServer')]"
                     },
                     "devWindowsServerIp": {
                         "value": "[variables('vmIpSharedSvcWindowsDevServer')]"
-                    },
-                    "dnsServerIp": {
-                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.firewallIp.value]"
                     },
                     "firewallIp": {
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.firewallIp.value]"
@@ -298,11 +307,20 @@
                     "nsgStorageAccountResourceId": {
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.nsgStorageAccountResourceId.value]"
                     },
+                    "onPremisesAddressSpace": {
+                        "value": "[parameters('onPremisesAddressSpace')]"
+                    },
                     "sharedSvcVnetCidr": {
                         "value": "[variables('vnetCidrSharedSvc')]"
                     },
                     "sharedSvcVnetSubnetDevCidr": {
                         "value": "[variables('vnetSubnetCidrSharedSvcDev')]"
+                    },
+                    "sharedSvcVnetSubnetDnsInCidr": {
+                        "value": "[variables('vnetSubnetCidrSharedSvcDnsIn')]"
+                    },
+                    "sharedSvcVnetSubnetDnsOutCidr": {
+                        "value": "[variables('vnetSubnetCidrSharedSvcDnsOut')]"
                     },
                     "sharedSvcVnetSubnetSvcCidr": {
                         "value": "[variables('vnetSubnetCidrSharedSvcSvc')]"
@@ -316,8 +334,14 @@
                     "transitVnetName": {
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.transitVnetName.value]"
                     },
+                    "transitVnetPublicIpFw": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.transitVnetPublicIpFwResId.value]"
+                    },
                     "transitVnetResourceId": {
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.transitVnetResourceId.value]"
+                    },
+                    "transitVnetSubnetNameAzFw": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.transitVnetSubnetNameAzFw.value]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
