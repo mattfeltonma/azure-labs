@@ -27,6 +27,18 @@
                 "description": "The IP address block assigned to the Dev subnet in the Shared Services virtual network"
             }
         },
+        "sharedSvcResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group containing the Shared Services resources"
+            }
+        },
+        "sharedSvcSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id of the Shared Services resources"
+            }
+        },
         "sharedSvcVnetCidr": {
             "type": "string",
             "metadata": {
@@ -126,6 +138,7 @@
         "publicIpNameVng": "[concat('pip-vng', parameters('uniqueData'))]",
         "routeTableNameVng": "rt-vng",
         "storageAccountNameNsg": "[concat('stcent', parameters('uniqueData'))]",
+        "subscriptionIdTransit": "[subscription().subscriptionId]",
         "vnetNameTransit": "[concat('vnet-transit', parameters('uniqueData'))]",
         "vnetSubnetNameAzFwPayload": "AzureFirewallSubnet",
         "vnetSubnetNameGateway": "GatewaySubnet",
@@ -138,6 +151,8 @@
             "name": "[variables('deployLawCentral')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
+            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
+            "resourceGroup": "[parameters('sharedSvcResourceGroupName')]",
             "dependsOn": [
             ],
             "properties": {

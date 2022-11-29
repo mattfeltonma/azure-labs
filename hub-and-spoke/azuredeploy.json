@@ -221,7 +221,13 @@
                     },
                     "sharedSvcDevSubnetCidr": {
                         "value": "[variables('vnetSubnetCidrSharedSvcDev')]"
-                    },   
+                    },
+                    "sharedSvcResourceGroupName": {
+                        "value": "[variables('rgNameSharedSvc')]"
+                    },
+                    "sharedSvcSubscriptionId": {
+                        "value": "[parameters('sharedSubscriptionId')]"
+                    },  
                     "sharedSvcVnetCidr": {
                         "value": "[variables('vnetCidrSharedSvc')]"
                     },  
