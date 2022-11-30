@@ -943,12 +943,27 @@
             }
         },
         {
+            "name": "[variables('dnsResolver')]",
+            "type": "Microsoft.Network/dnsResolvers",
+            "apiVersion": "[variables('_apiVersionDnsResolver')]",
+            "location": "[variables('_location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones/virtualNetworkLinks', variables('privateDnsZoneNameKeyVault'), variables('privateDnsZoneLinkKeyVault'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                }
+            }
+        },
+        {
             "name": "[concat(variables('dnsResolver'),'/',variables('dnsResolverInbound'))]",
             "type": "Microsoft.Network/dnsResolvers/inboundEndpoints",
             "apiVersion": "[variables('_apiVersionDnsResolver')]",
             "location": "[variables('_location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones/virtualNetworkLinks', variables('privateDnsZoneNameKeyVault'), variables('privateDnsZoneLinkKeyVault'))]"
+                "[resourceId('Microsoft.Network/dnsResolvers', variables('dnsResolver'))]"
             ],
             "tags": "[parameters('tags')]",
             "properties": {
