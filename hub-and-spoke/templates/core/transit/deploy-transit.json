@@ -774,22 +774,30 @@
             "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/azureFirewalls',variables('azureFirewallName'))]"
+                "[resourceId('Microsoft.Network/virtualNetworkGateways', variables('virtualNetworkGatewayName'))]"
             ],
             "properties": {
                 "name": "SendToWorkspace",
                 "workspaceId": "[reference(variables('deployLawCentral')).outputs.logAnalyticsResourceId.value]",
                 "logs": [
                     {
-                        "category": "AzureFirewallApplicationRule",
+                        "category": "GatewayDiagnosticLog",
                         "enabled": true
                     },
                     {
-                        "category": "AzureFirewallNetworkRule",
+                        "category": "IKEDiagnosticLog",
                         "enabled": true
                     },
                     {
-                        "category": "AzureFirewallDnsProxy",
+                        "category": "P2SDiagnosticLog",
+                        "enabled": true
+                    },
+                    {
+                        "category": "RouteDiagnosticLog",
+                        "enabled": true
+                    },
+                    {
+                        "category": "TunnelDiagnosticLog",
                         "enabled": true
                     }
                 ],
@@ -802,7 +810,7 @@
             },
             "resources": [
             ]
-        },
+        }
     ],
     "outputs": {
         "azureFirewallAz": {
