@@ -102,26 +102,27 @@
         "_apiVersionDiagnostics": "2021-05-01-preview",
         "_apiVersionNetworks": "2020-07-01",
         "_apiVersionResources": "2020-06-01",
-        "_apiVersionStorage": "2019-06-01",
         "_location": "[resourceGroup().location]",
         "_templatesUriGeneral": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "azureFirewallAz": "1",
         "azureFirewallName": "[concat('afw', parameters('uniqueData'))]",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
-        "deployAzureFirewallPolicy": "deploy-firewall-policy",
-        "deployLawCentral": "deploy-law-central",
-        "deployNsgFlowLogBastion": "deploy-flowlog-bastion",
+        "deploymentNameAzureFirewallPolicy": "deploy-firewall-policy",
+        "deploymentNameLawCentral": "deploy-law-central",
+        "deploymentNameNsgFlowLogBastion": "deploy-flowlog-bastion",
         "deploymentNameVnetDnsTransit": "deploy-vnet-dns-transit",
+        "deploymentNameStorageAccountNsg": "deploy-storage-nsg",
         "deploymentUriAzureFirewall": "[concat(variables('_templatesUriGeneral'), 'deploy-fw-policy.json')]",
         "deploymentUriNsg": "[concat(variables('_templatesUriGeneral'), 'deploy-nsg-flow-log.json')]",
         "deploymentUriLaw": "[concat(variables('_templatesUriGeneral'), 'deploy-law.json')]",
+        "deploymentUriStorage": "[concat(variables('_templatesUriGeneral'), 'deploy-storage-account.json')]",
         "dnsServerIpPlaceholder": "168.63.129.16",
         "nsgNameBastion": "[concat('nsg-bst', parameters('uniqueData'))]",
         "publicIpNameAzureFirewall": "[concat('pip-afw', parameters('uniqueData'))]",
         "publicIpNameBastion": "[concat('pip-bst', parameters('uniqueData'))]",
         "publicIpNameVng": "[concat('pip-vng', parameters('uniqueData'))]",
         "routeTableNameVng": "rt-vng",
-        "storageAccountNameNsg": "[concat('stcent', parameters('uniqueData'))]",
+        "storageAccountNamePrefix": "stcent",
         "udrSharedSvcs": "udr-shared",
         "udrWorkload": "udr-workload",
         "vnetNameTransit": "[concat('vnet-transit', parameters('uniqueData'))]",
@@ -133,7 +134,7 @@
     },
     "resources": [
         {
-            "name": "[variables('deployLawCentral')]",
+            "name": "[variables('deploymentNameLawCentral')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
@@ -157,23 +158,35 @@
             }
         },
         {
-            "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "[variables('_apiVersionStorage')]",
-            "name": "[variables('storageAccountNameNsg')]",
-            "location": "[variables('_location')]",
-            "tags": "[parameters('tags')]",
-            "kind": "StorageV2",
-            "sku": {
-                "name": "Standard_RAGRS"
-            },
+            "name": "[variables('deploymentNameStorageAccountNsg')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameLawCentral'))]"
+            ],
             "properties": {
-                "networkAcls": {
-                    "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
-                    "ipRules": [],
-                    "defaultAction": "Deny"
+                "mode": "Incremental",
+                "parameters": {
+                    "defaultAction": {
+                        "value": "Deny"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[reference(variables('deploymentNameLawCentral')).outputs.logAnalyticsResourceId.value]"
+                    },                    
+                    "storageAccountNamePrefix": {
+                        "value": "[variables('storageAccountNamePrefix')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
                 },
-                "supportsHttpsTrafficOnly": true
+                "templateLink": {
+                    "uri": "[variables('deploymentUriStorage')]",
+                    "contentVersion": "1.0.0.0"
+                }
             }
         },
         {
@@ -216,7 +229,7 @@
             }
         },
         {
-            "name": "[variables('deployAzureFirewallPolicy')]",
+            "name": "[variables('deploymentNameAzureFirewallPolicy')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [
@@ -404,14 +417,14 @@
             }
         },
         {
-            "name": "[variables('deployNsgFlowLogBastion')]",
+            "name": "[variables('deploymentNameNsgFlowLogBastion')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameBastion'))]",
-                "[concat('Microsoft.Resources/deployments/',variables('deployLawCentral'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountNameNsg'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameLawCentral'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameStorageAccountNsg'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -423,7 +436,7 @@
                         "value": "[variables('_location')]"
                     },
                     "targetLaWorkspaceResourceId": {
-                        "value": "[reference(variables('deployLawCentral')).outputs.logAnalyticsResourceId.value]"
+                        "value": "[reference(variables('deploymentNameLawCentral')).outputs.logAnalyticsResourceId.value]"
                     },
                     "targetNsgName": {
                         "value": "[variables('nsgNameBastion')]"
@@ -432,7 +445,7 @@
                         "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameBastion'))]"
                     },
                     "targetStorageResourceId": {
-                        "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('storageAccountNameNsg'))]"
+                        "value": "[reference(variables('deploymentNameStorageAccountNsg')).outputs.storageAccountResourceId.value]"
                     }
                 },
                 "templateLink": {
@@ -448,7 +461,7 @@
             "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployNsgFlowLogBastion'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNsgFlowLogBastion'))]"
             ],
             "properties": {
                 "routes": [
@@ -516,14 +529,14 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpNameAzureFirewall'))]",
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameTransit'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('deployAzureFirewallPolicy'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameAzureFirewallPolicy'))]"
             ],
             "zones": [
                 "[variables('azureFirewallAz')]"
             ],
             "properties": {
                 "firewallPolicy": {
-                    "id": "[reference(variables('deployAzureFirewallPolicy')).outputs.firewallPolicyId.value]"
+                    "id": "[reference(variables('deploymentNameAzureFirewallPolicy')).outputs.firewallPolicyId.value]"
                 },
                 "ipConfigurations": [
                     {
@@ -551,7 +564,7 @@
             ],
             "properties": {
                 "name": "SendToWorkspace",
-                "workspaceId": "[reference(variables('deployLawCentral')).outputs.logAnalyticsResourceId.value]",
+                "workspaceId": "[reference(variables('deploymentNameLawCentral')).outputs.logAnalyticsResourceId.value]",
                 "logs": [
                     {
                         "category": "AzureFirewallApplicationRule",
@@ -685,7 +698,7 @@
             ],
             "properties": {
                 "name": "SendToWorkspace",
-                "workspaceId": "[reference(variables('deployLawCentral')).outputs.logAnalyticsResourceId.value]",
+                "workspaceId": "[reference(variables('deploymentNameLawCentral')).outputs.logAnalyticsResourceId.value]",
                 "logs": [
                     {
                         "category": "BastionAuditLogs",
@@ -782,7 +795,7 @@
             ],
             "properties": {
                 "name": "SendToWorkspace",
-                "workspaceId": "[reference(variables('deployLawCentral')).outputs.logAnalyticsResourceId.value]",
+                "workspaceId": "[reference(variables('deploymentNameLawCentral')).outputs.logAnalyticsResourceId.value]",
                 "logs": [
                     {
                         "category": "GatewayDiagnosticLog",
@@ -823,15 +836,15 @@
         },
         "lawName": {
             "type": "string",
-            "value": "[reference(variables('deployLawCentral')).outputs.logAnalyticsName.value]"
+            "value": "[reference(variables('deploymentNameLawCentral')).outputs.logAnalyticsName.value]"
         },
         "lawResourceId": {
             "type": "string",
-            "value": "[reference(variables('deployLawCentral')).outputs.logAnalyticsResourceId.value]"
+            "value": "[reference(variables('deploymentNameLawCentral')).outputs.logAnalyticsResourceId.value]"
         },
         "nsgStorageAccountResourceId": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Storage/storageAccounts',variables('storageAccountNameNsg'))]"
+            "value": "[reference(variables('deploymentNameStorageAccountNsg')).outputs.storageAccountResourceId.value]"
         },
         "transitVnetName": {
             "type": "string",
