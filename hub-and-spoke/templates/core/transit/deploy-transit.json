@@ -99,7 +99,7 @@
         }
     },
     "variables": {
-        "_apiVersionDiagnostics": "2017-05-01-preview",
+        "_apiVersionDiagnostics": "2021-05-01-preview",
         "_apiVersionNetworks": "2020-07-01",
         "_apiVersionResources": "2020-06-01",
         "_apiVersionStorage": "2019-06-01",

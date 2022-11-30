@@ -61,7 +61,7 @@
         }
     },
     "variables": {
-        "_apiVersionDiagnostic": "2017-05-01-preview",
+        "_apiVersionDiagnostic": "2021-05-01-preview",
         "_apiVersionKeyVault": "2019-09-01",
         "_location": "[resourceGroup().location]",
         "keyVaultCertPermissions": [
