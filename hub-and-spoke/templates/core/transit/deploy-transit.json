@@ -699,7 +699,6 @@
             "type": "Microsoft.Network/routeTables/routes",
             "apiVersion": "[variables('_apiVersionNetworks')]",
             "location": "[variables('_location')]",
-            "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/bastionHosts',variables('bastionName'))]"
             ],
@@ -714,7 +713,6 @@
             "type": "Microsoft.Network/routeTables/routes",
             "apiVersion": "[variables('_apiVersionNetworks')]",
             "location": "[variables('_location')]",
-            "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/routeTables/routes', variables('routeTableNameVng'), variables('udrSharedSvcs'))]"
             ],
