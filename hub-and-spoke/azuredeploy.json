@@ -381,7 +381,7 @@
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.nsgStorageAccountResourceId.value]"
                     },
                     "sharedSvcResourceGroupName": {
-                        "value": "[variables('rgDeploymentNameSharedSvc')]"
+                        "value": "[variables('rgNameSharedSvc')]"
                     },
                     "sharedSvcVnetSubscriptionId": {
                         "value": "[parameters('sharedSubscriptionId')]"
