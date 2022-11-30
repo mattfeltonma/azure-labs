@@ -115,6 +115,7 @@
         "deploymentUriAzureFirewall": "[concat(variables('_templatesUriGeneral'), 'deploy-fw-policy.json')]",
         "deploymentUriNsg": "[concat(variables('_templatesUriGeneral'), 'deploy-nsg-flow-log.json')]",
         "deploymentUriLaw": "[concat(variables('_templatesUriGeneral'), 'deploy-law.json')]",
+        "dnsServerIpPlaceholder": "168.63.129.16",
         "nsgNameBastion": "[concat('nsg-bst', parameters('uniqueData'))]",
         "publicIpNameAzureFirewall": "[concat('pip-afw', parameters('uniqueData'))]",
         "publicIpNameBastion": "[concat('pip-bst', parameters('uniqueData'))]",
@@ -228,6 +229,9 @@
                     },
                     "devSubnetCidr": {
                         "value": "[parameters('sharedSvcDevSubnetCidr')]"
+                    },
+                    "dnsServerIp": {
+                        "value": "[variables('dnsServerIpPlaceholder')]"
                     },
                     "dnsSubnetCidr": {
                         "value": "[parameters('sharedSvcDnsInSubnetCidr')]"

@@ -14,13 +14,6 @@
                 "description": "The subnet CIDR assigned to the subnet containing the development virtual machines"
             }
         },
-        "dnsServerIp": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP of the DNS server"
-            },
-            "defaultValue": ""
-        }, 
         "dnsSubnetCidr": {
             "type": "string",
             "metadata": {
