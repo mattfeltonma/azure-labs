@@ -1022,7 +1022,9 @@
                             "apiVersion": "[variables('_apiVersionNetworks')]",
                             "location": "[variables('_location')]",
                             "tags": "[parameters('tags')]",
-                            "zones": "[parameters('azureFirewallAz')]",
+                            "zones": [
+                                "[parameters('azureFirewallAz')]"
+                            ],
                             "properties": {
                                 "firewallPolicy": {
                                     "id": "[parameters('azureFirewallPolicyResourceId')]"
