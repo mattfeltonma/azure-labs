@@ -102,7 +102,7 @@
             ]
         },
         {
-            "name": "[concat(variables('storageAccountName'),'/blobServices/default','/microsoft.insights/diag')]",
+            "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
             "type": "Microsoft.Storage/storageAccounts/blobServices/providers/diagnosticSettings",
             "apiVersion": "[variables('_apiVersionDiagnostics')]",
             "location": "[variables('_location')]",
@@ -142,7 +142,7 @@
             ]
         },
         {
-            "name": "[concat(variables('storageAccountName'),'/fileServices/default','/microsoft.insights/diag')]",
+            "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
             "type": "Microsoft.Storage/storageAccounts/fileServices/providers/diagnosticSettings",
             "apiVersion": "[variables('_apiVersionDiagnostics')]",
             "location": "[variables('_location')]",
@@ -182,7 +182,7 @@
             ]
         },
         {
-            "name": "[concat(variables('storageAccountName'),'/queueServices/default','/microsoft.insights/diag')]",
+            "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
             "type": "Microsoft.Storage/storageAccounts/queueServices/providers/diagnosticSettings",
             "apiVersion": "[variables('_apiVersionDiagnostics')]",
             "location": "[variables('_location')]",
@@ -222,7 +222,7 @@
             ]
         },
         {
-            "name": "[concat(variables('storageAccountName'),'/tableServices/default','/microsoft.insights/diag')]",
+            "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
             "type": "Microsoft.Storage/storageAccounts/tableServices/providers/diagnosticSettings",
             "apiVersion": "[variables('_apiVersionDiagnostics')]",
             "location": "[variables('_location')]",
