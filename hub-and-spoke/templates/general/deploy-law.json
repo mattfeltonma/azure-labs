@@ -20,16 +20,18 @@
         }
     },
     "variables": {
-        "laApiVersion": "2015-11-01-preview",
-        "laWorkspaceName": "[concat('la', parameters('uniqueData'))]",
-        "location": "[resourceGroup().location]"
+        "_apiVersionLaw": "2015-11-01-preview",
+        "_apiVersionWorkspaceSecrets": "2015-03-20",
+        "_location": "[resourceGroup().location]",
+        "laWorkspaceName": "[concat('la', parameters('uniqueData'))]"
+   
     },
     "resources": [
         {
             "name": "[variables('laWorkspaceName')]",
             "type": "Microsoft.OperationalInsights/workspaces",
-            "apiVersion": "[variables('laApiVersion')]",
-            "location": "[variables('location')]",
+            "apiVersion": "[variables('_apiVersionLaw')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "sku": {
@@ -53,11 +55,11 @@
             },
             "logAnalyticsWorkspaceId": {
                 "type": "string",
-                "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')),'2015-03-20').customerId]"
+                "value": "[reference(resourceId('Microsoft.OperationalInsights/workspaces',variables('laWorkspaceName')),variables('_apiVersionWorkspaceSecrets')).customerId]"
             },
             "logAnalyticsWorkspaceKey": {
                 "type": "string",
-                "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName')), '2015-03-20').primarySharedKey]"
+                "value": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', variables('laWorkspaceName')),variables('_apiVersionWorkspaceSecrets')).primarySharedKey]"
             }
     }
 }

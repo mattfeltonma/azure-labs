@@ -1,29 +1,33 @@
 # Azure Hub and Spoke Base Lab
 
 ## Updates
-* 9/25/2022
+* 11/2022
+* * Added Private DNS Resolver for DNS resolution
+* * Configured Azure Firewall to use Private DNS Resolver as DNS server to allow capturing of DNS queries on Azure Firewall
+* * Added diagnostic logging for NSG Flow Log storage account
+
+* 9/2022
 * * Added Virtual Network Gateway and configured it to support BGP
 * * Added route table to GatewaySubnet with routes for both shared services and workload vnets to point to Azure Firewall
 * * Modified all subnets in shared services and workload vnets to enable Private Endpoint Network Policies to support NSGs support for Private Endpoints and routing enhancements
 
 ## Overview
-This deployable lab provides a simple way to experiment with Azure workloads in an enterprise-like hub and spoke environment. Three resource groups are deployed with one for transit resources, one for shared services, and one for a workload.
+This deployable lab provides a simple way to experiment with Azure workloads in an enterprise-like environment. Three resource groups are deployed with one for transit resources, one for shared services, and one for a workload. Each resource group contains resources that would typically be included in a baseline enterprise Azure deployment. The template supports each of these resource groups being provisioned in separate subscription if required.
 
-A [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli). [UDRs (User defined routes)](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined) are used to route all outgoing traffic and traffic between spokes through the Azure Firewall in the hub Virtual Network. The Azure Firewall is also configured as the DNS provider for the attached Virtual Network. Private DNS Zones for common Azure services are deployed and linked to the hub virtual network to support PrivateLink integrations.
+A [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli) is used to allow for segmentation of virtual networks. [UDRs (User defined routes)](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined) are configured to route all outgoing traffic and traffic between spokes through the Azure Firewall in the hub Virtual Network. Network Security Groups are configured on all subnets to support microsegmentation within a given Virtual network. A VPN Virtual Network Gateway is provisioned and ready for S2S or P2S connections.
 
-In the Shared Services Virtual Network Ubuntu and Windows VMs are deployed as utility servers. The Windows VM comes loaded with Google Chrome, Visual Studio Code, Azure CLI, and Azure PowerShell. The Linux VM comes loaded with Azure CLI, kubectl, and Docker.
+All virtual networks are configured to use the Azure Firewall as a DNS provider to allow for logging of DNS queries. The Azure Firewall is configured to use an Azure Private DNS Resolver in the Shared Services virtual network for its resolution to support conditional forwarding to on-premises. Common Private DNS Zones for Azure PaaS services are created and linked to the Shared Services virtual network which allows the Private DNS Resolver to resolve records for Private Endpoints created in the environment.
 
-The Workload Virtual Network is deployed with an app, data, and supported services (PaaS services behind Private Endpoints). The workload resource group also contains a user-assigned managed identity which has been given permissions to get and list secrets in a Key Vault instance.
+Ubuntu and Windows virtual machines are deployed as utility servers. The Windows VM is provisioned with Google Chrome, Visual Studio Code, Azure CLI, and Azure PowerShell. The Linux VM is provisioned with Azure CLI, kubectl, and Docker.
+
+The Workload virtual network is deployed with three subnets. These include an app, data, and supporting services (PaaS services behind Private Endpoints) subnet. The workload resource group also contains a user-assigned managed identity which has been given permissions to get and list secrets in a Key Vault instance.
 
 Additional features included:
 
 * Azure Bastion provisioned in the hub to provide SSH and RDP (Remote Desktop Protocol) to deployed virtual machines
-* Azure Firewall configured to send diagnostic logs to an instance of Log Analytics Workspace to allow for review of the traffic flowing to and from the Azure Function
-* Virtual Network Gateway deployed to the hub and configured to route traffic through Azure Firewall
+* Diagnostic logging configured for most resources to log to the Log Analytics Workspace
 * An Azure Key Vault instance which stores the user configured VM administrator username and password
-* An Azure Key Vault instance for workloads deployed into the workload resource group
 * All instances of Azure Key Vault are deployed with a Private Endpoint
-* All subnets that support Network Security Groups are configured with them
 * Network Security Groups are configured with NSG Flow Logs which are set to an Azure Storage Account and Traffic Analytics
 * Subnets are configured so that Private Endpoints support Network Security Groups
 

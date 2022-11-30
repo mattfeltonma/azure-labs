@@ -61,9 +61,10 @@
         }
     },
     "variables": {
-        "diagnosticApiVersion": "2017-05-01-preview",
-        "keyVaultApiVersion": "2019-09-01",
-        "certPermissions": [
+        "_apiVersionDiagnostic": "2021-05-01-preview",
+        "_apiVersionKeyVault": "2019-09-01",
+        "_location": "[resourceGroup().location]",
+        "keyVaultCertPermissions": [
             "backup",
             "create",
             "get",
@@ -78,8 +79,7 @@
             "setissuers",
             "update"
         ],
-        "keyVaultName": "[concat(parameters('keyVaultNamePrefix'), parameters('uniqueData'))]",
-        "keyPermissions": [
+        "keyVaultKeyPermissions": [
             "list",
             "encrypt",
             "decrypt",
@@ -95,23 +95,24 @@
             "restore",
             "recover"
         ],
-        "keyVaultSku": "Standard",
-        "location": "[resourceGroup().location]",
-        "secretsPermissions": [
+        "keyVaultName": "[concat(parameters('keyVaultNamePrefix'), parameters('uniqueData'))]",
+        "keyVaultSecretsPermissions": [
             "list",
             "get",
             "set",
             "backup",
             "restore",
             "recover"
-        ]
+        ],
+        "keyVaultSku": "Standard"
+
     },
     "resources": [
         {
             "name": "[variables('keyVaultName')]",
             "type": "Microsoft.KeyVault/vaults",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "location": "[variables('location')]",
+            "apiVersion": "[variables('_apiVersionKeyVault')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "accessPolicies": [
@@ -119,9 +120,9 @@
                         "objectId": "[parameters('keyVaultAdminObjectId')]",
                         "tenantId": "[parameters('tenantId')]",
                         "permissions": {
-                            "keys": "[variables('keyPermissions')]",
-                            "secrets": "[variables('secretsPermissions')]",
-                            "certificates": "[variables('certPermissions')]"
+                            "keys": "[variables('keyVaultKeyPermissions')]",
+                            "secrets": "[variables('keyVaultSecretsPermissions')]",
+                            "certificates": "[variables('keyVaultCertPermissions')]"
                         }
                     }
                 ],
@@ -146,8 +147,8 @@
         {
             "name": "[concat(variables('keyVaultName'),'/microsoft.insights/diag')]",
             "type": "Microsoft.KeyVault/vaults/providers/diagnosticSettings",
-            "apiVersion": "[variables('diagnosticApiVersion')]",
-            "location": "[variables('location')]",
+            "apiVersion": "[variables('_apiVersionDiagnostic')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[concat('Microsoft.KeyVault/vaults/',variables('keyVaultName'))]"
