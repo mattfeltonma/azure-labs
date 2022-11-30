@@ -105,9 +105,7 @@
         "_apiVersionStorage": "2019-06-01",
         "_location": "[resourceGroup().location]",
         "_templatesUriGeneral": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
-        "azureFirewallAz": [
-            "1"
-        ],
+        "azureFirewallAz": "1",
         "azureFirewallName": "[concat('afw', parameters('uniqueData'))]",
         "bastionName": "[concat('bst', parameters('uniqueData'))]",
         "deployAzureFirewallPolicy": "deploy-firewall-policy",
@@ -516,7 +514,9 @@
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameTransit'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deployAzureFirewallPolicy'))]"
             ],
-            "zones": "[variables('azureFirewallAz')]",
+            "zones": [
+                "[variables('azureFirewallAz')]"
+            ],
             "properties": {
                 "firewallPolicy": {
                     "id": "[reference(variables('deployAzureFirewallPolicy')).outputs.firewallPolicyId.value]"
@@ -766,7 +766,43 @@
                     "tier": "VpnGw2AZ"
                 }
             }
-        }
+        },
+        {
+            "name": "[concat(variables('virtualNetworkGatewayName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.Network/virtualNetworkGateways/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostics')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/azureFirewalls',variables('azureFirewallName'))]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[reference(variables('deployLawCentral')).outputs.logAnalyticsResourceId.value]",
+                "logs": [
+                    {
+                        "category": "AzureFirewallApplicationRule",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AzureFirewallNetworkRule",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AzureFirewallDnsProxy",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
     ],
     "outputs": {
         "azureFirewallAz": {
