@@ -2,24 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "azureFirewallAz": {
-            "type": "string",
-            "metadata": {
-                "description": "The availability zone the Azure Firewall was created in"
-            }
-        },
-        "azureFirewallName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the Azure Firewall resource in the Transit virtual network"
-            }
-        },
-        "azureFirewallPolicyResourceId": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource id of the Azure Firewall policy used by the Azure Firewall in the Transit virtual network"
-            }
-        },
         "cloudRegionAddressSpace": {
             "type": "string",
             "metadata": {
@@ -123,22 +105,10 @@
                 "description": "The name of transit virtual network in the transit virtual network"
             }
         },
-        "transitVnetPublicIpFw": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource id of the public ip used by the Azure Firewall in the transit virtual network"
-            }
-        },
         "transitVnetResourceId": {
             "type": "string",
             "metadata": {
                 "description": "The resource id of the transit virtual network in the transit subscription"
-            }
-        },
-        "transitVnetSubnetNameAzFw": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the subnet used by Azure Firewall in the transit virtual network"
             }
         },
         "tags": {
@@ -168,6 +138,12 @@
             "metadata": {
                 "description": "Administrator name for VMs that are created"
             }
+        },
+        "workloadVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the workload virtual network"
+            }
         }
     },
     "variables": {
@@ -188,6 +164,7 @@
         "deploymentNameVmLinuxDev": "deploy-dev-linux-vm",
         "deploymentNameVmWindowsDev": "deploy-dev-win-vm",
         "deploymentNameFirewallDnsSettings": "deploy-fw-dns-transit",
+        "deploymentUriAzureFirewall": "[concat(variables('templatesUriGeneral'), 'deploy-fw-policy.json')]",
         "deploymentUriKeyVault": "[concat(variables('templatesUriGeneral'), 'deploy-key-vault.json')]",
         "deploymentUriKeyVaultSecret": "[concat(variables('templatesUriGeneral'), 'deploy-keyvault-secret.json')]",
         "deploymentUriLinuxDevVm": "[concat(variables('templatesUriGeneral'), 'deploy-ubuntu-dev-vm.json')]",
@@ -1008,43 +985,38 @@
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "resourceGroup": "[parameters('transitResourceGroupName')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/dnsResolvers/outboundEndpoints', variables('dnsResolver'), variables('dnsResolverOutbound'))]"
             ],
             "properties": {
                 "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "resources": [
-                        {
-                            "name": "[parameters('azureFirewallName')]",
-                            "type": "Microsoft.Network/azureFirewalls",
-                            "apiVersion": "[variables('_apiVersionNetworks')]",
-                            "location": "[variables('_location')]",
-                            "tags": "[parameters('tags')]",
-                            "zones": [
-                                "[parameters('azureFirewallAz')]"
-                            ],
-                            "properties": {
-                                "firewallPolicy": {
-                                    "id": "[parameters('azureFirewallPolicyResourceId')]"
-                                },
-                                "ipConfigurations": [
-                                    {
-                                        "name": "ipconfig1",
-                                        "properties": {
-                                            "subnet": {
-                                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('transitVnetName'), parameters('transitVnetSubnetNameAzFw'))]"
-                                            },
-                                            "publicIPAddress": {
-                                                "id": "[parameters('transitVnetPublicIpFw')]"
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        }
-                    ]
+                "parameters": {
+                    "cloudAddressSpace": {
+                        "value": "[parameters('cloudRegionAddressSpace')]"
+                    },
+                    "devSubnetCidr": {
+                        "value": "[parameters('sharedSvcVnetSubnetDevCidr')]"
+                    },
+                    "dnsServerIp": {
+                        "value":  "[reference(variables('dnsResolverInbound')).ipConfigurations[0].privateIpAddress]"
+                    },
+                    "dnsSubnetCidr": {
+                        "value": "[parameters('sharedSvcVnetSubnetDnsInCidr')]"
+                    },
+                    "onPremisesAddressSpace": {
+                        "value": "[parameters('onPremisesAddressSpace')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "workloadVnetCidr": {
+                        "value": "[parameters('workloadVnetCidr')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriAzureFirewall')]",
+                    "contentVersion": "1.0.0.0"
                 }
             }
         },

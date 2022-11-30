@@ -274,15 +274,6 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "azureFirewallAz": {
-                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.azureFirewallAz.value]"
-                    },
-                    "azureFirewallName": {
-                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.azureFirewallName.value]"
-                    },
-                    "azureFirewallPolicyResourceId": {
-                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.azureFirewallPolicyResourceId.value]"
-                    },
                     "cloudRegionAddressSpace": {
                         "value": "[variables('cloudRegionAddressSpace')]"
                     },
@@ -334,14 +325,8 @@
                     "transitVnetName": {
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.transitVnetName.value]"
                     },
-                    "transitVnetPublicIpFw": {
-                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.transitVnetPublicIpFwResId.value]"
-                    },
                     "transitVnetResourceId": {
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.transitVnetResourceId.value]"
-                    },
-                    "transitVnetSubnetNameAzFw": {
-                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.transitVnetSubnetNameAzFw.value]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -354,6 +339,9 @@
                     },
                     "vmAdminUsername": {
                         "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "workloadVnetCidr": {
+                        "value": "[variables('vnetCidrWorkload')]"
                     }
                 },
                 "templateLink": {

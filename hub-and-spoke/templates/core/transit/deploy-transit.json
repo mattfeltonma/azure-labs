@@ -813,18 +813,6 @@
         }
     ],
     "outputs": {
-        "azureFirewallAz": {
-            "type": "string",
-            "value": "[variables('azureFirewallAz')]"       
-        },
-        "azureFirewallName": {
-            "type": "string",
-            "value": "[variables('azureFirewallName')]"       
-        },
-        "azureFirewallPolicyResourceId": {
-            "type": "string",
-            "value": "[reference(variables('deployAzureFirewallPolicy')).outputs.firewallPolicyId.value]"      
-        },
         "firewallIp": {
             "type": "string",
             "value": "[reference(variables('azureFirewallName')).ipConfigurations[0].properties.privateIPAddress]"
@@ -844,10 +832,6 @@
         "transitVnetName": {
             "type": "string",
             "value": "[variables('vnetNameTransit')]"
-        },
-        "transitVnetPublicIpFwResId": {
-            "type": "string",
-            "value": "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpNameAzureFirewall'))]"
         },
         "transitVnetResourceId": {
             "type": "string",

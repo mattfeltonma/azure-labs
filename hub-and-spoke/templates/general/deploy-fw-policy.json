@@ -14,12 +14,19 @@
                 "description": "The subnet CIDR assigned to the subnet containing the development virtual machines"
             }
         },
+        "dnsServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP of the DNS server"
+            },
+            "defaultValue": ""
+        }, 
         "dnsSubnetCidr": {
             "type": "string",
             "metadata": {
                 "description": "The subnet CIDR assigned to the subnet containing the Private DNS Resolver Inbound Endpoint"
             }
-        },   
+        },
         "onPremisesAddressSpace": {
             "type": "string",
             "metadata": {
@@ -63,7 +70,10 @@
             "tags": "[parameters('tags')]",
             "properties": {
                 "dnsSettings": {
-                    "enableProxy": true
+                    "enableProxy": true,
+                    "servers": [
+                        "[parameters('dnsServerIp')]"
+                    ]
                 },
                 "sku": {
                     "tier": "Standard"
