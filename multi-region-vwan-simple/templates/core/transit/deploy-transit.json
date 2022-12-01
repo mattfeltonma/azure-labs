@@ -240,14 +240,7 @@
             ],
             "properties": {
                 "bgpSettings": {
-                    "asn": 65515,
-                    "bgpPeeringAddresses": [
-                        {
-                            "ipconfigurationId": "[concat(resourceId('Microsoft.Network/virtualNetworkGateways',variables('virtualNetworkGatewayNameR1')), '/ipConfigurations/default')]",
-                            "customBgpIpAddresses": [
-                            ]
-                        }
-                    ]
+                    "asn": 65515
                 },
                 "virtualHub": {
                     "id": "[resourceId('Microsoft.Network/virtualHubs',concat(variables('vwanHubName'),parameters('primaryLocation'),parameters('uniqueData')))]"
@@ -266,14 +259,7 @@
             ],
             "properties": {
                 "bgpSettings": {
-                    "asn": 65515,
-                    "bgpPeeringAddresses": [
-                        {
-                            "ipconfigurationId": "[concat(resourceId('Microsoft.Network/virtualNetworkGateways',variables('virtualNetworkGatewayNameR1')), '/ipConfigurations/default')]",
-                            "customBgpIpAddresses": [
-                            ]
-                        }
-                    ]
+                    "asn": 65515
                 },
                 "virtualHub": {
                     "id": "[resourceId('Microsoft.Network/virtualHubs',concat(variables('vwanHubName'),parameters('secondaryLocation'),parameters('uniqueData')))]"
