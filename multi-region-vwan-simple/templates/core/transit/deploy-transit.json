@@ -192,7 +192,7 @@
                 "hubRoutingPreference": "ExpressRoute",
                 "preferredRoutingGateway": "ExpressRoute",
                 "sku": "Standard",
-                "virtualRouterAsn": "65516",
+                "virtualRouterAsn": "65515",
                 "virtualRouterAutoScaleConfiguration": {
                     "minCapacity": 2
                 },
