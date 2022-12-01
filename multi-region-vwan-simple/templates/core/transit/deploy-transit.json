@@ -95,14 +95,14 @@
         "_apiVersionDiagnostics": "2021-05-01-preview",
         "_apiVersionNetworks": "2022-05-01",
         "_apiVersionResources": "2020-06-01",
-        "_location": "[resourceGroup().location]",
         "_templatesUriGeneral": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "deploymentNameLawCentral": "deploy-law-central",
         "deploymentNameStorageAccountNsg": "deploy-storage-nsg",
         "deploymentUriLaw": "[concat(variables('_templatesUriGeneral'), 'deploy-law.json')]",
         "deploymentUriStorage": "[concat(variables('_templatesUriGeneral'), 'deploy-storage-account.json')]",
-        "publicIpNameVng": "[concat('pip-vng', parameters('uniqueData'))]",
         "storageAccountNamePrefix": "stcent",
+        "virtualNetworkGatewayNameR1": "[concat('vpngw', parameters('primaryLocation'), parameters('uniqueData'))]",
+        "virtualNetworkGatewayNameR2": "[concat('vpngw', parameters('secondaryLocation'), parameters('uniqueData'))]",  
         "vwanHubName": "vhub",
         "vwanName": "[concat('vwan', parameters('uniqueData'))]"
 
@@ -204,16 +204,81 @@
             }
         },
         {
-            "name": "[variables('publicIpNameVng')]",
-            "type": "Microsoft.Network/publicIpAddresses",
+            "type": "Microsoft.Network/virtualHubs",
             "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[variables('_location')]",
+            "name": "[concat(variables('vwanHubName'),parameters('secondaryLocation'),parameters('uniqueData'))]",
+            "location": "[parameters('secondaryLocation')]",
             "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualWans', variables('vwanName'))]",
+                "[resourceId('Microsoft.Network/virtualHubs', concat(variables('vwanHubName'),parameters('primaryLocation'),parameters('uniqueData')))]"
+            ],
             "properties": {
-                "publicIpAllocationMethod": "Static"
-            },
-            "sku": {
-                "name": "Standard"
+                "addressPrefix": "[parameters('vwanHubCidrR2')]",
+                "hubRoutingPreference": "ExpressRoute",
+                "preferredRoutingGateway": "ExpressRoute",
+                "sku": "Standard",
+                "virtualRouterAsn": "65515",
+                "virtualRouterAutoScaleConfiguration": {
+                    "minCapacity": 2
+                },
+                "virtualWan": {
+                    "id": "[resourceId('Microsoft.Network/virtualWans',variables('vwanName'))]"
+                }
+
+
+            }
+        },
+        {
+            "name": "[variables('virtualNetworkGatewayNameR1')]",
+            "type": "Microsoft.Network/vpnGateways",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('primaryLocation')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs', concat(variables('vwanHubName'),parameters('primaryLocation'),parameters('uniqueData')))]"
+            ],
+            "properties": {
+                "bgpSettings": {
+                    "asn": 65515,
+                    "bgpPeeringAddresses": [
+                        {
+                            "ipconfigurationId": "[concat(resourceId('Microsoft.Network/virtualNetworkGateways',variables('virtualNetworkGatewayNameR1')), '/ipConfigurations/default')]",
+                            "customBgpIpAddresses": [
+                            ]
+                        }
+                    ]
+                },
+                "virtualHub": {
+                    "id": "[resourceId('Microsoft.Network/virtualHubs',concat(variables('vwanHubName'),parameters('primaryLocation'),parameters('uniqueData')))]"
+                },
+                "vpnGatewayScaleUnit": "1"
+            }
+        },
+        {
+            "name": "[variables('virtualNetworkGatewayNameR2')]",
+            "type": "Microsoft.Network/vpnGateways",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('secondaryLocation')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs', concat(variables('vwanHubName'),parameters('secondaryLocation'),parameters('uniqueData')))]"
+            ],
+            "properties": {
+                "bgpSettings": {
+                    "asn": 65515,
+                    "bgpPeeringAddresses": [
+                        {
+                            "ipconfigurationId": "[concat(resourceId('Microsoft.Network/virtualNetworkGateways',variables('virtualNetworkGatewayNameR1')), '/ipConfigurations/default')]",
+                            "customBgpIpAddresses": [
+                            ]
+                        }
+                    ]
+                },
+                "virtualHub": {
+                    "id": "[resourceId('Microsoft.Network/virtualHubs',concat(variables('vwanHubName'),parameters('secondaryLocation'),parameters('uniqueData')))]"
+                },
+                "vpnGatewayScaleUnit": "1"
             }
         }
     ],
