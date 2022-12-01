@@ -85,7 +85,7 @@
         "rgDeploymentNameWorkload1": "[concat('deploy-workload1',parameters('uniqueData'))]",
         "rgDeploymentNameWorkload2": "[concat('deploy-workload2',parameters('uniqueData'))]",
         "rgDeploymentNameTransit": "[concat('deploy-transit',parameters('uniqueData'))]",
-        "rgNameTransit": "[concat('rg-spoke2-',parameters('uniqueData'))]",
+        "rgNameTransit": "[concat('rg-transit-',parameters('uniqueData'))]",
         "rgNameWorkload1": "[concat('rg-workload1-',parameters('uniqueData'))]",
         "rgNameWorkload2": "[concat('rg-workload2-',parameters('uniqueData'))]",
         "subDeploymentNameTransit": "[concat('deploy-transit-sub',parameters('uniqueData'))]",
