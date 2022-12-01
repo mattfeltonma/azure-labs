@@ -1,0 +1,186 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "defaultAction": {
+            "type": "string",
+            "metadata": {
+                "description": "Set the default network rule to allow all traffic or deny all traffic"
+            },
+            "allowedValues": [
+                "Allow",
+                "Deny"
+            ],
+            "defaultValue": "Deny"
+        },
+        "keyVaultAdminObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the security principal who will be admin over the Key Vault"
+            }
+        },
+        "keyVaultNamePrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Azure Key Vault"
+            },
+            "defaultValue": "kvcentral"
+        },
+        "laWorkspaceResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the Log Analytics Workspace the logs and metrics will be sent to"
+            }
+        },
+        "softDeleteRetentionDays": {
+            "type": "int",
+            "metadata": {
+                "description": "The amount of days to retain after soft delete"
+            },
+            "defaultValue": 60
+        },
+        "tenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "The tenant id the Key Vault instance will be created in"
+            },
+            "defaultValue": "[subscription().tenantId]"
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the VM"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "_apiVersionDiagnostic": "2021-05-01-preview",
+        "_apiVersionKeyVault": "2019-09-01",
+        "_location": "[resourceGroup().location]",
+        "keyVaultCertPermissions": [
+            "backup",
+            "create",
+            "get",
+            "getissuers",
+            "import",
+            "list",
+            "listissuers",
+            "managecontacts",
+            "manageissuers",
+            "recover",
+            "restore",
+            "setissuers",
+            "update"
+        ],
+        "keyVaultKeyPermissions": [
+            "list",
+            "encrypt",
+            "decrypt",
+            "wrapKey",
+            "unwrapKey",
+            "sign",
+            "verify",
+            "get",
+            "create",
+            "update",
+            "import",
+            "backup",
+            "restore",
+            "recover"
+        ],
+        "keyVaultName": "[concat(parameters('keyVaultNamePrefix'), parameters('uniqueData'))]",
+        "keyVaultSecretsPermissions": [
+            "list",
+            "get",
+            "set",
+            "backup",
+            "restore",
+            "recover"
+        ],
+        "keyVaultSku": "Standard"
+
+    },
+    "resources": [
+        {
+            "name": "[variables('keyVaultName')]",
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "[variables('_apiVersionKeyVault')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "accessPolicies": [
+                    {
+                        "objectId": "[parameters('keyVaultAdminObjectId')]",
+                        "tenantId": "[parameters('tenantId')]",
+                        "permissions": {
+                            "keys": "[variables('keyVaultKeyPermissions')]",
+                            "secrets": "[variables('keyVaultSecretsPermissions')]",
+                            "certificates": "[variables('keyVaultCertPermissions')]"
+                        }
+                    }
+                ],
+                "enabledForTemplateDeployment": true,
+                "enableSoftDelete": true,
+                "enablePurgeProtection": true,
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [
+                    ],
+                    "defaultAction": "[parameters('defaultAction')]"
+                },
+                "sku": {
+                    "family": "A",
+                    "name": "[variables('keyVaultSku')]"
+                },
+                "softDeleteRetentionInDays": "[parameters('softDeleteRetentionDays')]",
+                "tenantid": "[parameters('tenantId')]"
+            }
+        },
+        {
+            "name": "[concat(variables('keyVaultName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.KeyVault/vaults/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostic')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[concat('Microsoft.KeyVault/vaults/',variables('keyVaultName'))]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[parameters('laWorkspaceResourceId')]",
+                "logs": [
+                    {
+                        "category": "AuditEvent",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        }
+    ],
+    "outputs": {
+        "keyVaultName": {
+            "type": "string",
+            "value": "[variables('keyVaultName')]"
+        },
+        "keyVaultResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+        }
+    }
+}
