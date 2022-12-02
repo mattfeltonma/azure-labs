@@ -127,7 +127,8 @@
         "_templatesUriGeneral": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
         "deploymentNameNsgFlowLogR1App": "[concat('deploy-flowlog-app-r1-workload',parameters('workloadNumber'))]",
         "deploymentNameNsgFlowLogR2App": "[concat('deploy-flowlog-app-r2-workload',parameters('workloadNumber'))]",
-        "deploymentNameVhubConnections": "[concat('deploy-vhub-vnet-conn-w',parameters('workloadNumber'))]",
+        "deploymentNameVhubConnectionR1": "[concat('deploy-vhub-vnet-conn-w',parameters('workloadNumber'),'r1')]",
+        "deploymentNameVhubConnectionR2": "[concat('deploy-vhub-vnet-conn-w',parameters('workloadNumber'),'r2')]",
         "deploymentNameVmR1Linux": "[concat('deploy-vm-linux-r1-w',parameters('workloadNumber'))]",
         "deploymentNameVmR2Linux": "[concat('deploy-vm-linux-r2-w',parameters('workloadNumber'))]",
         "deploymentUriNsgFlowLog": "[concat(variables('_templatesUriGeneral'), 'deploy-nsg-flow-log.json')]",
@@ -303,14 +304,13 @@
             ]
         },
         {
-            "name": "[variables('deploymentNameVhubConnections')]",
+            "name": "[variables('deploymentNameVhubConnectionR1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('subIdTransit')]",
             "resourceGroup": "[parameters('rgNameTransit')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameR1Workload1'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameR2Workload1'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameR1Workload1'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -332,14 +332,32 @@
                                     "id": "[resourceid(variables('subIdWorkload1'),variables('rgNameWorkload1'),'Microsoft.Network/virtualNetworks',variables('vnetNameR1Workload1'))]"
                                 }
                             }
-                        },
-                            {
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameVhubConnectionR2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "subscriptionId": "[parameters('subIdTransit')]",
+            "resourceGroup": "[parameters('rgNameTransit')]",
+            "dependsOn": [
+              "[concat('Microsoft.Resources/deployments/', variables('deploymentNameVhubConnectionR1'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
                             "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
                             "name": "[concat(parameters('vwanHubNameR2'),'/',variables('vnetNameR2Workload1'),'-conn')]",
                             "apiVersion": "[variables('_apiVersionNetworks')]",
-                            "dependsOn": [
-                                "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR1'), concat(variables('vnetNameR1Workload1'), '-conn'))]"
-                            ],
                             "properties": {
                                 "allowHubToRemoteVnetTransit": true,
                                 "allowRemoteVnetToUseHubVnetGateways": true,
@@ -358,7 +376,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameVhubConnections'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameVhubConnectionR2'))]"
             ],
             "properties": {
                 "mode": "Incremental",
