@@ -335,7 +335,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionresources')]",
             "subscriptionId": "[parameters('workload2SubscriptionId')]",
-            "resourceGroup": "[variables('rgDeploymentNameWorkload2')]",
+            "resourceGroup": "[variables('rgNameWorkload2')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload2'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameWorkload1'))]"
