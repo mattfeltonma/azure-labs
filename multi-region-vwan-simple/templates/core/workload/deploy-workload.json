@@ -38,7 +38,7 @@
                 "description": "The resource id of the Storage Account for NSG Flow logs"
             }
         },
-        "subIdNameTransit": {
+        "subIdTransit": {
             "type": "string",
             "metadata": {
                 "description": "The subscription id of the for the transit resources"
@@ -300,7 +300,7 @@
             "name": "[variables('deploymentNameVhubConnections')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "subscriptionId": "[parameters('subIdNameTransit')]",
+            "subscriptionId": "[parameters('subIdTransit')]",
             "resourceGroup": "[parameters('rgNameTransit')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameR1Workload1'))]",
