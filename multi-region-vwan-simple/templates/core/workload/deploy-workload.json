@@ -32,7 +32,13 @@
                 "description": "The name of the resource group for transit resources"
             }
         },
-        "storageAccountNsgResourceId": {
+        "storageAccountNsgR1ResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Storage Account for NSG Flow logs"
+            }
+        },
+        "storageAccountNsgR2ResourceId": {
             "type": "string",
             "metadata": {
                 "description": "The resource id of the Storage Account for NSG Flow logs"
@@ -186,7 +192,7 @@
                         "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameR1App'))]"
                     },
                     "targetStorageResourceId": {
-                        "value": "[parameters('storageAccountNsgResourceId')]"
+                        "value": "[parameters('storageAccountNsgR1ResourceId')]"
                     }
                 },
                 "templateLink": {
@@ -223,7 +229,7 @@
                         "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameR2App'))]"
                     },
                     "targetStorageResourceId": {
-                        "value": "[parameters('storageAccountNsgResourceId')]"
+                        "value": "[parameters('storageAccountNsgR2ResourceId')]"
                     }
                 },
                 "templateLink": {
