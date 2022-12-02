@@ -1,35 +1,22 @@
-# Azure Hub and Spoke Base Lab
+# Azure VWAN Basic Lab
 
 ## Updates
-* 11/2022
-* * Added Private DNS Resolver for DNS resolution
-* * Configured Azure Firewall to use Private DNS Resolver as DNS server to allow capturing of DNS queries on Azure Firewall
-* * Added diagnostic logging for NSG Flow Log storage account
-
-* 9/2022
-* * Added Virtual Network Gateway and configured it to support BGP
-* * Added route table to GatewaySubnet with routes for both shared services and workload vnets to point to Azure Firewall
-* * Modified all subnets in shared services and workload vnets to enable Private Endpoint Network Policies to support NSGs support for Private Endpoints and routing enhancements
+12/2022 - Initial release
 
 ## Overview
-This deployable lab provides a simple way to experiment with Azure workloads in an enterprise-like environment. Three resource groups are deployed with one for transit resources, one for shared services, and one for a workload. Each resource group contains resources that would typically be included in a baseline enterprise Azure deployment. The template supports each of these resource groups being provisioned in separate subscription if required.
+[Azure Virtual WAN](https://learn.microsoft.com/en-us/azure/virtual-wan/virtual-wan-about) is an Azure product that provides transitive routing capabilities for Azure. It attempts to be the next evolution to the traditional [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli) simplifying the management of routing between on-premises locations and virtual networks both within regions and across regions. While you may not be using VWAN yet due to limitations within the product, you will be at some point.
 
-A [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli) is used to allow for segmentation of virtual networks. [UDRs (User defined routes)](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined) are configured to route all outgoing traffic and traffic between spokes through the Azure Firewall in the hub Virtual Network. Network Security Groups are configured on all subnets to support microsegmentation within a given Virtual network. A VPN Virtual Network Gateway is provisioned and ready for S2S or P2S connections.
+This lab deploys a very simple VWAN implementation allowing you to experiment with the basic transitive features of the service. For those coming from a traditional hub-and-spoke it can be a helpful learning tool. It can also be used to establish a base to build more complex patterns such those documented by [Dan Mauser in this repository](https://github.com/dmauser/azure-virtualwan).
 
-All virtual networks are configured to use the Azure Firewall as a DNS provider to allow for logging of DNS queries. The Azure Firewall is configured to use an Azure Private DNS Resolver in the Shared Services virtual network for its resolution to support conditional forwarding to on-premises. Common Private DNS Zones for Azure PaaS services are created and linked to the Shared Services virtual network which allows the Private DNS Resolver to resolve records for Private Endpoints created in the environment.
+The resources deployed to your Azure subscription include an Azure Virtual WAN with two VWAN Hubs in a primary and secondary region of your choosing. Each VWAN Hub is provisioned with a VPN Gateway. Within each region, two virtual networks are created named workload 1 and workload 2. Each virtual network is connected to the VWAN to demonstrate the transitive routing capabilities. 
 
-Ubuntu and Windows virtual machines are deployed as utility servers. The Windows VM is provisioned with Google Chrome, Visual Studio Code, Azure CLI, and Azure PowerShell. The Linux VM is provisioned with Azure CLI, kubectl, and Docker.
-
-The Workload virtual network is deployed with three subnets. These include an app, data, and supporting services (PaaS services behind Private Endpoints) subnet. The workload resource group also contains a user-assigned managed identity which has been given permissions to get and list secrets in a Key Vault instance.
+An Ubuntu virtual machine is created within each virtual network and is provisioned with basic networking tools. Each VM is provisioned with a public IP address and is wrapped with a network security group configured to allow SSH sessions from an IP of your choosing.
 
 Additional features included:
 
-* Azure Bastion provisioned in the hub to provide SSH and RDP (Remote Desktop Protocol) to deployed virtual machines
-* Diagnostic logging configured for most resources to log to the Log Analytics Workspace
-* An Azure Key Vault instance which stores the user configured VM administrator username and password
-* All instances of Azure Key Vault are deployed with a Private Endpoint
-* Network Security Groups are configured with NSG Flow Logs which are set to an Azure Storage Account and Traffic Analytics
-* Subnets are configured so that Private Endpoints support Network Security Groups
+* An Azure Key Vault is provisioned to store the username and password configured for the virtual machines during deployment.
+* A Log Analytics Workspace is provisioned and can be used for centralized logging.
+* Network Security Groups are configured to store NSG Flow Logs in a storage account and additionally delivering logs to traffic analytics.
 
 ![lab image](images/lab_image.svg)
 
@@ -44,17 +31,18 @@ Additional features included:
 
 ## Installation with Azure Portal
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fmaster%2Fhub-and-spoke%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmattfeltonma%2Fazure-labs%2Fmaster%2Fmulti-region-vwan-simple%2Fazuredeploy.json)
 
 ## Installation with Azure CLI
 1. Set the following variables:
    * DEPLOYMENT_NAME - The name of the location
    * DEPLOYMENT_LOCATION - The location to create the deployment
-   * LOCATION - The location to create the resources
+   * PRIMARY_LOCATION - The primary Azure region to deploy the resources to.
+   * SECONDARY_LOCATION - The secondary Azure region to deploy the resources to.
    * ADMIN_USER_NAME - The name to set for the VM administrator username
    * ADMIN_OBJECT_ID - The object ID of the Azure AD User that will have full permissions on the Key Vault instances
    * SUBSCRIPTION - The name or id of the subscription you wish to deploy the resources to
-   * ON_PREM_ADDRESS_SPACE - This is an optional parameter that represents on-premises address space
+   * TRUSTED_IP - The IP address that will be allowed through NSGs for SSH connections.
 
 2. Set the CLI to the subscription you wish to deploy the resources to:
 
@@ -62,11 +50,11 @@ Additional features included:
 
 4. Deploy the lab using the command (tags parameter is optional): 
 
-   * **az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/hub-and-spoke/azuredeploy.json --parameters location=$LOCATION vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID tags='{"mytag":"value"}'**
+   * **az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/multi-region-vwan-simple/azuredeploy.json --parameters primaryLocation=$PRIMARY_LOCATION secondaryLocation=$SECONDARY_LOCATION trustedIp=$TRUSTED_IP vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID tags='{"mytag":"value"}'**
 
-3.  You will be prompted to provide a password for the local administrator of the virtual machine. The username and password you set will be available to you as secrets in the "central" Key Vault provisioned as part of this lab.
+3.  You will be prompted to provide a password for the local administrator of the virtual machines. The username and password you set will be available to you as secrets in the Key Vault provisioned as part of this lab.
 
 ## Post Installation
-Once the lab is deployed, you can SSH into the Dev VM running in the hub using Azure Bastion.
+Once the lab is deployed, you can SSH into the virtual machines from a machine associated with the trusted IP.
 
 
