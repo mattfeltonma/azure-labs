@@ -2,6 +2,19 @@
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+            }
+        },
+        "networkWatcherResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where Network Watcher resources exist"
+            },
+            "defaultValue": "NetworkWatcherRG"
+        },
         "primarylocation": {
             "type": "string",
             "metadata": {
@@ -95,10 +108,6 @@
         "templateFileWorkload": "[concat(variables('templateUriWorkload'), 'deploy-workload.json')]",
         "templateUriTransit": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/transit/'))]",
         "templateUriWorkload": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/workload/'))]",
-        "vmIpR1Workload1LinuxServer": "10.1.0.10",
-        "vmIpR1Workload2LinuxServer": "10.2.0.10",
-        "vmIpR2Workload1LinuxServer": "10.9.0.10",
-        "vmIpR2Workload2LinuxServer": "10.10.0.10",
         "vnetCidrR1Workload1": "10.1.0.0/16",
         "vnetCidrR1Workload2": "10.2.0.0/16",
         "vnetCidrR2Workload1": "10.9.0.0/16",
@@ -200,6 +209,9 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "keyVaultAdmin": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    }, 
                     "primaryLocation": {
                         "value": "[parameters('primarylocation')]"
                     },  
@@ -211,31 +223,13 @@
                     },    
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
-                    },     
-                    "vnetCidrR1Workload1": {
-                        "value": "[variables('vnetCidrR1Workload1')]"
+                    },    
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
                     },
-                    "vnetCidrR1Workload2": {
-                        "value": "[variables('vnetCidrR1Workload2')]"
-                    },
-                    "vnetCidrR2Workload1": {
-                        "value": "[variables('vnetCidrR2Workload1')]"
-                    },
-                    "vnetCidrR2Workload2": {
-                        "value": "[variables('vnetCidrR2Workload2')]"
-                    },
-                    "vnetSubnetCidrR1Workload1App": {
-                        "value": "[variables('vnetSubnetCidrR1Workload1App')]"
-                    },
-                    "vnetSubnetCidrR1Workload2App": {
-                        "value": "[variables('vnetSubnetCidrR1Workload2App')]"
-                    },
-                    "vnetSubnetCidrR2Workload1App": {
-                        "value": "[variables('vnetSubnetCidrR2Workload1App')]"
-                    },
-                    "vnetSubnetCidrR2Workload2App": {
-                        "value": "[variables('vnetSubnetCidrR2Workload2App')]"
-                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    }, 
                     "vwanHubCidrR1": {
                         "value": "[variables('vwanHubCidrR1')]"
                     },
@@ -245,6 +239,148 @@
                 },
                 "templateLink": {
                     "uri": "[variables('templateFileTransit')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameWorkload1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('transitSubscriptionId')]",
+            "resourceGroup": "[variables('rgNameTransit')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameTransit'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "lawResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.lawResourceId.value]"
+                    }, 
+                    "regionNamePrimary": {
+                        "value": "[parameters('primarylocation')]"
+                    },  
+                    "regionNameSecondary": {
+                        "value": "[parameters('secondarylocation')]"
+                    },
+                    "rgNameNetworkWatcher": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    },    
+                    "rgNameTransit": {
+                        "value": "[variables('rgNameTransit')]"
+                    }, 
+                    "storageAccountNsgResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.storageAccountNsgResourceId.value]"
+                    },    
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    }, 
+                    "vnetCidrWorkloadR1": {
+                        "value": "[variables('vnetCidrR1Workload1')]"
+                    },
+                    "vnetCidrWorkloadR2": {
+                        "value": "[variables('vnetCidrR2Workload1')]"
+                    },
+                    "vnetSubnetCidrWorkloadAppR1": {
+                        "value": "[variables('vnetSubnetCidrR1Workload1App')]"
+                    },
+                    "vnetSubnetCidrWorkloadAppR2": {
+                        "value": "[variables('vnetSubnetCidrR2Workload1App')]"
+                    },
+                     "vwanHubNameR1": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.vwanHubR1Name.value]"
+                    },
+                     "vwanHubNameR2": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.vwanHubR2Name.value]"
+                    },
+                     "workloadNumber": {
+                        "value": "1"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileWorkload')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameWorkload2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('transitSubscriptionId')]",
+            "resourceGroup": "[variables('rgNameTransit')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload2'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameWorkload1'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "lawResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.lawResourceId.value]"
+                    }, 
+                    "regionNamePrimary": {
+                        "value": "[parameters('primarylocation')]"
+                    },  
+                    "regionNameSecondary": {
+                        "value": "[parameters('secondarylocation')]"
+                    },
+                    "rgNameNetworkWatcher": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    },    
+                    "rgNameTransit": {
+                        "value": "[variables('rgNameTransit')]"
+                    }, 
+                    "storageAccountNsgResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.storageAccountNsgResourceId.value]"
+                    },    
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    }, 
+                    "vnetCidrWorkloadR1": {
+                        "value": "[variables('vnetCidrR1Workload2')]"
+                    },
+                    "vnetCidrWorkloadR2": {
+                        "value": "[variables('vnetCidrR2Workload2')]"
+                    },
+                    "vnetSubnetCidrWorkloadAppR1": {
+                        "value": "[variables('vnetSubnetCidrR1Workload2App')]"
+                    },
+                    "vnetSubnetCidrWorkloadAppR2": {
+                        "value": "[variables('vnetSubnetCidrR2Workload2App')]"
+                    },
+                     "vwanHubNameR1": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.vwanHubR1Name.value]"
+                    },
+                     "vwanHubNameR2": {
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.vwanHubR2Name.value]"
+                    },
+                     "workloadNumber": {
+                        "value": "2"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileWorkload')]",
                     "contentVersion": "1.0.0.0"
                 }
             }

@@ -14,6 +14,12 @@
                 "description": "Name of the administrator account created on the VM"
             }
         },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The Azure region to deploy the VM"
+            }
+        },
         "linkedTemplateLocation": {
             "type": "string",
             "metadata": {
@@ -37,12 +43,6 @@
             "type": "string",
             "metadata": {
                 "description": "The subnet within the Virtual Network the network interface for the VM is to be placed in"
-            }
-        },
-        "serverIpAddress": {
-            "type": "string",
-            "metadata": {
-                "description": "The static IP address assigned to the server's network interface"
             }
         },
         "tags": {
@@ -92,24 +92,25 @@
         }
     },
     "variables": {
-        "_apiVersionNetwork": "2021-08-01",
+        "_apiVersionNetworks": "2021-08-01",
         "_apiVersionVm": "2021-11-01",
-        "_location": "[resourceGroup().location]",
-        "dscModulesUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../dsc/windowsdevvm.zip'))]",
-        "configurationFunction": "windowsdevvm.ps1\\WindowsDevVM",
+        "managedDiskTypeOs": "StandardSSD_LRS",
         "nicAcceleratedNetworking": "true",
         "nicNamePrimary": "[concat(parameters('vmName'),parameters('uniqueData'))]",
-        "ManagedDiskTypeOs": "StandardSSD_LRS",
-        "customScriptExtensionScriptName": "prepare_windows_dev_vm.ps1",
+        "customScriptExtensionScriptName": "prepare_ubuntu_vm.sh",
         "customScriptExtensionScriptUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../scripts/', variables('customScriptExtensionScriptName')))]",
+        "vmOffer": "0001-com-ubuntu-server-focal",
+        "vmPublisher": "Canonical",
+        "vmSku": "20_04-lts-gen2",
+        "vmVersion": "latest",
         "vnetSubnetRef": "[resourceId(parameters('vnetSubscriptionId'),parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('subnetName'))]"
     },
     "resources": [
         {
             "name": "[variables('nicNamePrimary')]",
             "type": "Microsoft.Network/networkInterfaces",
-            "apiVersion": "[variables('_apiVersionNetwork')]",
-            "location": "[variables('_location')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "enableAcceleratedNetworking": "[variables('nicAcceleratedNetworking')]",
@@ -117,8 +118,7 @@
                     {
                         "name": "ipconfig1",
                         "properties": {
-                            "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[parameters('serverIpAddress')]",
+                            "privateIPAllocationMethod": "Dynamic",
                             "subnet": {
                                 "id": "[variables('vnetSubnetRef')]"
                             }
@@ -131,7 +131,7 @@
             "name": "[parameters('vmName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "[variables('_apiVersionVm')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrimary'))]"
@@ -156,8 +156,8 @@
                     "computerName": "[parameters('vmName')]",
                     "adminUsername": "[parameters('adminUsername')]",
                     "adminPassword": "[parameters('adminPassword')]",
-                    "windowsConfiguration": {
-                        "enableAutomaticUpdates": true,
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false,
                         "provisionVmAgent": true
                     }
                 },
@@ -165,46 +165,71 @@
                     "osDisk": {
                         "createOption": "fromImage",
                         "managedDisk": {
-                            "storageAccountType": "[variables('ManagedDiskTypeOs')]"
+                            "storageAccountType": "[variables('managedDiskTypeOs')]"
                         }
                     },
                     "imageReference": {
-                        "publisher": "MicrosoftWindowsServer",
-                        "offer": "WindowsServer",
-                        "sku": "2019-Datacenter",
-                        "version": "latest"
+                        "publisher": "[variables('vmPublisher')]",
+                        "offer": "[variables('vmOffer')]",
+                        "sku": "[variables('vmSku')]",
+                        "version": "[variables('vmVersion')]"
                     }
                 }
             },
             "resources": [
                 {
-                    "type": "extensions",
-                    "name": "DependencyAgentWindows",
+                    "name": "[concat(parameters('vmName'),'/CustomScriptExtension')]",
+                    "type": "Microsoft.Compute/virtualMachines/extensions",
                     "apiVersion": "[variables('_apiVersionVm')]",
-                    "location": "[variables('_location')]",
+                    "location": "[parameters('location')]",
+                    "tags": "[parameters('tags')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
                     ],
                     "properties": {
-                        "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
-                        "type": "DependencyAgentWindows",
-                        "typeHandlerVersion": "9.5",
+                        "publisher": "Microsoft.Azure.Extensions",
+                        "type": "CustomScript",
+                        "typeHandlerVersion": "2.1",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                        },
+                        "protectedSettings": {
+                            "fileUris": [
+                                "[variables('customScriptExtensionScriptUrl')]"
+                            ],
+                            "commandToExecute": "[concat('sh ', variables('customScriptExtensionScriptName'), ' ', parameters('adminUsername'))]"
+                        }
+                    }
+                },
+                {
+                    "type": "extensions",
+                    "name": "Microsoft.Azure.NetworkWatcher",
+                    "apiVersion": "[variables('_apiVersionVm')]",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/CustomScriptExtension')]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.Azure.NetworkWatcher",
+                        "type": "NetworkWatcherAgentLinux",
+                        "typeHandlerVersion": "1.4",
                         "autoUpgradeMinorVersion": true
                     }
                 },
                 {
                     "type": "extensions",
-                    "name": "MMAExtension",
+                    "name": "OMSExtension",
                     "apiVersion": "[variables('_apiVersionVm')]",
-                    "location": "[variables('_location')]",
+                    "location": "[parameters('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/DependencyAgentWindows')]"
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/Microsoft.Azure.NetworkWatcher')]"
                     ],
                     "properties": {
                         "publisher": "Microsoft.EnterpriseCloud.Monitoring",
-                        "type": "MicrosoftMonitoringAgent",
-                        "typeHandlerVersion": "1.0",
+                        "type": "OmsAgentForLinux",
+                        "typeHandlerVersion": "1.13",
                         "autoUpgradeMinorVersion": true,
                         "settings": {
                             "workspaceId": "[parameters('myWorkspaceId')]",
@@ -217,91 +242,35 @@
                 },
                 {
                     "type": "extensions",
-                    "name": "AzureMonitorWindowsAgent",
+                    "name": "DependencyAgentLinux",
                     "apiVersion": "[variables('_apiVersionVm')]",
-                    "location": "[variables('_location')]",
+                    "location": "[parameters('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/MMAExtension')]"
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/OMSExtension')]"
                     ],
                     "properties": {
-                        "publisher": "Microsoft.Azure.Monitor",
-                        "type": "AzureMonitorWindowsAgent",
-                        "typeHandlerVersion": "1.0",
-                        "autoUpgradeMinorVersion": true,
-                        "enableAutomaticUpgrade": true
-                    }
-                },
-                {
-                    "type": "extensions",
-                    "name": "Microsoft.Azure.NetworkWatcher",
-                    "apiVersion": "[variables('_apiVersionVm')]",
-                    "location": "[variables('_location')]",
-                    "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/AzureMonitorWindowsAgent')]"
-                    ],
-                    "properties": {
-                        "publisher": "Microsoft.Azure.NetworkWatcher",
-                        "type": "NetworkWatcherAgentWindows",
-                        "typeHandlerVersion": "1.4",
+                        "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+                        "type": "DependencyAgentLinux",
+                        "typeHandlerVersion": "9.5",
                         "autoUpgradeMinorVersion": true
                     }
                 },
                 {
                     "type": "extensions",
-                    "name": "CreateDevServer",
+                    "name": "AzureMonitorLinuxAgent",
                     "apiVersion": "[variables('_apiVersionVm')]",
-                    "location": "[variables('_location')]",
+                    "location": "[parameters('location')]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]",
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/Microsoft.Azure.NetworkWatcher')]"
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
+                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/DependencyAgentLinux')]"
                     ],
                     "properties": {
-                        "publisher": "Microsoft.Powershell",
-                        "type": "DSC",
-                        "typeHandlerVersion": "2.77",
+                        "publisher": "Microsoft.Azure.Monitor",
+                        "type": "AzureMonitorLinuxAgent",
+                        "typeHandlerVersion": "1.5",
                         "autoUpgradeMinorVersion": true,
-                        "settings": {
-                            "ModulesUrl": "[variables('dscModulesUrl')]",
-                            "ConfigurationFunction": "[variables('configurationFunction')]",
-                            "Properties": {
-                                "MachineName": "[parameters('vmName')]",
-                                "AdminCreds": {
-                                    "UserName": "[parameters('adminUsername')]",
-                                    "Password": "PrivateSettingsRef:AdminPassword"
-                                }
-                            }
-                        },
-                        "protectedSettings": {
-                            "Items": {
-                                "AdminPassword": "[parameters('adminPassword')]"
-                            }
-                        }
-                    }
-                },
-                {
-                    "type": "extensions",
-                    "name": "CustomScriptExtension",
-                    "apiVersion": "[variables('_apiVersionVm')]",
-                    "location": "[variables('_location')]",
-                    "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",   
-                        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/CreateDevServer')]"
-                    ],
-                    "properties": {
-                        "publisher": "Microsoft.Compute",
-                        "type": "CustomScriptExtension",
-                        "typeHandlerVersion": "1.10",
-                        "autoUpgradeMinorVersion": true,
-                        "settings": {
-                            "fileUris": [
-                                "[variables('customScriptExtensionScriptUrl')]"
-                            ]
-                        },
-                        "protectedSettings": {
-                            "commandToExecute": "[concat('powershell.exe -Command \"./', variables('customScriptExtensionScriptName'), '; exit 0;\"')]"
-                        }   
+                        "enableAutomaticUpgrade": true
                     }
                 }
             ]

@@ -2,6 +2,12 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+            }
+        },
         "primaryLocation": {
             "type": "string",
             "metadata": {
@@ -30,52 +36,16 @@
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
         },
-        "vnetCidrR1Workload1": {
-            "type": "string",
+        "vmAdminPassword": {
+            "type": "securestring",
             "metadata": {
-                "description": "The CIDR assigned to the workload 1 virtual network in region 1"
+                "description": "Password for the VMs that are created"
             }
         },
-        "vnetCidrR1Workload2": {
+        "vmAdminUsername": {
             "type": "string",
             "metadata": {
-                "description": "The CIDR assigned to the workload 2 virtual network in region 1"
-            }
-        },
-        "vnetCidrR2Workload1": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the workload 1 virtual network in region 2"
-            }
-        },
-        "vnetCidrR2Workload2": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the workload 2 virtual network in region 2"
-            }
-        },
-        "vnetSubnetCidrR1Workload1App": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the app subnet in the workload 1 virtual network in region 1"
-            }
-        },
-        "vnetSubnetCidrR1Workload2App": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the app subnet in the workload 2 virtual network in region 1"
-            }
-        },
-        "vnetSubnetCidrR2Workload1App": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the app subnet in the workload 1 virtual network in region 2"
-            }
-        },
-        "vnetSubnetCidrR2Workload2App": {
-            "type": "string",
-            "metadata": {
-                "description": "The CIDR assigned to the app subnet in the workload 2 virtual network in region 2"
+                "description": "Administrator name for VMs that are created"
             }
         },
         "vwanHubCidrR1": {
@@ -92,23 +62,24 @@
         }
     },
     "variables": {
-        "_apiVersionDiagnostics": "2021-05-01-preview",
         "_apiVersionNetworks": "2022-05-01",
         "_apiVersionResources": "2020-06-01",
         "_templatesUriGeneral": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
+        "deploymentNameKeyVaultCentral": "deploy-keyvault-central",
+        "deploymentNameKvSecretUsername": "deploy-kv-secret-username",
+        "deploymentNameKvSecretUserPassword": "deploy-kv-secret-user-password",
         "deploymentNameLawCentral": "deploy-law-central",
         "deploymentNameStorageAccountNsg": "deploy-storage-nsg",
+        "deploymentUriKeyVault": "[concat(variables('_templatesUriGeneral'), 'deploy-key-vault.json')]",
+        "deploymentUriKeyVaultSecret": "[concat(variables('_templatesUriGeneral'), 'deploy-keyvault-secret.json')]",
         "deploymentUriLaw": "[concat(variables('_templatesUriGeneral'), 'deploy-law.json')]",
         "deploymentUriStorage": "[concat(variables('_templatesUriGeneral'), 'deploy-storage-account.json')]",
+        "keyVaultNamePrefix":"kvcent",
+        "keyVaultSecretNameUsername": "adminusername",
+        "keyVaultSecretNameUserPassword": "adminpassword",
         "storageAccountNamePrefix": "stcent",
         "virtualNetworkGatewayNameR1": "[concat('vpngw', parameters('primaryLocation'), parameters('uniqueData'))]",
         "virtualNetworkGatewayNameR2": "[concat('vpngw', parameters('secondaryLocation'), parameters('uniqueData'))]",  
-        "vnetNameR1Workload1": "[concat('vnetwl1', parameters('primaryLocation'), parameters('uniqueData'))]",
-        "vnetNameR1Workload2": "[concat('vnetwl2', parameters('primaryLocation'), parameters('uniqueData'))]",
-        "vnetNameR2Workload1": "[concat('vnetwl1', parameters('secondaryLocation'), parameters('uniqueData'))]",
-        "vnetNameR2Workload2": "[concat('vnetwl2', parameters('secondaryLocation'), parameters('uniqueData'))]",
-        "vnetSubnetNameWorkloadApp": "snet-app",
-        "vnetStandardDdosProtection": false,
         "vwanHubNameR1": "[concat('vhub', parameters('primaryLocation'), parameters('uniqueData'))]",
         "vwanHubNameR2": "[concat('vhub', parameters('secondaryLocation'), parameters('uniqueData'))]",
         "vwanName": "[concat('vwan', parameters('uniqueData'))]"
@@ -133,6 +104,101 @@
                 },
                 "templateLink": {
                     "uri": "[variables('deploymentUriLaw')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKeyVaultCentral')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameLawCentral'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "defaultAction": {
+                        "value": "Allow"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "keyVaultNamePrefix": {
+                        "value": "[variables('keyVaultNamePrefix')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[reference(variables('deploymentNameLawCentral')).outputs.logAnalyticsResourceId.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVault')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKvSecretUsername')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.keyVaultName.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('primaryLocation')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('keyVaultSecretNameUsername')]"
+                    },
+                    "secretValue": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVaultSecret')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKvSecretUserPassword')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.keyVaultName.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('primaryLocation')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('keyVaultSecretNameUserPassword')]"
+                    },
+                    "secretValue": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVaultSecret')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -273,191 +339,40 @@
                 },
                 "vpnGatewayScaleUnit": "1"
             }
-        },
-        {
-            "type": "Microsoft.Network/virtualNetworks",
-            "name": "[variables('vnetNameR1Workload1')]",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[parameters('primaryLocation')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-            ],
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('vnetCidrR1Workload1')]"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[variables('vnetSubnetNameWorkloadApp')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('vnetSubnetCidrR1Workload1App')]",
-                            "privateEndpointNetworkPolicies": "Enabled"
-                        }
-                    }
-                ],
-                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
-            },
-            "resources": [
-            ]
-        },
-        {
-            "type": "Microsoft.Network/virtualNetworks",
-            "name": "[variables('vnetNameR1Workload2')]",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[parameters('primaryLocation')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-            ],
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('vnetCidrR1Workload2')]"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[variables('vnetSubnetNameWorkloadApp')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('vnetSubnetCidrR1Workload2App')]",
-                            "privateEndpointNetworkPolicies": "Enabled"
-                        }
-                    }
-                ],
-                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
-            },
-            "resources": [
-            ]
-        },
-        {
-            "type": "Microsoft.Network/virtualNetworks",
-            "name": "[variables('vnetNameR2Workload1')]",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[parameters('secondaryLocation')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-            ],
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('vnetCidrR2Workload1')]"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[variables('vnetSubnetNameWorkloadApp')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('vnetSubnetCidrR2Workload1App')]",
-                            "privateEndpointNetworkPolicies": "Enabled"
-                        }
-                    }
-                ],
-                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
-            },
-            "resources": [
-            ]
-        },
-        {
-            "type": "Microsoft.Network/virtualNetworks",
-            "name": "[variables('vnetNameR2Workload2')]",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[parameters('secondaryLocation')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-            ],
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": [
-                        "[parameters('vnetCidrR2Workload2')]"
-                    ]
-                },
-                "subnets": [
-                    {
-                        "name": "[variables('vnetSubnetNameWorkloadApp')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('vnetSubnetCidrR2Workload2App')]",
-                            "privateEndpointNetworkPolicies": "Enabled"
-                        }
-                    }
-                ],
-                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
-            },
-            "resources": [
-            ]
-        },
-        {
-            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
-            "name": "[concat(variables('vwanHubNameR1'),'/',variables('vnetNameR1Workload1'),'-conn')]",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubNameR1'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameR1Workload1'))]"
-            ],
-            "properties": {
-                "allowHubToRemoteVnetTransit": true,
-                "allowRemoteVnetToUseHubVnetGateways": true,
-                "enableInternetSecurity": true,
-                "remoteVirtualNetwork": {
-                    "id": "[resourceid('Microsoft.Network/virtualNetworks',variables('vnetNameR1Workload1'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
-            "name": "[concat(variables('vwanHubNameR1'),'/',variables('vnetNameR1Workload2'),'-conn')]",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubNameR1'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameR1Workload2'))]",
-                "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', variables('vwanHubNameR1'), concat(variables('vnetNameR1Workload1'), '-conn'))]"
-            ],
-            "properties": {
-                "allowHubToRemoteVnetTransit": true,
-                "allowRemoteVnetToUseHubVnetGateways": true,
-                "enableInternetSecurity": true,
-                "remoteVirtualNetwork": {
-                    "id": "[resourceid('Microsoft.Network/virtualNetworks',variables('vnetNameR1Workload2'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
-            "name": "[concat(variables('vwanHubNameR2'),'/',variables('vnetNameR2Workload1'),'-conn')]",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubNameR2'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameR2Workload1'))]",
-                "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', variables('vwanHubNameR1'), concat(variables('vnetNameR1Workload2'), '-conn'))]"
-            ],
-            "properties": {
-                "allowHubToRemoteVnetTransit": true,
-                "allowRemoteVnetToUseHubVnetGateways": true,
-                "enableInternetSecurity": true,
-                "remoteVirtualNetwork": {
-                    "id": "[resourceid('Microsoft.Network/virtualNetworks',variables('vnetNameR2Workload1'))]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
-            "name": "[concat(variables('vwanHubNameR2'),'/',variables('vnetNameR2Workload2'),'-conn')]",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubNameR2'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameR2Workload2'))]",
-                "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', variables('vwanHubNameR2'), concat(variables('vnetNameR2Workload1'), '-conn'))]"
-            ],
-            "properties": {
-                "allowHubToRemoteVnetTransit": true,
-                "allowRemoteVnetToUseHubVnetGateways": true,
-                "enableInternetSecurity": true,
-                "remoteVirtualNetwork": {
-                    "id": "[resourceid('Microsoft.Network/virtualNetworks',variables('vnetNameR2Workload2'))]"
-                }
-            }
         }
     ],
     "outputs": {
+        "lawResourceId": {
+            "type": "string",
+            "value": "[reference(variables('deploymentNameLawCentral')).outputs.logAnalyticsResourceId.value]"
+        },
+        "storageAccountNsgResourceId": {
+            "type": "string",
+            "value": "[reference(variables('deploymentNameStorageAccountNsg')).outputs.storageAccountResourceId.value]"
+        },
+        "vwanName": {
+            "type": "string",
+            "value": "[variables('vwanName')]"
+        },
+        "vwanResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualWans',variables('vwanName'))]"
+        },
+        "vwanHubR1Name": {
+            "type": "string",
+            "value": "[variables('vwanHubNameR1')]"
+        },        
+        "vwanHubR1ResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualHubs',variables('vwanHubNameR1'))]"
+        },
+        "vwanHubR2Name": {
+            "type": "string",
+            "value": "[variables('vwanHubNameR2')]"
+        },     
+        "vwanHubR2ResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualHubs',variables('vwanHubNameR2'))]"
+        }
     }
 }

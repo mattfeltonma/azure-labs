@@ -2,100 +2,100 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "dnsServerIp": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address to set for the Virtual Network DNS server"
-            }
-        },
-        "firewallIp": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address of the Azure Firewall to route traffic to"
-            }
-        },
-        "keyVaultAdmin": {
-            "type": "string",
-            "metadata": {
-                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
-            }
-        },
         "lawResourceId": {
             "type": "string",
             "metadata": {
                 "description": "The resource if of the Log Analytics Workspace"
             }
         },
-        "networkWatcherRg": {
+        "regionNamePrimary": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the primary region"
+            }
+        },
+        "regionNameSecondary": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the secondary region"
+            }
+        },
+        "rgNameNetworkWatcher": {
             "type": "string",
             "metadata": {
                 "description": "The name of the Network Watcher Resource Group"
             }
         },
-        "nsgStorageAccountResourceId": {
+        "rgNameTransit": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group for transit resources"
+            }
+        },
+        "storageAccountNsgResourceId": {
             "type": "string",
             "metadata": {
                 "description": "The resource id of the Storage Account for NSG Flow logs"
             }
         },
-        "sharedSvcResourceGroupName": {
+        "subIdNameTransit": {
             "type": "string",
             "metadata": {
-                "description": "The name of the shared services resource group"
+                "description": "The subscription id of the for the transit resources"
             }
         },
-        "sharedSvcVnetSubscriptionId": {
-            "type": "string",
+        "vmAdminPassword": {
+            "type": "securestring",
             "metadata": {
-                "description": "The id of the subscription that contains the shared services resources"
+                "description": "Password for the VMs that are created"
             }
         },
-        "transitResourceGroupName": {
+        "vmAdminUsername": {
             "type": "string",
             "metadata": {
-                "description": "The name of the Transit resource group"
+                "description": "Administrator name for VMs that are created"
             }
         },
-        "transitVnetSubscriptionId": {
+        "vnetCidrWorkloadR1": {
             "type": "string",
             "metadata": {
-                "description": "The id of the subscription that contains the Transit virtual network"
+                "description": "The IP address block assigned to the region 1 workload virtual network"
             }
         },
-        "transitVnetName": {
+        "vnetCidrWorkloadR2": {
             "type": "string",
             "metadata": {
-                "description": "The name assigned to the Transit virtual network"
+                "description": "The IP address block assigned to the region 2 workload virtual network"
             }
         },
-        "transitVnetResourceId": {
+        "vnetSubnetCidrWorkloadAppR1": {
             "type": "string",
             "metadata": {
-                "description": "The resource id of the Transit virtual network"
+                "description": "The IP address block assigned to the app subnet in the region 1 workload virtual network"
             }
         },
-        "workloadVnetCidr": {
+        "vnetSubnetCidrWorkloadAppR2": {
             "type": "string",
             "metadata": {
-                "description": "The IP address block assigned to the Workload virtual network"
+                "description": "The IP address block assigned to the app subnet in the region 2 workload virtual network"
             }
         },
-        "workloadVnetSubnetAppCidr": {
+        "vwanHubNameR1": {
             "type": "string",
             "metadata": {
-                "description": "The IP address block assigned to the application tier of the workload"
+                "description": "The name of the VWAN Hub in region 1"
             }
         },
-        "workloadVnetSubnetDataCidr": {
+        "vwanHubNameR2": {
             "type": "string",
             "metadata": {
-                "description": "The IP address block assigned to the data tier of the workload"
+                "description": "The name of the VWAN Hub in region 2"
             }
         },
-        "workloadVnetSubnetSvcCidr": {
+        "workloadNumber": {
             "type": "string",
             "metadata": {
-                "description": "The IP address block assigned to the subnet used for other services in the Workload virtual network"
+                "description": "The number to append to the workload name"
             }
         },
         "tags": {
@@ -116,127 +116,56 @@
         }
     },
     "variables": {
-        "_apiVersionManagedIdentities": "2018-11-30",
-        "_apiVersionNetworks": "2020-07-01",
+        "_apiVersionNetworks": "2022-05-01",
         "_apiVersionResources": "2020-06-01",
-        "_location": "[resourceGroup().location]",
         "_templatesUriGeneral": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
-        "deploymentNameKeyVaultApp": "deploy-kv-app",
-        "deploymentNameKeyVaultAppPerm": "deploy-kv-app-perm-workload",
-        "deploymentNameKeyVaultPe": "deploy-kv-pe",
-        "deploymentNameNsgFlowLogApp": "deploy-flowlog-app-workload",
-        "deploymentNameNsgFlowLogData": "deploy-flowlog-data-workload",
-        "deploymentNameNsgFlowLogSvc": "deploy-flowlog-svc-workload",
-        "deploymentNameTransitVnetPeering": "deploy-vnetpeer-transit-to-workload",
-        "deploymentUriKeyVault": "[concat(variables('_templatesUriGeneral'), 'deploy-key-vault.json')]",
-        "deploymentUriKeyVaultPerm": "[concat(variables('_templatesUriGeneral'), 'deploy-key-vault-permissions.json')]",
+        "deploymentNameNsgFlowLogR1App": "[concat('deploy-flowlog-app-r1-workload',parameters('workloadNumber'))]",
+        "deploymentNameNsgFlowLogR2App": "[concat('deploy-flowlog-app-r2-workload',parameters('workloadNumber'))]",
+        "deploymentNameVhubConnections": "[concat('deploy-vhub-vnet-conn-w',parameters('workloadNumber'))]",
+        "deploymentNameVmR1Linux": "[concat('deploy-vm-linux-r1-w',parameters('workloadNumber'))]",
+        "deploymentNameVmR2Linux": "[concat('deploy-vm-linux-r2-w',parameters('workloadNumber'))]",
         "deploymentUriNsgFlowLog": "[concat(variables('_templatesUriGeneral'), 'deploy-nsg-flow-log.json')]",
-        "deploymentUriPe": "[concat(variables('_templatesUriGeneral'), 'deploy-private-endpoint.json')]",
-        "keyVaultNamePrefix": "kvapp",
-        "nsgNameApp": "[concat('nsg-app',parameters('uniqueData'))]",
-        "nsgNameData": "[concat('nsg-data',parameters('uniqueData'))]",
-        "nsgNameSvc": "[concat('nsg-svc',parameters('uniqueData'))]",
-        "privateDnsZoneNameKeyVault": "privatelink.vaultcore.azure.net",
-        "routeTableNameApp": "rt-app",
-        "routeTableNameData": "rt-data",
-        "rgNameWorkload": "[resourceGroup().name]",
-        "umiWorkload": "[concat('umi', parameters('uniqueData'))]",
-        "vnetNameWorkload": "[concat('vnet-workload', parameters('uniqueData'))]",
-        "vnetPeeringTransitToWorkload": "peertransittoworkload",
-        "vnetPeeringWorkloadToTransit": "peerworkloadtotransit",
-        "vnetSubnetNameApp": "snet-app",
-        "vnetSubnetNameData": "snet-data",
-        "vnetSubnetNameSvc": "snet-svc"
+        "deploymentUriVmLinux": "[concat(variables('_templatesUriGeneral'), 'deploy-ubuntu-vm.json')]",
+        "nsgNameR1App": "[concat('nsg-app-r1w',parameters('workloadNumber'),parameters('uniqueData'))]",
+        "nsgNameR2App": "[concat('nsg-app-r2w',parameters('workloadNumber'),parameters('uniqueData'))]",
+        "rgNameWorkload1": "[resourceGroup().name]",
+        "subIdWorkload1": "[subscription().subscriptionId]",
+        "vmNameR1Linux": "[concat('vmlr1w',parameters('workloadNumber'),parameters('uniqueData'))]",
+        "vmNameR2Linux": "[concat('vmlr1w',parameters('workloadNumber'),parameters('uniqueData'))]",
+        "vmSku": "Standard_D4s_v5",
+        "vnetNameR1Workload1": "[concat('vnetwl',parameters('workloadNumber'),parameters('regionNamePrimary'), parameters('uniqueData'))]",
+        "vnetNameR2Workload1": "[concat('vnetwl',parameters('workloadNumber'),parameters('regionNameSecondary'), parameters('uniqueData'))]",
+        "vnetSubnetNameWorkloadApp": "snet-app",
+        "vnetStandardDdosProtection": false
     },
     "resources": [
         {
-            "name": "[variables('umiWorkload')]",
-            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-            "apiVersion": "[variables('_apiVersionManagedIdentities')]",
-            "tags": "[parameters('tags')]",
-            "location": "[variables('_location')]"
-        },
-        {
-            "name": "[variables('deploymentNameKeyVaultApp')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionResources')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('umiWorkload'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "defaultAction": {
-                        "value": "Deny"
-                    },
-                    "keyVaultAdminObjectId": {
-                        "value": "[parameters('keyVaultAdmin')]"
-                    },
-                    "keyVaultNamePrefix": {
-                        "value": "[variables('keyVaultNamePrefix')]"
-                    },
-                    "laWorkspaceResourceId": {
-                        "value": "[parameters('lawResourceId')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('deploymentUriKeyVault')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('deploymentNameKeyVaultAppPerm')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionResources')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameKeyVaultApp'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[reference(variables('deploymentNameKeyVaultApp')).outputs.keyVaultName.value]"
-                    },
-                    "objectId": {
-                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('umiWorkload'))).principalId]"
-                    },
-                    "secretPermissions": {
-                        "value": [
-                            "get",
-                            "list"
-                        ]
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('deploymentUriKeyVaultPerm')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
             "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[variables('nsgNameApp')]",
+            "name": "[variables('nsgNameR1App')]",
             "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('regionNamePrimary')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "securityRules": []
             }
         },
         {
-            "name": "[variables('deploymentNameNsgFlowLogApp')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgNameR2App')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('regionNameSecondary')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "name": "[variables('deploymentNameNsgFlowLogR1App')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "resourceGroup": "[parameters('rgNameNetworkWatcher')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameR1App'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -245,19 +174,19 @@
                         "value": "[parameters('uniqueData')]"
                     },
                     "location": {
-                        "value": "[variables('_location')]"
+                        "value": "[parameters('regionNamePrimary')]"
                     },
                     "targetLaWorkspaceResourceId": {
                         "value": "[parameters('lawResourceId')]"
                     },
                     "targetNsgName": {
-                        "value": "[variables('nsgNameApp')]"
+                        "value": "[variables('nsgNameR1App')]"
                     },
                     "targetNsgResourceId": {
-                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameApp'))]"
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameR1App'))]"
                     },
                     "targetStorageResourceId": {
-                        "value": "[parameters('nsgStorageAccountResourceId')]"
+                        "value": "[parameters('storageAccountNsgResourceId')]"
                     }
                 },
                 "templateLink": {
@@ -267,23 +196,13 @@
             }
         },
         {
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[variables('nsgNameData')]",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[variables('_location')]",
-            "tags": "[parameters('tags')]",
-            "properties": {
-                "securityRules": []
-            }
-        },
-        {
-            "name": "[variables('deploymentNameNsgFlowLogData')]",
+            "name": "[variables('deploymentNameNsgFlowLogR2App')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "resourceGroup": "[parameters('rgNameNetworkWatcher')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameNsgFlowLogApp'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameData'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNsgFlowLogR1App'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameR2App'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -292,19 +211,19 @@
                         "value": "[parameters('uniqueData')]"
                     },
                     "location": {
-                        "value": "[variables('_location')]"
+                        "value": "[parameters('regionNameSecondary')]"
                     },
                     "targetLaWorkspaceResourceId": {
                         "value": "[parameters('lawResourceId')]"
                     },
                     "targetNsgName": {
-                        "value": "[variables('nsgNameData')]"
+                        "value": "[variables('nsgNameR2App')]"
                     },
                     "targetNsgResourceId": {
-                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameData'))]"
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameR2App'))]"
                     },
                     "targetStorageResourceId": {
-                        "value": "[parameters('nsgStorageAccountResourceId')]"
+                        "value": "[parameters('storageAccountNsgResourceId')]"
                     }
                 },
                 "templateLink": {
@@ -314,191 +233,78 @@
             }
         },
         {
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[variables('nsgNameSvc')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('vnetNameR1Workload1')]",
             "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('regionNamePrimary')]",
             "tags": "[parameters('tags')]",
-            "properties": {
-                "securityRules": []
-            }
-        },
-        {
-            "name": "[variables('deploymentNameNsgFlowLogSvc')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionResources')]",
-            "resourceGroup": "[parameters('networkWatcherRg')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameNsgFlowLogData'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSvc'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNsgFlowLogR2App'))]"
             ],
             "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    },
-                    "location": {
-                        "value": "[variables('_location')]"
-                    },
-                    "targetLaWorkspaceResourceId": {
-                        "value": "[parameters('lawResourceId')]"
-                    },
-                    "targetNsgName": {
-                        "value": "[variables('nsgNameSvc')]"
-                    },
-                    "targetNsgResourceId": {
-                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameSvc'))]"
-                    },
-                    "targetStorageResourceId": {
-                        "value": "[parameters('nsgStorageAccountResourceId')]"
-                    }
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetCidrWorkloadR1')]"
+                    ]
                 },
-                "templateLink": {
-                    "uri": "[variables('deploymentUriNsgFlowLog')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('routeTableNameApp')]",
-            "type": "Microsoft.Network/routeTables",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[variables('_location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameNsgFlowLogSvc'))]"
-            ],
-            "properties": {
-                "routes": [
+                "subnets": [
                     {
-                        "name": "udr-default",
+                        "name": "[variables('vnetSubnetNameWorkloadApp')]",
                         "properties": {
-                            "addressPrefix": "0.0.0.0/0",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[parameters('firewallIp')]"
+                            "addressPrefix": "[parameters('vnetSubnetCidrWorkloadAppR1')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameR1App'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
                         }
                     }
                 ],
-                "disableBgpRoutePropagation": "True"
-            },
-            "resources": [
-            ]
-        },
-        {
-            "name": "[variables('routeTableNameData')]",
-            "type": "Microsoft.Network/routeTables",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[variables('_location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameApp'))]"
-            ],
-            "properties": {
-                "routes": [
-                    {
-                        "name": "udr-default",
-                        "properties": {
-                            "addressPrefix": "0.0.0.0/0",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[parameters('firewallIp')]"
-                        }
-                    }
-                ],
-                "disableBgpRoutePropagation": "True"
+                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
             },
             "resources": [
             ]
         },
         {
             "type": "Microsoft.Network/virtualNetworks",
-            "name": "[variables('vnetNameWorkload')]",
+            "name": "[variables('vnetNameR2Workload1')]",
             "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('regionNameSecondary')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameData'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNsgFlowLogR2App'))]"
             ],
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
-                        "[parameters('workloadVnetCidr')]"
+                        "[parameters('vnetCidrWorkloadR2')]"
                     ]
                 },
                 "subnets": [
                     {
-                        "name": "[variables('vnetSubnetNameApp')]",
+                        "name": "[variables('vnetSubnetNameWorkloadApp')]",
                         "properties": {
-                            "addressPrefix": "[parameters('workloadVnetSubnetAppCidr')]",
-                            "routeTable": {
-                                "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameApp'))]"
-                            },
+                            "addressPrefix": "[parameters('vnetSubnetCidrWorkloadAppR2')]",
                             "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]"
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameR2App'))]"
                             },
-                            "privateEndpointNetworkPolicies": "Enabled"
-                        }
-                    },
-                    {
-                        "name": "[variables('vnetSubnetNameData')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('workloadVnetSubnetDataCidr')]",
-                            "routeTable": {
-                                "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameData'))]"
-                            },
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameData'))]"
-                            },
-                            "privateEndpointNetworkPolicies": "Enabled"
-                        }
-                    },
-                    {
-                        "name": "[variables('vnetSubnetNameSvc')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('workloadVnetSubnetSvcCidr')]",
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSvc'))]"
-                            },    
                             "privateEndpointNetworkPolicies": "Enabled"
                         }
                     }
                 ],
-                "enableDdosProtection": false,
-                "dhcpOptions": {
-                    "dnsServers": [
-                        "[parameters('dnsServerIp')]"
-                    ]
-                }
+                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
             },
             "resources": [
-                {
-                    "name": "[variables('vnetPeeringWorkloadToTransit')]",
-                    "type": "virtualNetworkPeerings",
-                    "apiVersion": "[variables('_apiVersionNetworks')]",
-                    "location": "[resourceGroup().location]",
-                    "dependsOn": [
-                        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetNameWorkload'))]"
-                    ],
-                    "properties": {
-                        "allowVirtualNetworkAccess": "true",
-                        "allowForwardedTraffic": "true",
-                        "allowGatewayTransit": "false",
-                        "useRemoteGateways": "true",
-                        "remoteVirtualNetwork": {
-                            "id": "[parameters('transitVnetResourceId')]"
-                        }
-                    }
-                }
             ]
         },
         {
-            "name": "[variables('deploymentNameTransitVnetPeering')]",
+            "name": "[variables('deploymentNameVhubConnections')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "subscriptionId": "[parameters('transitVnetSubscriptionId')]",
-            "resourceGroup": "[parameters('transitResourceGroupName')]",
+            "subscriptionId": "[parameters('subIdNameTransit')]",
+            "resourceGroup": "[parameters('rgNameTransit')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameWorkload'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameR1Workload1'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameR2Workload1'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -509,17 +315,31 @@
                     "variables": {},
                     "resources": [
                         {
-                            "name": "[concat(parameters('transitVnetName'),'/',variables('vnetPeeringTransitToWorkload'))]",
-                            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
+                            "name": "[concat(parameters('vwanHubNameR1'),'/',variables('vnetNameR1Workload1'),'-conn')]",
                             "apiVersion": "[variables('_apiVersionNetworks')]",
-                            "location": "[resourceGroup().location]",
                             "properties": {
-                                "allowVirtualNetworkAccess": "true",
-                                "allowForwardedTraffic": "true",
-                                "allowGatewayTransit": "true",
-                                "useRemoteGateways": "false",
+                                "allowHubToRemoteVnetTransit": true,
+                                "allowRemoteVnetToUseHubVnetGateways": true,
+                                "enableInternetSecurity": true,
                                 "remoteVirtualNetwork": {
-                                    "id": "[resourceId(variables('rgNameWorkload'), 'Microsoft.Network/virtualNetworks', variables('vnetNameWorkload'))]"
+                                    "id": "[resourceid(variables('subIdWorkload1'),variables('rgNameWorkload1'),'Microsoft.Network/virtualNetworks',variables('vnetNameR1Workload1'))]"
+                                }
+                            }
+                        },
+                            {
+                            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
+                            "name": "[concat(parameters('vwanHubNameR2'),'/',variables('vnetNameR2Workload1'),'-conn')]",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR1'), concat(variables('vnetNameR1Workload1'), '-conn'))]"
+                            ],
+                            "properties": {
+                                "allowHubToRemoteVnetTransit": true,
+                                "allowRemoteVnetToUseHubVnetGateways": true,
+                                "enableInternetSecurity": true,
+                                "remoteVirtualNetwork": {
+                                    "id": "[resourceid(variables('subIdWorkload1'),variables('rgNameWorkload1'),'Microsoft.Network/virtualNetworks',variables('vnetNameR2Workload1'))]"
                                 }
                             }
                         }
@@ -528,51 +348,101 @@
             }
         },
         {
-            "name": "[variables('deploymentNameKeyVaultPe')]",
+            "name": "[variables('deploymentNameVmR1Linux')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameTransitVnetPeering'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameVhubConnections'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "privateDnsZoneName": {
-                        "value": "[variables('privateDnsZoneNameKeyVault')]"
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
                     },
-                    "privateEndpointLocation": {
-                        "value": "[variables('_location')]"
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
                     },
-                    "privateDnsZoneResourceGroup": {
-                        "value": "[parameters('sharedSvcResourceGroupName')]"
+                    "location": {
+                        "value": "[parameters('regionNamePrimary')]"
                     },
-                    "privateDnsZoneSubscription": {
-                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
+                    "myWorkspaceId": {
+                        "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
                     },
-                    "privateEndpointSubnetName": {
-                        "value": "[variables('vnetSubnetNameSvc')]"
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
                     },
-                    "privateEndpointSubResource": {
-                        "value": "vault"
-                    },
-                    "privateEndpointVnetName": {
-                        "value": "[variables('vnetNameWorkload')]"
-                    },
-                    "resourceIdentifier": {
-                        "value": "[reference(variables('deploymentNameKeyVaultApp')).outputs.KeyVaultResourceId.value]"
-                    },
-                    "resourceName": {
-                        "value": "[reference(variables('deploymentNameKeyVaultApp')).outputs.keyVaultName.value]"
+                    "subnetName": {
+                        "value": "[variables('vnetSubnetNameWorkloadApp')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
                     },
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('vmNameR1Linux')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('vnetNameR1Workload1')]"
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('deploymentUriPe')]",
+                    "uri": "[variables('deploymentUriVmLinux')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameVmR2Linux')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameVmR2Linux'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "location": {
+                        "value": "[parameters('regionNameSecondary')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
+                    },
+                    "subnetName": {
+                        "value": "[variables('vnetSubnetNameWorkloadApp')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('vmNameR2Linux')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('vnetNameR2Workload1')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriVmLinux')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
