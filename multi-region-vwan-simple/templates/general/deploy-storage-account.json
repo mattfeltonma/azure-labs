@@ -13,6 +13,12 @@
             ],
             "defaultValue": "Deny"
         },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The Azure region to deploy the resource to"
+            }
+        },
         "storageAccountNamePrefix": {
             "type": "string",
             "metadata": {
@@ -49,15 +55,14 @@
     "variables": {
         "_apiVersionDiagnostics": "2021-05-01-preview",
         "_apiVersionStorage": "2019-06-01",
-        "_location": "[resourceGroup().location]",
-        "storageAccountName": "[concat(parameters('storageAccountNamePrefix'),parameters('uniqueData'))]"
+        "storageAccountName": "[concat(parameters('storageAccountNamePrefix'),parameters('location'),parameters('uniqueData'))]"
     },
     "resources": [
         {
             "name": "[variables('storageAccountName')]",
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "[variables('_apiVersionStorage')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "kind": "StorageV2",
             "sku": {
@@ -77,7 +82,7 @@
             "name": "[concat(variables('storageAccountName'),'/microsoft.insights/diag')]",
             "type": "Microsoft.Storage/storageAccounts/providers/diagnosticSettings",
             "apiVersion": "[variables('_apiVersionDiagnostics')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
@@ -105,7 +110,7 @@
             "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
             "type": "Microsoft.Storage/storageAccounts/blobServices/providers/diagnosticSettings",
             "apiVersion": "[variables('_apiVersionDiagnostics')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                  "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'),'/providers/microsoft.insights/diagnosticSettings/diag')]"
@@ -145,7 +150,7 @@
             "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
             "type": "Microsoft.Storage/storageAccounts/fileServices/providers/diagnosticSettings",
             "apiVersion": "[variables('_apiVersionDiagnostics')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                  "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'),'/blobServices/default','/providers/microsoft.insights/diagnosticSettings/diag')]"
@@ -185,7 +190,7 @@
             "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
             "type": "Microsoft.Storage/storageAccounts/queueServices/providers/diagnosticSettings",
             "apiVersion": "[variables('_apiVersionDiagnostics')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                  "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'),'/fileServices/default','/providers/microsoft.insights/diagnosticSettings/diag')]"
@@ -225,7 +230,7 @@
             "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
             "type": "Microsoft.Storage/storageAccounts/tableServices/providers/diagnosticSettings",
             "apiVersion": "[variables('_apiVersionDiagnostics')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                  "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'),'/queueServices/default','/providers/microsoft.insights/diagnosticSettings/diag')]"

@@ -272,7 +272,7 @@
                         "value": "[variables('rgNameTransit')]"
                     }, 
                     "storageAccountNsgResourceId": {
-                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.storageAccountNsgResourceId.value]"
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.storageAccountNsgResourceIdR1.value]"
                     },
                     "subIdTransit": {
                         "value": "[parameters('transitSubscriptionId')]"
@@ -349,7 +349,7 @@
                         "value": "[parameters('transitSubscriptionId')]"
                     }, 
                     "storageAccountNsgResourceId": {
-                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.storageAccountNsgResourceId.value]"
+                        "value": "[reference(variables('rgDeploymentNameTransit')).outputs.storageAccountNsgResourceIdR2.value]"
                     },    
                     "vmAdminPassword": {
                         "value": "[parameters('vmAdminPassword')]"
