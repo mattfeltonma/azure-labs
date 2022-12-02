@@ -15,7 +15,7 @@
             },
             "defaultValue": "NetworkWatcherRG"
         },
-        "primarylocation": {
+        "primaryLocation": {
             "type": "string",
             "metadata": {
                 "description": "The location the VWAN resource and primary VWAN hub is deployed."
@@ -29,7 +29,7 @@
                 "westus2"
             ]
         },
-        "secondarylocation": {
+        "secondaryLocation": {
             "type": "string",
             "metadata": {
                 "description": "The location the secondary VWAN hub is deployed"
