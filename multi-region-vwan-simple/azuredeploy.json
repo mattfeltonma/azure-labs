@@ -50,6 +50,13 @@
             },
             "defaultValue": "[subscription().subscriptionId]"
         },
+        "trustedIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address to trust for incoming SSH sessions to VMs"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
+        },
         "workload1SubscriptionId": {
             "type": "string",
             "metadata": {
@@ -279,6 +286,9 @@
                     },
                     "subIdTransit": {
                         "value": "[parameters('transitSubscriptionId')]"
+                    },
+                    "trustedIp": {
+                        "value": "[parameters('trustedIp')]"
                     }, 
                     "vmAdminPassword": {
                         "value": "[parameters('vmAdminPassword')]"
@@ -356,7 +366,10 @@
                     },
                     "storageAccountNsgR2ResourceId": {
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.storageAccountNsgR2ResourceId.value]"
-                    },      
+                    },   
+                    "trustedIp": {
+                        "value": "[parameters('trustedIp')]"
+                    },    
                     "vmAdminPassword": {
                         "value": "[parameters('vmAdminPassword')]"
                     },
