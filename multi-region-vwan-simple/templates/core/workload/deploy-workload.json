@@ -402,7 +402,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameVmR2Linux'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameVmR1Linux'))]"
             ],
             "properties": {
                 "mode": "Incremental",
