@@ -113,6 +113,8 @@ table 10
 !
 ip forwarding
 !
+log file /var/log/quagga/quagga.log
+!
 line vty
 !
 EOF
@@ -126,6 +128,8 @@ router bgp $6
  address-family ipv6
  exit-address-family
  exit
+!
+log file /var/log/quagga/quagga.log
 !
 line vty
 !
