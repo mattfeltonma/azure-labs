@@ -162,7 +162,7 @@ iptables -A FORWARD -i eth0 -j LOG --log-prefix "Dropping FORWARD traffic: "
 iptables -A FORWARD -i eth0 -j DROP
 
 # # Allow SSH traffic in eth0 and eth1
-iptables -A INPUT -p tcp --dport ssh -j LOG --log-prefix "Allowing SSH traffic: "
+iptables -A INPUT -p tcp --dport ssh --tcp-flags SYN,ACK SYN,ACK -j LOG --log-prefix "Connection established: "
 iptables -A INPUT -p tcp --dport ssh -j ACCEPT
 
 # # Allow return traffic across all interfaces
