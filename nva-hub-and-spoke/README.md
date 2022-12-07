@@ -63,4 +63,9 @@ Additional features included:
 ## Post Installation
 Once the lab is deployed, you can SSH into the Dev VM running in the hub using Azure Bastion.
 
+If you are configuring Quagga with a service like Azure Route Server make sure you add a route in the operating system for bgp peer's subnet. In the of Azure Route Server, you would add a route for the Azure Route Server subnet.
+
+## Removal
+When finished with the lab you can delete the resource groups
+
 
