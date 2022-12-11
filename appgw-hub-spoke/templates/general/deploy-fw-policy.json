@@ -92,7 +92,8 @@
                 "snat": {
                     "privateRanges": [
                         "[parameters('transitVnetCidr')]",
-                        "[parameters('sharedSvcVnetCidr')]"
+                        "[parameters('sharedSvcVnetCidr')]",
+                        "[parameters('onPremisesAddressSpace')]"
                     ]
                 },
                 "threatIntelMode": "Alert"
