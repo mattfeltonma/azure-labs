@@ -1,0 +1,1463 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "appGwPrivateIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The private IP assigned to the private listener for the Application Gateway"
+            }
+        },
+        "customWebDomain": {
+            "type": "string",
+            "metadata": {
+                "description": "The custom domain name to be used for internal access to the application via the Application Gateway"
+            }
+        },
+        "dnsServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address to set for the Virtual Network DNS server"
+            }
+        },
+        "firewallIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the Azure Firewall to route traffic to"
+            }
+        },
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+            }
+        },
+        "lawResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource if of the Log Analytics Workspace"
+            }
+        },
+        "networkWatcherRg": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Network Watcher Resource Group"
+            }
+        },
+        "nsgStorageAccountResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Storage Account for NSG Flow logs"
+            }
+        },
+        "transitResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Transit resource group"
+            }
+        },
+        "transitVnetSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The id of the subscription that contains the Transit virtual network"
+            }
+        },
+        "transitVnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the Transit virtual network"
+            }
+        },
+        "transitVnetResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Transit virtual network"
+            }
+        },
+        "workloadVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the Workload virtual network"
+            }
+        },
+        "workloadVnetSubnetAppGwCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned subnet used for the application gateway"
+            }
+        },
+        "workloadVnetSubnetAppCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the application tier of the workload"
+            }
+        },
+        "workloadVnetSubnetDataCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the data tier of the workload"
+            }
+        },
+        "workloadVnetSubnetRviCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to regional vnet integration"
+            }
+        },
+        "workloadVnetSubnetSvcCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the subnet used for other services in the Workload virtual network"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "_apiVersionAppInsights": "2015-05-01",
+        "_apiVersionDeploymentScript": "2020-10-01",
+        "_apiVersionDiagnostics": "2021-05-01-preview",
+        "_apiVersionManagedIdentities": "2018-11-30",
+        "_apiVersionNetworks": "2020-07-01",
+        "_apiVersionResources": "2020-06-01",
+        "_apiVersionWeb": "2022-03-01",
+        "_location": "[resourceGroup().location]",
+        "_templatesUriGeneral": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
+        "appGwCapacityUnits": 1,
+        "appGwCertName": "[concat('agwcert', parameters('uniqueData'))]",
+        "appGwName": "[concat('agw', parameters('uniqueData'))]",
+        "appGwSkuName": "WAF_v2",
+        "appGwSkuTier": "WAF_v2",
+        "appInsightsWorkload": "[concat('aiwl',parameters('uniqueData'))]",
+        "appServiceKind": "Linux",
+        "appServiceLinuxFxVersion": "PYTHON|3.8",
+        "appServicePlanName": "sp-app",
+        "appServicePlanSku": "P1v3",
+        "appServiceWebAppName": "[concat('app', parameters('uniqueData'))]",
+        "appServiceWebCodeBranch": "master",
+        "appServiceWebCodeUrl": "https://github.com/mattfeltonma/python-sample-web-app.git",
+        "deploymentNameAppSvcPe": "deploy-app-svc-pe",
+        "deploymentNameKeyVaultApp": "deploy-kv-app",
+        "deploymentNameKeyVaultAppPerm": "deploy-kv-app-perm-workload",
+        "deploymentNameKeyVaultAppSecretName": "deploy-kv-app-secret",
+        "deploymentNameKeyVaultAgwPerm": "deploy-kv-agw-perm-workload",
+        "deploymentNameKeyVaultDsPerm": "deploy-kv-ds-perm-workload",
+        "deploymentNameNsgFlowLogApp": "deploy-flowlog-app-workload",
+        "deploymentNameNsgFlowLogAppGw": "deploy-flowlog-agw-workload",
+        "deploymentNameNsgFlowLogData": "deploy-flowlog-data-workload",
+        "deploymentNameNsgFlowLogRvi": "deploy-flowlog-rvi-workload",
+        "deploymentNameNsgFlowLogSvc": "deploy-flowlog-svc-workload",
+        "deploymentNameRouteUpdateAgw": "deploy-route-agw",
+        "deploymentNameTransitVnetPeering": "deploy-vnetpeer-transit-to-workload",
+        "deploymentScriptFileNameAgw": "create-agw-cert.sh",
+        "deploymentScriptResNameAgw": "ds-agwcert",
+        "deploymentScriptUri": "[uri(deployment().properties.templateLink.uri, '../../../scripts/')]",
+        "deploymentUriKeyVault": "[concat(variables('_templatesUriGeneral'), 'deploy-key-vault.json')]",
+        "deploymentUriKeyVaultPerm": "[concat(variables('_templatesUriGeneral'), 'deploy-key-vault-permissions.json')]",
+        "deploymentUriKeyVaultSecret": "[concat(variables('_templatesUriGeneral'), 'deploy-keyvault-secret.json')]",
+        "deploymentUriNsgFlowLog": "[concat(variables('_templatesUriGeneral'), 'deploy-nsg-flow-log.json')]",
+        "deploymentUriPe": "[concat(variables('_templatesUriGeneral'), 'deploy-private-endpoint.json')]",
+        "keyVaultNamePrefix": "kvapp",
+        "keyVaultSecretNameApp": "appsecret",
+        "keyVaultSecretValueApp": "Gollum",
+        "nsgNameApp": "[concat('nsg-app',parameters('uniqueData'))]",
+        "nsgNameAppGw": "[concat('nsg-agw',parameters('uniqueData'))]",
+        "nsgNameData": "[concat('nsg-data',parameters('uniqueData'))]",
+        "nsgNameRvi": "[concat('nsg-rvi',parameters('uniqueData'))]",
+        "nsgNameSvc": "[concat('nsg-svc',parameters('uniqueData'))]",
+        "privateDnsZoneNameAppService": "privatelink.azurewebsites.net",
+        "publicIpAppGw": "pip-agw",
+        "routeTableNameApp": "rt-app",
+        "routeTableNameAppGw": "rt-agw",
+        "routeTableNameData": "rt-data",
+        "routeTableNameRvi": "rt-rvi",
+        "rgNameWorkload": "[resourceGroup().name]",
+        "umiAppWorkload": "[concat('umiapp', parameters('uniqueData'))]",
+        "umiAppGwWorkload": "[concat('umiagw', parameters('uniqueData'))]",
+        "umiDeployScript": "[concat('umids', parameters('uniqueData'))]",
+        "vnetNameWorkload": "[concat('vnet-workload', parameters('uniqueData'))]",
+        "vnetPeeringTransitToWorkload": "peertransittoworkload",
+        "vnetPeeringWorkloadToTransit": "peerworkloadtotransit",
+        "vnetSubnetNameApp": "snet-app",
+        "vnetSubnetNameAppGw": "snet-agw",
+        "vnetSubnetNameData": "snet-data",
+        "vnetSubnetNameRvi": "snet-rvi",
+        "vnetSubnetNameSvc": "snet-svc"
+    },
+    "resources": [
+        {
+            "name": "[variables('appInsightsWorkload')]",
+            "type": "microsoft.insights/components",
+            "apiVersion": "[variables('_apiVersionAppInsights')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "ApplicationId": "[variables('appInsightsWorkload')]",
+                "Request_Source": "IbizaWebAppExtensionCreate"
+            }
+        },
+        {
+            "name": "[variables('umiAppWorkload')]",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "[variables('_apiVersionManagedIdentities')]",
+            "tags": "[parameters('tags')]",
+            "location": "[variables('_location')]"
+        },
+        {
+            "name": "[variables('umiAppGwWorkload')]",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "[variables('_apiVersionManagedIdentities')]",
+            "tags": "[parameters('tags')]",
+            "location": "[variables('_location')]"
+        },
+        {
+            "name": "[variables('umiDeployScript')]",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "[variables('_apiVersionManagedIdentities')]",
+            "tags": "[parameters('tags')]",
+            "location": "[variables('_location')]"
+        },
+        {
+            "name": "[variables('deploymentNameKeyVaultApp')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('umiAppWorkload'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "defaultAction": {
+                        "value": "Allow"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "keyVaultNamePrefix": {
+                        "value": "[variables('keyVaultNamePrefix')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVault')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKeyVaultAppSecretName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameKeyVaultApp'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('deploymentNameKeyVaultApp')).outputs.keyVaultName.value]"
+                    },
+                    "location": {
+                        "value": "[variables('_location')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('keyVaultSecretNameApp')]"
+                    },
+                    "secretValue": {
+                        "value": "[variables('keyVaultSecretValueApp')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVaultSecret')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKeyVaultAppPerm')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameKeyVaultAppSecretName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('deploymentNameKeyVaultApp')).outputs.keyVaultName.value]"
+                    },
+                    "objectId": {
+                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('umiAppWorkload'))).principalId]"
+                    },
+                    "secretPermissions": {
+                        "value": [
+                            "get",
+                            "list"
+                        ]
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVaultPerm')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('publicIpAppGw')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgNameApp')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgNameAppGw')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowAppGwManagement",
+                        "properties": {
+                            "description": "Allow incoming traffic for Application Gateway Management",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "65200-65535",
+                            "sourceAddressPrefix": "GatewayManager",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowAzureLoadBalancer",
+                        "properties": {
+                            "description": "Allow incoming traffic for Azure Load Balancer",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowInternetHttps",
+                        "properties": {
+                            "description": "Allow incoming HTTPS from the Internet",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1020,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 2000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgNameData')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgNameRvi')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgNameSvc')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "name": "[variables('deploymentNameNsgFlowLogApp')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('_location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('nsgNameApp')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameApp'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[parameters('nsgStorageAccountResourceId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNsgFlowLog')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameNsgFlowLogAppGw')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameAppGw'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameNsgFlowLogApp'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('_location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('nsgNameAppGw')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameAppGw'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[parameters('nsgStorageAccountResourceId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNsgFlowLog')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameNsgFlowLogData')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameData'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameNsgFlowLogAppGw'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('_location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('nsgNameRvi')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameRvi'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[parameters('nsgStorageAccountResourceId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNsgFlowLog')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameNsgFlowLogRvi')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameRvi'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameNsgFlowLogData'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('_location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('nsgNameSvc')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameSvc'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[parameters('nsgStorageAccountResourceId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNsgFlowLog')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameNsgFlowLogSvc')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSvc'))]",
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameNsgFlowLogRvi'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[variables('_location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('nsgNameSvc')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameSvc'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[parameters('nsgStorageAccountResourceId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNsgFlowLog')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('routeTableNameApp')]",
+            "type": "Microsoft.Network/routeTables",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameNsgFlowLogSvc'))]"
+            ],
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-default",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('firewallIp')]"
+                        }
+                    }
+                ],
+                "disableBgpRoutePropagation": "True"
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[variables('routeTableNameAppGw')]",
+            "type": "Microsoft.Network/routeTables",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/routeTables', variables('routeTableNameApp'))]"
+            ],
+            "properties": {
+                "routes": [
+                ],
+                "disableBgpRoutePropagation": "True"
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[variables('routeTableNameData')]",
+            "type": "Microsoft.Network/routeTables",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameAppGw'))]"
+            ],
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-default",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('firewallIp')]"
+                        }
+                    }
+                ],
+                "disableBgpRoutePropagation": "True"
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[variables('routeTableNameRvi')]",
+            "type": "Microsoft.Network/routeTables",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameData'))]"
+            ],
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-default",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[parameters('firewallIp')]"
+                        }
+                    }
+                ],
+                "disableBgpRoutePropagation": "True"
+            },
+            "resources": [
+            ]
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('vnetNameWorkload')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/routeTables', variables('routeTableNameAppGw'))]",
+                "[resourceId('Microsoft.Network/routeTables', variables('routeTableNameApp'))]",
+                "[resourceId('Microsoft.Network/routeTables', variables('routeTableNameData'))]",
+                "[resourceId('Microsoft.Network/routeTables', variables('routeTableNameRvi'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameAppGw'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameData'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameRvi'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSvc'))]"
+
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('workloadVnetCidr')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('vnetSubnetNameApp')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('workloadVnetSubnetAppCidr')]",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameApp'))]"
+                            },
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[variables('vnetSubnetNameAppGw')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('workloadVnetSubnetAppGwCidr')]",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameAppGw'))]"
+                            },
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameAppGw'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[variables('vnetSubnetNameData')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('workloadVnetSubnetDataCidr')]",
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameData'))]"
+                            },
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameData'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[variables('vnetSubnetNameRvi')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('workloadVnetSubnetRviCidr')]",
+                            "delegations": [
+                                {
+                                    "name": "delegation",
+                                    "properties": {
+                                        "serviceName": "Microsoft.Web/serverFarms"
+                                    }
+                                }
+                            ],
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameRvi'))]"
+                            },
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameRvi'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[variables('vnetSubnetNameSvc')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('workloadVnetSubnetSvcCidr')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSvc'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "enableDdosProtection": false,
+                "dhcpOptions": {
+                    "dnsServers": [
+                        "[parameters('dnsServerIp')]"
+                    ]
+                }
+            },
+            "resources": [
+                {
+                    "name": "[variables('vnetPeeringWorkloadToTransit')]",
+                    "type": "virtualNetworkPeerings",
+                    "apiVersion": "[variables('_apiVersionNetworks')]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Network/virtualNetworks/', variables('vnetNameWorkload'))]"
+                    ],
+                    "properties": {
+                        "allowVirtualNetworkAccess": "true",
+                        "allowForwardedTraffic": "true",
+                        "allowGatewayTransit": "false",
+                        "useRemoteGateways": "true",
+                        "remoteVirtualNetwork": {
+                            "id": "[parameters('transitVnetResourceId')]"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "[variables('deploymentNameTransitVnetPeering')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "subscriptionId": "[parameters('transitVnetSubscriptionId')]",
+            "resourceGroup": "[parameters('transitResourceGroupName')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameWorkload'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('transitVnetName'),'/',variables('vnetPeeringTransitToWorkload'))]",
+                            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "allowVirtualNetworkAccess": "true",
+                                "allowForwardedTraffic": "true",
+                                "allowGatewayTransit": "true",
+                                "useRemoteGateways": "false",
+                                "remoteVirtualNetwork": {
+                                    "id": "[resourceId(variables('rgNameWorkload'), 'Microsoft.Network/virtualNetworks', variables('vnetNameWorkload'))]"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "[variables('_apiVersionWeb')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameTransitVnetPeering'))]",
+                "[resourceId('microsoft.insights/components', variables('appInsightsWorkload'))]"
+            ],
+            "name": "[variables('appServicePlanName')]",
+            "location": "[variables('_location')]",
+            "sku": {
+                "name": "[variables('appServicePlanSku')]"
+            },
+            "kind": "[variables('appServiceKind')]",
+            "properties": {
+                "reserved": true,
+                "zoneRedundant": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "[variables('_apiVersionWeb')]",
+            "name": "[variables('appServiceWebAppName')]",
+            "location": "[variables('_location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "[resourceId('microsoft.insights/components', variables('appInsightsWorkload'))]"
+            ],
+            "kind": "app",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('umiAppWorkload'))]": {}
+                }
+            },
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "clientAffinityEnabled": false,
+                "siteConfig": {
+                    "linuxFxVersion": "[variables('appServiceLinuxFxVersion')]",
+                    "alwaysOn": true,
+                    "appSettings": [
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsWorkload')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsWorkload')), '2015-05-01').ConnectionString]"
+                        },
+                        {
+                            "name": "KEY_VAULT_NAME",
+                            "value": "[reference(variables('deploymentNameKeyVaultApp')).outputs.keyVaultName.value]"
+                        },
+                        {
+                            "name": "KEY_SECRET_NAME",
+                            "value": "[variables('keyVaultSecretNameApp')]"
+                        }
+                    ]
+                }
+            },
+            "resources": [
+                {
+                    "type": "sourcecontrols",
+                    "apiVersion": "[variables('_apiVersionWeb')]",
+                    "name": "web",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('appServiceWebAppName'))]"
+                    ],
+                    "properties": {
+                        "repoUrl": "[variables('appServiceWebCodeUrl')]",
+                        "branch": "[variables('appServiceWebCodeBranch')]",
+                        "isManualIntegration": true,
+                        "isGitHubAction": false,
+                        "deploymentRollbackEnabled": false,
+                        "isMercurial": false
+                    }
+                },
+                {
+                    "name": "virtualNetwork",
+                    "type": "networkConfig",
+                    "apiVersion": "[variables('_apiVersionWeb')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('appServiceWebAppName'))]",
+                        "[concat('Microsoft.Web/sites/', variables('appServiceWebAppName'),'/sourcecontrols/web')]"
+                    ],
+                    "properties": {
+                        "subnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetNameWorkload'), variables('vnetSubnetNameRvi'))]",
+                        "swiftSupported": true
+                    }
+                },
+                {
+                    "name": "[concat(variables('appServiceWebAppName'),'/appsettings')]",
+                    "type": "Microsoft.Web/sites/config",
+                    "apiVersion": "[variables('_apiVersionWeb')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('appServiceWebAppName'))]",
+                        "[concat('Microsoft.Web/sites/', variables('appServiceWebAppName'),'/sourcecontrols/web')]",
+                        "[concat('Microsoft.Web/sites/', variables('appServiceWebAppName'),'/networkConfig/virtualNetwork')]"
+                    ],
+                    "properties": {
+                        "WEBSITE_VNET_ROUTE_ALL": "1"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "[concat(variables('appServiceWebAppName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.Web/sites/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostics')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('appServiceWebAppName'))]",
+                "[concat('Microsoft.Web/sites/', variables('appServiceWebAppName'),'/sourcecontrols/web')]",
+                "[concat('Microsoft.Web/sites/', variables('appServiceWebAppName'),'/networkConfig/virtualNetwork')]"
+            ],
+            "properties": {
+                "name": "diag",
+                "workspaceId": "[parameters('lawResourceId')]",
+                "logs": [
+                    {
+                        "category": "AppServiceAntivirusScanAuditLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceHTTPLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceConsoleLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceAppLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceFileAuditLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceAuditLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServiceIPSecAuditLogs",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AppServicePlatformLogs",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[variables('deploymentNameAppSvcPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Web/sites/',variables('appServiceWebAppName'),'/providers/microsoft.insights/diagnosticSettings/diag')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('privateDnsZoneNameAppService')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('_location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('transitResourceGroupName')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[parameters('transitVnetSubscriptionId')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('vnetSubnetNameApp')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "sites"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('vnetNameWorkload')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[resourceId('Microsoft.Web/sites',variables('appServiceWebAppName'))]"
+                    },
+                    "resourceName": {
+                        "value": "[variables('appServiceWebAppName')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriPe')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKeyVaultDsPerm')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameKeyVaultApp'))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('umiDeployScript'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[concat(variables('keyVaultNamePrefix'),parameters('uniqueData'))]"
+                    },
+                    "objectId": {
+                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('umiDeployScript'))).principalId]"
+                    },
+                    "certPermissions": {
+                        "value": [
+                            "create",
+                            "get"
+                        ]
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVaultPerm')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKeyVaultAgwPerm')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameKeyVaultDsPerm'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameKeyVaultApp'))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('umiAppGwWorkload'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[concat(variables('keyVaultNamePrefix'),parameters('uniqueData'))]"
+                    },
+                    "objectId": {
+                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('umiAppGwWorkload'))).principalId]"
+                    },
+                    "secretPermissions": {
+                        "value": [
+                            "get"
+                        ]
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVaultPerm')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentScriptResNameAgw')]",
+            "type": "Microsoft.Resources/deploymentScripts",
+            "apiVersion": "[variables('_apiVersionDeploymentScript')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameKeyVaultAgwPerm'))]"
+            ],
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('umiDeployScript'))]": {}
+                }
+            },
+            "location": "[variables('_location')]",
+            "kind": "AzureCLI",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "azCliVersion": "2.24.2",
+                "cleanupPreference": "OnSuccess",
+                "primaryScriptUri": "[concat(variables('deploymentScriptUri'), variables('deploymentScriptFileNameAgw'))]",
+                "environmentVariables": [
+                    {
+                        "name": "AGW_CERT_NAME",
+                        "value": "[variables('appGwCertName')]"
+                    },
+                    {
+                        "name": "DOMAIN_NAME",
+                        "value": "[parameters('customWebDomain')]"
+                    },
+                    {
+                        "name": "KV_NAME",
+                        "value": "[concat(variables('keyVaultNamePrefix'),parameters('uniqueData'))]"
+                    }
+                ],
+                "retentionInterval": "P1D",
+                "timeout": "PT10M"
+            }
+        },
+        {
+            "name": "[variables('appGwName')]",
+            "type": "Microsoft.Network/applicationGateways",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameAppSvcPe'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameKeyVaultAgwPerm'))]",
+                "[resourceId('Microsoft.Network/publicIpAddresses',variables('publicIpAppGw'))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('umiAppGwWorkload'))]",
+                "[resourceId('Microsoft.Resources/deploymentScripts', variables('deploymentScriptResNameAgw'))]"
+            ],
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('umiAppGwWorkload'))]": {}
+                }
+            },
+            "properties": {
+                "sku": {
+                    "name": "[variables('appGwSkuName')]",
+                    "tier": "[variables('appGwSkuTier')]",
+                    "capacity": "[variables('appGwCapacityUnits')]"
+                },
+                "sslCertificates": [
+                    {
+                        "name": "[variables('appGwCertName')]",
+                        "properties": {
+                            "keyVaultSecretId": "[reference(variables('deploymentScriptResNameAgw')).outputs.CERT_SECRET]"
+                        }
+                    }
+                ],
+                "gatewayIPConfigurations": [
+                    {
+                        "name": "appGatewayIpConfig",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetNameWorkload'), variables('vnetSubnetNameAppGw'))]"
+                            }
+                        }
+                    }
+                ],
+                "frontendIPConfigurations": [
+                    {
+                        "name": "appGwPubFrontEnd",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses',variables('publicIpAppGw'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "appGwPrivateFrontEnd",
+                        "properties": {
+                            "privateIPAddress": "[parameters('appGwPrivateIp')]",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetNameWorkload'), variables('vnetSubnetNameAppGw'))]"
+                            }
+                        }
+                    }
+                ],
+                "frontendPorts": [
+                    {
+                        "name": "http_port",
+                        "properties": {
+                            "Port": 80
+                        }
+                    },
+                    {
+                        "name": "https_port",
+                        "properties": {
+                            "Port": 443
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "empty",
+                        "properties": {
+                            "backendAddresses": [
+                            ]
+                        }
+                    },
+                    {
+                        "name": "webapp",
+                        "properties": {
+                            "backendAddresses": [
+                                {
+                                    "fqdn": "[concat(variables('appServiceWebAppName'),'.azurewebsites.net')]"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "backendHttpSettingsCollection": [
+                    {
+                        "name": "http_httpsetting",
+                        "properties": {
+                            "Port": 80,
+                            "Protocol": "Http",
+                            "cookieBasedAffinity": "Disabled",
+                            "requestTimeout": 20,
+                            "pickHostNameFromBackendAddress": true
+                        }
+                    },
+                    {
+                        "name": "https_httpsetting",
+                        "properties": {
+                            "Port": 443,
+                            "Protocol": "Https",
+                            "cookieBasedAffinity": "Disabled",
+                            "requestTimeout": 20,
+                            "pickHostNameFromBackendAddress": true
+                        }
+                    }
+                ],
+                "httpListeners": [
+                    {
+                        "name": "http_listener",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPubFrontEnd')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/http_port')]"
+                            },
+                            "protocol": "Http",
+                            "sslCertificate": null,
+                            "hostNames": [
+                                "[concat('*.',parameters('customWebDomain'))]"
+                            ],
+                            "requireServerNameIndication": false
+                        }
+                    },
+                    {
+                        "name": "https_listener",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPubFrontEnd')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/https_port')]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/sslCertificates', variables('appGwName'),variables('appGwCertName'))]"
+                            },
+                            "hostNames": [
+                                "[concat('*.',parameters('customWebDomain'))]"
+                            ],
+                            "requireServerNameIndication": false
+                        }
+                    }
+                ],
+                "requestRoutingRules": [
+                    {
+                        "Name": "empty",
+                        "properties": {
+                            "RuleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/http_listener')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/empty')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/http_httpsetting')]"
+                            }
+                        }
+                    },
+                    {
+                        "Name": "webapp",
+                        "properties": {
+                            "RuleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/https_listener')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/webapp')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/https_httpsetting')]"
+                            }
+                        }
+                    }
+                ],
+                "enableHttp2": false,
+                "probes": [],
+                "webApplicationFirewallConfiguration": {
+                    "enabled": true,
+                    "firewallMode": "Detection",
+                    "ruleSetType": "OWASP",
+                    "ruleSetVersion": "3.0"
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('appGwName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.Network/applicationGateways/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostics')]",
+            "location": "[variables('_location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/applicationGateways', variables('appGwName'))]"
+            ],
+            "properties": {
+                "name": "diag",
+                "workspaceId": "[parameters('lawResourceId')]",
+                "logs": [
+                    {
+                        "category": "ApplicationGatewayAccessLog",
+                        "enabled": true
+                    },
+                    {
+                        "category": "ApplicationGatewayPerformanceLog",
+                        "enabled": true
+                    },
+                    {
+                        "category": "ApplicationGatewayFirewallLog",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[variables('deploymentNameRouteUpdateAgw')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/applicationGateways/',variables('appGwName'),'/providers/microsoft.insights/diagnosticSettings/diag')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(variables('routeTableNameAppGw'),'/udr-appsvc')]",
+                            "type": "Microsoft.Network/routeTables/routes",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
+                            "properties": {
+                                "addressPrefix": "[parameters('workloadVnetSubnetAppCidr')]",
+                                "nextHopType": "VirtualAppliance",
+                                "nextHopIpAddress": "[parameters('firewallIp')]"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
