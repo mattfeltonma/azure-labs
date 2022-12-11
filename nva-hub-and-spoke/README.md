@@ -1,6 +1,7 @@
 # Azure Hub and Spoke Network Virtual Appliance Lab
 
 ## Updates
+* 12/6/2022 - Added sample bgpd.config
 * 11/20/2022 - Initial release
 
 ## Overview
