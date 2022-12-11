@@ -157,7 +157,7 @@
         "appInsightsWorkload": "[concat('aiwl',parameters('uniqueData'))]",
         "appServiceKind": "Linux",
         "appServiceLinuxFxVersion": "PYTHON|3.8",
-        "appServicePlanName": "sp-app",
+        "appServicePlanName": "[concat('sp-app', parameters('uniqueData'))]",
         "appServicePlanSku": "P1v3",
         "appServiceWebAppName": "[concat('app', parameters('uniqueData'))]",
         "appServiceWebCodeBranch": "master",
