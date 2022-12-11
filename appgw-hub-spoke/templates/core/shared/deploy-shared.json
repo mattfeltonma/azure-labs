@@ -99,6 +99,12 @@
                 "description": "The transit subscription id"
             }
         },
+        "transitVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the transit virtual network"
+            }
+        },
         "transitVnetName": {
             "type": "string",
             "metadata": {
@@ -1035,8 +1041,14 @@
                     "onPremisesAddressSpace": {
                         "value": "[parameters('onPremisesAddressSpace')]"
                     },
+                    "sharedSvcVnetCidr": {
+                        "value": "[parameters('sharedSvcVnetCidr')]"
+                    },
                     "tags": {
                         "value": "[parameters('tags')]"
+                    },
+                    "transitVnetCidr": {
+                        "value": "[parameters('transitVnetCidr')]"
                     },
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"

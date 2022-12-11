@@ -331,6 +331,9 @@
                     "transitSubscriptionId": {
                         "value": "[parameters('transitSubscriptionId')]"
                     },
+                    "transitVnetCidr": {
+                        "value": "[variables('vnetCidrTransit')]"
+                    },
                     "transitVnetName": {
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.transitVnetName.value]"
                     },
