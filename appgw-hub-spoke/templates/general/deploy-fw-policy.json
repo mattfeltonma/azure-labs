@@ -41,6 +41,18 @@
                 "environment": "lab"
             }
         },
+        "sharedSvcVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the shared services virtual network"
+            }
+        },
+        "transitVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the transit virtual network"
+            }
+        },
         "uniqueData": {
             "type": "string",
             "metadata": {
@@ -76,6 +88,12 @@
                 },
                 "sku": {
                     "tier": "Standard"
+                },
+                "snat": {
+                    "privateRanges": [
+                        "[parameters('transitVnetCidr')]",
+                        "[parameters('sharedSvcVnetCidr')]"
+                    ]
                 },
                 "threatIntelMode": "Alert"
             },

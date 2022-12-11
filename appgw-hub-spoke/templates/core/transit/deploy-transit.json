@@ -252,6 +252,12 @@
                     "onPremisesAddressSpace": {
                         "value": "[parameters('onPremisesAddressSpace')]"
                     },
+                    "sharedSvcVnetCidr": {
+                        "value": "[parameters('sharedSvcVnetCidr')]"
+                    },
+                    "transitVnetCidr": {
+                        "value": "[parameters('transitVnetCidr')]"
+                    },
                     "tags": {
                         "value": "[parameters('tags')]"
                     },
