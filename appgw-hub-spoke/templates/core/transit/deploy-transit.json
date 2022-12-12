@@ -367,8 +367,8 @@
                                 "8080",
                                 "5701"
                             ],
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "AzureCloud",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "VirtualNetwork",
                             "access": "Allow",
                             "priority": 1000,
                             "direction": "Outbound"
@@ -396,7 +396,7 @@
                             "sourcePortRange": "*",
                             "destinationPortRange": "80",
                             "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
+                            "destinationAddressPrefix": "Internet",
                             "access": "Allow",
                             "priority": 1002,
                             "direction": "Outbound"
