@@ -981,11 +981,12 @@
                         "[concat('Microsoft.Web/sites/', variables('appServiceWebAppName'),'/networkConfig/virtualNetwork')]"
                     ],
                     "properties": {
-                        "WEBSITE_VNET_ROUTE_ALL": "1",
                         "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', variables('appInsightsWorkload')), '2015-05-01').InstrumentationKey]",
                         "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(concat('microsoft.insights/components/', variables('appInsightsWorkload')), '2015-05-01').ConnectionString]",
                         "KEY_VAULT_NAME": "[reference(variables('deploymentNameKeyVaultApp')).outputs.keyVaultName.value]",
-                        "KEY_SECRET_NAME": "[variables('keyVaultSecretNameApp')]"
+                        "KEY_SECRET_NAME": "[variables('keyVaultSecretNameApp')]",
+                        "MSI_CLIENT_ID": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities',variables('umiAppWorkload'))).clientId]",
+                        "WEBSITE_VNET_ROUTE_ALL": "1"
                     }
                 }
             ]
