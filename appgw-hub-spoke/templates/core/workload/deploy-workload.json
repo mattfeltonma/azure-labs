@@ -938,22 +938,6 @@
                     "linuxFxVersion": "[variables('appServiceLinuxFxVersion')]",
                     "alwaysOn": true,
                     "appSettings": [
-                        {
-                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsWorkload')), '2015-05-01').InstrumentationKey]"
-                        },
-                        {
-                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-                            "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsWorkload')), '2015-05-01').ConnectionString]"
-                        },
-                        {
-                            "name": "KEY_VAULT_NAME",
-                            "value": "[reference(variables('deploymentNameKeyVaultApp')).outputs.keyVaultName.value]"
-                        },
-                        {
-                            "name": "KEY_SECRET_NAME",
-                            "value": "[variables('keyVaultSecretNameApp')]"
-                        }
                     ]
                 }
             },
@@ -997,7 +981,11 @@
                         "[concat('Microsoft.Web/sites/', variables('appServiceWebAppName'),'/networkConfig/virtualNetwork')]"
                     ],
                     "properties": {
-                        "WEBSITE_VNET_ROUTE_ALL": "1"
+                        "WEBSITE_VNET_ROUTE_ALL": "1",
+                        "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', variables('appInsightsWorkload')), '2015-05-01').InstrumentationKey]",
+                        "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(concat('microsoft.insights/components/', variables('appInsightsWorkload')), '2015-05-01').ConnectionString]",
+                        "KEY_VAULT_NAME": "[reference(variables('deploymentNameKeyVaultApp')).outputs.keyVaultName.value]",
+                        "KEY_SECRET_NAME": "[variables('keyVaultSecretNameApp')]"
                     }
                 }
             ]
