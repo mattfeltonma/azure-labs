@@ -67,7 +67,9 @@ Additional features included:
 3.  You will be prompted to provide a password for the local administrator of the virtual machine. The username and password you set will be available to you as secrets in the "central" Key Vault provisioned as part of this lab.
 
 ## Post Installation
-1. Once the lab is deployed, you can SSH into the Dev VM running in the hub using Azure Bastion.
-2. If you own the domain you used for the DOMAIN_NAME value you can go about setting up the appropriate DNS records with your DNS provider. If you do not own the domain, then you can optionally [modify the hosts file](https://www.groovypost.com/howto/edit-hosts-file-windows-10/) on your machine to resolve the record to the public IP address of the Application Gateway, such as www.mydomain.com.
+1. Before accessing the application from a machine outside of the lab environment, you will need to setup the appropriate DNS record. If you own the domain you used for the DOMAIN_NAME value you can go about setting up the appropriate DNS records with your DNS provider. If you do not own the domain, then you can optionally [modify the hosts file](https://www.groovypost.com/howto/edit-hosts-file-windows-10/) on the machine.
+
+2. The application can be accessed via the domain from a machine within the lab environment, but this is not recommended as it requires additional resources and configuration. To do this you must first create an Azure Private DNS Zone for the domain and an A record for the www record. The zone must be linked to the Shared Services virtual network. You must then wait for 5 minutes after linking the zone and then you can access the application. The wait is required to ensure the Azure Firewall instance discards any cached DNS records. Since the Azure Firewall has an application rule for all domains, Azure Firewall will act as a transparent proxy and resolve the domain itself which means Azure Firewall's DNS records are what is providing name resolution.
+
 
 
