@@ -140,7 +140,7 @@
         }
     },
     "variables": {
-        "_apiVersionAppInsights": "2015-05-01",
+        "_apiVersionAppInsights": "2022-02-02",
         "_apiVersionDeploymentScript": "2020-10-01",
         "_apiVersionDiagnostics": "2021-05-01-preview",
         "_apiVersionManagedIdentities": "2018-11-30",
@@ -220,8 +220,10 @@
             "dependsOn": [
             ],
             "properties": {
-                "ApplicationId": "[variables('appInsightsWorkload')]",
-                "Request_Source": "IbizaWebAppExtensionCreate"
+                "Application_Type": "web",
+                "Flow_Type": "Bluefield",
+                "Request_Source": "CustomDeployment",
+                "WorkspaceResourceId": "[parameters('lawResourceId')]"
             }
         },
         {
