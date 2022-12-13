@@ -32,6 +32,13 @@
                 "description": "The resource ID of the Log Analytics Workspace the logs and metrics will be sent to"
             }
         },
+        "softDeleteRetentionDays": {
+            "type": "int",
+            "metadata": {
+                "description": "The amount of days to retain after soft delete"
+            },
+            "defaultValue": 60
+        },
         "tenantId": {
             "type": "string",
             "metadata": {
@@ -54,18 +61,58 @@
         }
     },
     "variables": {
-        "diagnosticApiVersion": "2017-05-01-preview",
-        "keyVaultApiVersion": "2019-09-01",
+        "_apiVersionDiagnostic": "2021-05-01-preview",
+        "_apiVersionKeyVault": "2019-09-01",
+        "_location": "[resourceGroup().location]",
+        "keyVaultCertPermissions": [
+            "backup",
+            "create",
+            "get",
+            "getissuers",
+            "import",
+            "list",
+            "listissuers",
+            "managecontacts",
+            "manageissuers",
+            "recover",
+            "restore",
+            "setissuers",
+            "update"
+        ],
+        "keyVaultKeyPermissions": [
+            "list",
+            "encrypt",
+            "decrypt",
+            "wrapKey",
+            "unwrapKey",
+            "sign",
+            "verify",
+            "get",
+            "create",
+            "update",
+            "import",
+            "backup",
+            "restore",
+            "recover"
+        ],
         "keyVaultName": "[concat(parameters('keyVaultNamePrefix'), parameters('uniqueData'))]",
-        "keyVaultSku": "Standard",
-        "location": "[resourceGroup().location]"
+        "keyVaultSecretsPermissions": [
+            "list",
+            "get",
+            "set",
+            "backup",
+            "restore",
+            "recover"
+        ],
+        "keyVaultSku": "Standard"
+
     },
     "resources": [
         {
             "name": "[variables('keyVaultName')]",
             "type": "Microsoft.KeyVault/vaults",
-            "apiVersion": "[variables('keyVaultApiVersion')]",
-            "location": "[variables('location')]",
+            "apiVersion": "[variables('_apiVersionKeyVault')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "accessPolicies": [
@@ -73,20 +120,15 @@
                         "objectId": "[parameters('keyVaultAdminObjectId')]",
                         "tenantId": "[parameters('tenantId')]",
                         "permissions": {
-                            "keys": [
-                                "all"
-                            ],
-                            "secrets": [
-                                "all"
-                            ],
-                            "certificates": [
-                                "all"
-                            ]
+                            "keys": "[variables('keyVaultKeyPermissions')]",
+                            "secrets": "[variables('keyVaultSecretsPermissions')]",
+                            "certificates": "[variables('keyVaultCertPermissions')]"
                         }
                     }
                 ],
-                "enableSoftDelete": false,
                 "enabledForTemplateDeployment": true,
+                "enableSoftDelete": true,
+                "enablePurgeProtection": true,
                 "networkAcls": {
                     "bypass": "AzureServices",
                     "virtualNetworkRules": [],
@@ -98,14 +140,15 @@
                     "family": "A",
                     "name": "[variables('keyVaultSku')]"
                 },
+                "softDeleteRetentionInDays": "[parameters('softDeleteRetentionDays')]",
                 "tenantid": "[parameters('tenantId')]"
             }
         },
         {
             "name": "[concat(variables('keyVaultName'),'/microsoft.insights/diag')]",
             "type": "Microsoft.KeyVault/vaults/providers/diagnosticSettings",
-            "apiVersion": "[variables('diagnosticApiVersion')]",
-            "location": "[variables('location')]",
+            "apiVersion": "[variables('_apiVersionDiagnostic')]",
+            "location": "[variables('_location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[concat('Microsoft.KeyVault/vaults/',variables('keyVaultName'))]"
@@ -116,10 +159,6 @@
                 "logs": [
                     {
                         "category": "AuditEvent",
-                        "enabled": true
-                    },
-                    {
-                        "category": "AzurePolicyEvaluationDetails",
                         "enabled": true
                     }
                 ],
