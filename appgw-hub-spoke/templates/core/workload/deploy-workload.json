@@ -1537,7 +1537,7 @@
             "subscriptionId": "[parameters('sharedSvcVnetSubscriptionId')]",
             "resourceGroup": "[parameters('sharedSvcResourceGroupName')]",
             "dependsOn": [
-                "[concat('Microsoft/deployments/',variables('deploymentNameRouteUpdateAgw'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameRouteUpdateAgw'))]"
             ],
             "properties": {
                 "mode": "Incremental",
