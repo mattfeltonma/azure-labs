@@ -143,6 +143,7 @@
         "_apiVersionAppInsights": "2020-02-02",
         "_apiVersionDeploymentScript": "2020-10-01",
         "_apiVersionDiagnostics": "2021-05-01-preview",
+        "_apiVersionDns": "2018-09-01",
         "_apiVersionManagedIdentities": "2018-11-30",
         "_apiVersionNetworks": "2020-07-01",
         "_apiVersionResources": "2020-06-01",
@@ -162,6 +163,7 @@
         "appServiceWebAppName": "[concat('app', parameters('uniqueData'))]",
         "appServiceWebCodeBranch": "master",
         "appServiceWebCodeUrl": "https://github.com/mattfeltonma/python-sample-web-app.git",
+        "deploymentNameAgwARecord": "deploy-agw-a-record",
         "deploymentNameAppSvcPe": "deploy-app-svc-pe",
         "deploymentNameKeyVaultApp": "deploy-kv-app",
         "deploymentNameKeyVaultAppPerm": "deploy-kv-app-perm-workload",
@@ -1319,7 +1321,7 @@
                 ],
                 "httpListeners": [
                     {
-                        "name": "http_listener",
+                        "name": "pub_http_listener",
                         "properties": {
                             "frontendIPConfiguration": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPubFrontEnd')]"
@@ -1336,10 +1338,46 @@
                         }
                     },
                     {
-                        "name": "https_listener",
+                        "name": "pub_https_listener",
                         "properties": {
                             "frontendIPConfiguration": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPubFrontEnd')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/https_port')]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/sslCertificates', variables('appGwName'),variables('appGwCertName'))]"
+                            },
+                            "hostNames": [
+                                "[concat('*.',parameters('customDomainName'))]"
+                            ],
+                            "requireServerNameIndication": false
+                        }
+                    },
+                    {
+                        "name": "pri_http_listener",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPrivateFrontEnd')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/http_port')]"
+                            },
+                            "protocol": "Http",
+                            "sslCertificate": null,
+                            "hostNames": [
+                                "[concat('*.',parameters('customDomainName'))]"
+                            ],
+                            "requireServerNameIndication": false
+                        }
+                    },
+                    {
+                        "name": "pri_https_listener",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPrivateFrontEnd')]"
                             },
                             "frontendPort": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/https_port')]"
@@ -1357,11 +1395,11 @@
                 ],
                 "requestRoutingRules": [
                     {
-                        "Name": "empty",
+                        "Name": "pub_empty",
                         "properties": {
                             "RuleType": "Basic",
                             "httpListener": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/http_listener')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/pub_http_listener')]"
                             },
                             "backendAddressPool": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/empty')]"
@@ -1372,11 +1410,41 @@
                         }
                     },
                     {
-                        "Name": "webapp",
+                        "Name": "pub_webapp",
                         "properties": {
                             "RuleType": "Basic",
                             "httpListener": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/https_listener')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/pub_https_listener')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/webapp')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/https_httpsetting')]"
+                            }
+                        }
+                    },
+                    {
+                        "Name": "pri_empty",
+                        "properties": {
+                            "RuleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/pri_http_listener')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/empty')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/http_httpsetting')]"
+                            }
+                        }
+                    },
+                    {
+                        "Name": "pri_webapp",
+                        "properties": {
+                            "RuleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/pri_https_listener')]"
                             },
                             "backendAddressPool": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/webapp')]"
@@ -1456,6 +1524,39 @@
                                 "addressPrefix": "[parameters('workloadVnetSubnetAppCidr')]",
                                 "nextHopType": "VirtualAppliance",
                                 "nextHopIpAddress": "[parameters('firewallIp')]"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameAgwARecord')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "subscriptionId": "[parameters('sharedSvcVnetSubscriptionId')]",
+            "resourceGroup": "[parameters('sharedSvcResourceGroupName')]",
+            "dependsOn": [
+                "[concat('Microsoft/deployments/',variables('deploymentNameRouteUpdateAgw'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('customDomainName'),'/','*')]",
+                            "type": "Microsoft.Network/privateDnsZones/A",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "properties": {
+                                "aRecords": [
+                                    {
+                                        "ipv4Address": "[parameters('appGwPrivateIp')]"
+                                    }
+                                ]
                             }
                         }
                     ]
