@@ -8,7 +8,7 @@
                 "description": "The private IP assigned to the private listener for the Application Gateway"
             }
         },
-        "customWebDomain": {
+        "customDomainName": {
             "type": "string",
             "metadata": {
                 "description": "The custom domain name to be used for internal access to the application via the Application Gateway"
@@ -1188,7 +1188,7 @@
                     },
                     {
                         "name": "DOMAIN_NAME",
-                        "value": "[parameters('customWebDomain')]"
+                        "value": "[parameters('customDomainName')]"
                     },
                     {
                         "name": "KV_NAME",
@@ -1330,7 +1330,7 @@
                             "protocol": "Http",
                             "sslCertificate": null,
                             "hostNames": [
-                                "[concat('*.',parameters('customWebDomain'))]"
+                                "[concat('*.',parameters('customDomainName'))]"
                             ],
                             "requireServerNameIndication": false
                         }
@@ -1349,7 +1349,7 @@
                                 "id": "[resourceId('Microsoft.Network/applicationGateways/sslCertificates', variables('appGwName'),variables('appGwCertName'))]"
                             },
                             "hostNames": [
-                                "[concat('*.',parameters('customWebDomain'))]"
+                                "[concat('*.',parameters('customDomainName'))]"
                             ],
                             "requireServerNameIndication": false
                         }
