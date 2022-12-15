@@ -8,6 +8,12 @@
                 "description": "The private IP assigned to the private listener for the Application Gateway"
             }
         },
+        "cloudAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR address block used within the cloud environment"
+            }
+        },
         "customDomainName": {
             "type": "string",
             "metadata": {
@@ -48,6 +54,12 @@
             "type": "string",
             "metadata": {
                 "description": "The resource id of the Storage Account for NSG Flow logs"
+            }
+        },
+        "onPremisesAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR address block used on-premises"
             }
         },
         "sharedSvcResourceGroupName": {
@@ -410,11 +422,28 @@
                             "description": "Allow incoming HTTPS from the Internet",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
-                            "destinationPortRange": "443",
+                            "destinationPortRange": "8443",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
                             "priority": 1020,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowIntranetHttps",
+                        "properties": {
+                            "description": "Allow incoming HTTPS from the Intranet",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefixes": [
+                                "[parameters('onPremisesAddressSpace')]",
+                                "[parameters('cloudAddressSpace')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1030,
                             "direction": "Inbound"
                         }
                     },

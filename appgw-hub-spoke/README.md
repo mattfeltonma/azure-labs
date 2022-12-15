@@ -4,19 +4,25 @@
 * 12/2022
   * Updated base environment
   * Added more complex web app
+  * Added App Gateway private listener
+  * Added Private DNS Zone for custom domain
 
 ## Overview
-Organizations in regulated industries are typically required to mediate and inspect traffic between users and applications when the application provides access to sensitive data. While the capabilities in Web Application Firewalls are becoming more robust, many organizations still prefer to pass the traffic through a traditional firewall for additional IDS/IPS and centralized logging of all network traffic.
+Organizations in regulated industries are typically required to mediate and inspect traffic between users and applications when the application provides access to sensitive data. While the capabilities in Web Application Firewalls are becoming more robust, many organizations still prefer to pass the traffic through a traditional firewall for additional IDS/IPS and centralized logging of all network traffic. This pattern demonstrates how organizations can balance democratization of Application Gateway with the needs for IDS/IPS through a centralized security appliance.
 
-Using a hub and spoke architecture, this lab environment demonstrates a pattern where a publicly-facing [Application Gateway running in the dedicated workload Virtual Network](https://github.com/mattfeltonma/azure-networking-patterns#single-nva-internet-to-azure-http-and-https-with-ids-ips-option-2) exposes an application running in a multi-tenant Azure App Service Plan which has been configured with a [Private Endpoint](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) and [Regional VNet (Virtual Network) Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration). 
+Using [a standard hub and spoke architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli) this lab demonstrates a pattern where an [Application Gateway running in the dedicated workload Virtual Network](https://github.com/mattfeltonma/azure-networking-patterns#single-nva-internet-to-azure-http-and-https-with-ids-ips-option-2) exposes an workload running App Services. The App Services instance has been configured with a [Private Endpoint](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview) and [Regional VNet (Virtual Network) Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration) to ensure full visibility of incoming and outgoing traffic. 
 
-A [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli) is used to allow for segmentation of virtual networks. [UDRs (User defined routes)](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined) are configured to route all outgoing traffic and traffic between spokes through the Azure Firewall in the hub Virtual Network. Network Security Groups are configured on all subnets to support microsegmentation within a given Virtual network. A VPN Virtual Network Gateway is provisioned and ready for S2S or P2S connections.
+An Azure Firewall is provisioned in the hub virtual network with [UDRs (User defined routes)](https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview#user-defined) all north, south, east, and west traffic through the Azure Firewall. The Application Gateway subnet is configured to send traffic received by the Application Gateway and destined through the App Service through the Azure Firewall for centralized mediation and optional inspection. The firewall has been configured to SNAT traffic to the workload virtual network to ensure traffic symmetry.
 
 All virtual networks are configured to use the Azure Firewall as a DNS provider to allow for logging of DNS queries. The Azure Firewall is configured to use an Azure Private DNS Resolver in the Shared Services virtual network for its resolution to support conditional forwarding to on-premises. Common Private DNS Zones for Azure PaaS services are created and linked to the Shared Services virtual network which allows the Private DNS Resolver to resolve records for Private Endpoints created in the environment.
 
 Ubuntu and Windows virtual machines are deployed as utility servers. The Windows VM is provisioned with Google Chrome, Visual Studio Code, Azure CLI, and Azure PowerShell. The Linux VM is provisioned with Azure CLI, kubectl, and Docker.
 
-The workload virtual network contains the Application Gateway and App Service. Routing and SNAT has been configured so that traffic between the Application Gateway and App Service Private Endpoint is mediated by an [Azure Firewall](https://docs.microsoft.com/en-us/azure/firewall/overview) instance.
+The workload virtual network contains the Application Gateway and App Service running a basic Python application. The Application Gateway is configured to route traffic for the domain you reference using a wildcard record (example: *.wildcard.com).
+
+The application can be accessed both privately and publicly through the application gateway. You can immediately access it from one of the machines included in the lab by opening a web browser and typing in www before your domain name (example: www.mydomain.com). An Azure Private DNS Zone provides resolution for those machines.
+
+To access the application over the Internet from a machine outside of the lab environment, you will need to handle resolution. This can be done by modifying the machines host file.
 
 Additional features included:
 
@@ -50,7 +56,7 @@ Additional features included:
    * DEPLOYMENT_NAME - The name of the location
    * DEPLOYMENT_LOCATION - The location to create the deployment
    * LOCATION - The location to create the resources
-   * CUSTOM_WEB_DOMAIN - The domain used to access the application publicly. The Application Gateway will be configured with an https listener for this domain. If this is a zone you do not own and do not have access to administer DNS you will need to modify the host file of the machine you are using the test the solution.
+   * CUSTOM_DOMAIN_NAME - The domain used to access the application publicly. The Application Gateway will be configured with an https listener for this domain. If this is a zone you do not own and do not have access to administer DNS you will need to modify the host file of the machine you are using the test the solution.
    * ADMIN_USER_NAME - The name to set for the VM administrator username
    * ADMIN_OBJECT_ID - The object ID of the Azure AD User that will have full permissions on the Key Vault instances
    * SUBSCRIPTION - The name or id of the subscription you wish to deploy the resources to
@@ -62,14 +68,15 @@ Additional features included:
 
 4. Deploy the lab using the command (tags parameter is optional): 
 
-   * **az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/hub-and-spoke/azuredeploy.json --parameters location=$LOCATION customWebDomain=$CUSTOM_WEB_DOMAIN vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID tags='{"mytag":"value"}'**
+   * **az deployment sub create --name $DEPLOYMENT_NAME --location $DEPLOYMENT_LOCATION --template-uri https://raw.githubusercontent.com/mattfeltonma/azure-labs/master/hub-and-spoke/azuredeploy.json --parameters location=$LOCATION customDomainName=$CUSTOM_DOMAIN_NAME vmAdminUsername=$ADMIN_USER_NAME keyVaultAdmin=$ADMIN_OBJECT_ID tags='{"mytag":"value"}'**
 
 3.  You will be prompted to provide a password for the local administrator of the virtual machine. The username and password you set will be available to you as secrets in the "central" Key Vault provisioned as part of this lab.
 
-## Post Installation
-1. Before accessing the application from a machine outside of the lab environment, you will need to setup the appropriate DNS record. If you own the domain you used for the DOMAIN_NAME value you can go about setting up the appropriate DNS records with your DNS provider. If you do not own the domain, then you can optionally [modify the hosts file](https://www.groovypost.com/howto/edit-hosts-file-windows-10/) on the machine.
+## Cleanup
 
-2. The application can be accessed via the domain from a machine within the lab environment, but this is not recommended as it requires additional resources and configuration. To do this you must first create an Azure Private DNS Zone for the domain and an A record for the www record. The zone must be linked to the Shared Services virtual network. You must then wait for 5 minutes after linking the zone and then you can access the application. The wait is required to ensure the Azure Firewall instance discards any cached DNS records. Since the Azure Firewall has an application rule for all domains, Azure Firewall will act as a transparent proxy and resolve the domain itself which means Azure Firewall's DNS records are what is providing name resolution.
+Delete the resource groups created by this lab
+
+
 
 
 

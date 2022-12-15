@@ -380,6 +380,9 @@
                     "appGwPrivateIp": {
                         "value": "[variables('appGwIpWorkload')]"
                     },
+                    "cloudAddressSpace": {
+                        "value": "[variables('cloudRegionAddressSpace')]"
+                    },
                     "customDomainName": {
                         "value": "[parameters('customDomainName')]"
                     },
@@ -400,6 +403,9 @@
                     },
                     "nsgStorageAccountResourceId": {
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.nsgStorageAccountResourceId.value]"
+                    },
+                    "onPremisesAddressSpace": {
+                        "value": "[parameters('onPremisesAddressSpace')]"
                     },
                     "sharedSvcResourceGroupName": {
                         "value": "[variables('rgNameSharedSvc')]"
