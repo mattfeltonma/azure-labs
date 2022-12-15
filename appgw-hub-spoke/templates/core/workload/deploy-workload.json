@@ -1568,7 +1568,8 @@
                                     {
                                         "ipv4Address": "[parameters('appGwPrivateIp')]"
                                     }
-                                ]
+                                ],
+                                "ttl": 10
                             }
                         }
                     ]
