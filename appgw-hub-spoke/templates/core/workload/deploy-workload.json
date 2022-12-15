@@ -1266,13 +1266,25 @@
                 ],
                 "frontendPorts": [
                     {
-                        "name": "http_port",
+                        "name": "pub_http_port",
+                        "properties": {
+                            "Port": 8080
+                        }
+                    },
+                    {
+                        "name": "pub_https_port",
+                        "properties": {
+                            "Port": 8443
+                        }
+                    },
+                    {
+                        "name": "pri_http_port",
                         "properties": {
                             "Port": 80
                         }
                     },
                     {
-                        "name": "https_port",
+                        "name": "pri_https_port",
                         "properties": {
                             "Port": 443
                         }
@@ -1327,7 +1339,7 @@
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPubFrontEnd')]"
                             },
                             "frontendPort": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/http_port')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/pub_http_port')]"
                             },
                             "protocol": "Http",
                             "sslCertificate": null,
@@ -1344,7 +1356,7 @@
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPubFrontEnd')]"
                             },
                             "frontendPort": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/https_port')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/pub_https_port')]"
                             },
                             "protocol": "Https",
                             "sslCertificate": {
@@ -1363,7 +1375,7 @@
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPrivateFrontEnd')]"
                             },
                             "frontendPort": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/http_port')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/pri_http_port')]"
                             },
                             "protocol": "Http",
                             "sslCertificate": null,
@@ -1380,7 +1392,7 @@
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPrivateFrontEnd')]"
                             },
                             "frontendPort": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/https_port')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/pri_https_port')]"
                             },
                             "protocol": "Https",
                             "sslCertificate": {
