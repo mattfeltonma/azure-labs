@@ -182,6 +182,7 @@
         "deploymentNameKeyVaultAppSecretName": "deploy-kv-app-secret",
         "deploymentNameKeyVaultAgwPerm": "deploy-kv-agw-perm-workload",
         "deploymentNameKeyVaultDsPerm": "deploy-kv-ds-perm-workload",
+        "deploymentNameKeyVaultAppPe": "deploy-kv-app-pe",
         "deploymentNameNsgFlowLogApp": "deploy-flowlog-app-workload",
         "deploymentNameNsgFlowLogAppGw": "deploy-flowlog-agw-workload",
         "deploymentNameNsgFlowLogData": "deploy-flowlog-data-workload",
@@ -206,6 +207,7 @@
         "nsgNameRvi": "[concat('nsg-rvi',parameters('uniqueData'))]",
         "nsgNameSvc": "[concat('nsg-svc',parameters('uniqueData'))]",
         "privateDnsZoneNameAppService": "privatelink.azurewebsites.net",
+        "privateDnsZoneNameKeyVault": "privatelink.vaultcore.azure.net",
         "publicIpAppGw": "pip-agw",
         "routeTableNameApp": "rt-app",
         "routeTableNameAppGw": "rt-agw",
@@ -931,10 +933,60 @@
             }
         },
         {
+            "name": "[variables('deploymentNameKeyVaultAppPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameTransitVnetPeering'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('privateDnsZoneNameKeyVault')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('_location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('sharedSvcResourceGroupName')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('vnetSubnetNameSvc')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "vault"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('vnetNameWorkload')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[reference(variables('deploymentNameKeyVaultApp')).outputs.KeyVaultResourceId.value]"
+                    },
+                    "resourceName": {
+                        "value": "[reference(variables('deploymentNameKeyVaultApp')).outputs.keyVaultName.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriPe')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "[variables('_apiVersionWeb')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameTransitVnetPeering'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameKeyVaultAppPe'))]",
                 "[resourceId('microsoft.insights/components', variables('appInsightsWorkload'))]"
             ],
             "name": "[variables('appServicePlanName')]",
