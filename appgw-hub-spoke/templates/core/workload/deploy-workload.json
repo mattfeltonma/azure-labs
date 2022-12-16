@@ -8,7 +8,13 @@
                 "description": "The private IP assigned to the private listener for the Application Gateway"
             }
         },
-        "customWebDomain": {
+        "cloudAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR address block used within the cloud environment"
+            }
+        },
+        "customDomainName": {
             "type": "string",
             "metadata": {
                 "description": "The custom domain name to be used for internal access to the application via the Application Gateway"
@@ -48,6 +54,12 @@
             "type": "string",
             "metadata": {
                 "description": "The resource id of the Storage Account for NSG Flow logs"
+            }
+        },
+        "onPremisesAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR address block used on-premises"
             }
         },
         "sharedSvcResourceGroupName": {
@@ -143,6 +155,7 @@
         "_apiVersionAppInsights": "2020-02-02",
         "_apiVersionDeploymentScript": "2020-10-01",
         "_apiVersionDiagnostics": "2021-05-01-preview",
+        "_apiVersionDns": "2018-09-01",
         "_apiVersionManagedIdentities": "2018-11-30",
         "_apiVersionNetworks": "2020-07-01",
         "_apiVersionResources": "2020-06-01",
@@ -162,12 +175,14 @@
         "appServiceWebAppName": "[concat('app', parameters('uniqueData'))]",
         "appServiceWebCodeBranch": "master",
         "appServiceWebCodeUrl": "https://github.com/mattfeltonma/python-sample-web-app.git",
+        "deploymentNameAgwARecord": "deploy-agw-a-record",
         "deploymentNameAppSvcPe": "deploy-app-svc-pe",
         "deploymentNameKeyVaultApp": "deploy-kv-app",
         "deploymentNameKeyVaultAppPerm": "deploy-kv-app-perm-workload",
         "deploymentNameKeyVaultAppSecretName": "deploy-kv-app-secret",
         "deploymentNameKeyVaultAgwPerm": "deploy-kv-agw-perm-workload",
         "deploymentNameKeyVaultDsPerm": "deploy-kv-ds-perm-workload",
+        "deploymentNameKeyVaultAppPe": "deploy-kv-app-pe",
         "deploymentNameNsgFlowLogApp": "deploy-flowlog-app-workload",
         "deploymentNameNsgFlowLogAppGw": "deploy-flowlog-agw-workload",
         "deploymentNameNsgFlowLogData": "deploy-flowlog-data-workload",
@@ -192,6 +207,7 @@
         "nsgNameRvi": "[concat('nsg-rvi',parameters('uniqueData'))]",
         "nsgNameSvc": "[concat('nsg-svc',parameters('uniqueData'))]",
         "privateDnsZoneNameAppService": "privatelink.azurewebsites.net",
+        "privateDnsZoneNameKeyVault": "privatelink.vaultcore.azure.net",
         "publicIpAppGw": "pip-agw",
         "routeTableNameApp": "rt-app",
         "routeTableNameAppGw": "rt-agw",
@@ -408,11 +424,28 @@
                             "description": "Allow incoming HTTPS from the Internet",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
-                            "destinationPortRange": "443",
+                            "destinationPortRange": "8443",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
                             "priority": 1020,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowIntranetHttps",
+                        "properties": {
+                            "description": "Allow incoming HTTPS from the Intranet",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefixes": [
+                                "[parameters('onPremisesAddressSpace')]",
+                                "[parameters('cloudAddressSpace')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1030,
                             "direction": "Inbound"
                         }
                     },
@@ -1188,7 +1221,7 @@
                     },
                     {
                         "name": "DOMAIN_NAME",
-                        "value": "[parameters('customWebDomain')]"
+                        "value": "[parameters('customDomainName')]"
                     },
                     {
                         "name": "KV_NAME",
@@ -1264,13 +1297,25 @@
                 ],
                 "frontendPorts": [
                     {
-                        "name": "http_port",
+                        "name": "pub_http_port",
+                        "properties": {
+                            "Port": 8080
+                        }
+                    },
+                    {
+                        "name": "pub_https_port",
+                        "properties": {
+                            "Port": 8443
+                        }
+                    },
+                    {
+                        "name": "pri_http_port",
                         "properties": {
                             "Port": 80
                         }
                     },
                     {
-                        "name": "https_port",
+                        "name": "pri_https_port",
                         "properties": {
                             "Port": 443
                         }
@@ -1319,37 +1364,73 @@
                 ],
                 "httpListeners": [
                     {
-                        "name": "http_listener",
+                        "name": "pub_http_listener",
                         "properties": {
                             "frontendIPConfiguration": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPubFrontEnd')]"
                             },
                             "frontendPort": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/http_port')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/pub_http_port')]"
                             },
                             "protocol": "Http",
                             "sslCertificate": null,
                             "hostNames": [
-                                "[concat('*.',parameters('customWebDomain'))]"
+                                "[concat('*.',parameters('customDomainName'))]"
                             ],
                             "requireServerNameIndication": false
                         }
                     },
                     {
-                        "name": "https_listener",
+                        "name": "pub_https_listener",
                         "properties": {
                             "frontendIPConfiguration": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPubFrontEnd')]"
                             },
                             "frontendPort": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/https_port')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/pub_https_port')]"
                             },
                             "protocol": "Https",
                             "sslCertificate": {
                                 "id": "[resourceId('Microsoft.Network/applicationGateways/sslCertificates', variables('appGwName'),variables('appGwCertName'))]"
                             },
                             "hostNames": [
-                                "[concat('*.',parameters('customWebDomain'))]"
+                                "[concat('*.',parameters('customDomainName'))]"
+                            ],
+                            "requireServerNameIndication": false
+                        }
+                    },
+                    {
+                        "name": "pri_http_listener",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPrivateFrontEnd')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/pri_http_port')]"
+                            },
+                            "protocol": "Http",
+                            "sslCertificate": null,
+                            "hostNames": [
+                                "[concat('*.',parameters('customDomainName'))]"
+                            ],
+                            "requireServerNameIndication": false
+                        }
+                    },
+                    {
+                        "name": "pri_https_listener",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendIPConfigurations/appGwPrivateFrontEnd')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/frontendPorts/pri_https_port')]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/sslCertificates', variables('appGwName'),variables('appGwCertName'))]"
+                            },
+                            "hostNames": [
+                                "[concat('*.',parameters('customDomainName'))]"
                             ],
                             "requireServerNameIndication": false
                         }
@@ -1357,11 +1438,11 @@
                 ],
                 "requestRoutingRules": [
                     {
-                        "Name": "empty",
+                        "Name": "pub_empty",
                         "properties": {
                             "RuleType": "Basic",
                             "httpListener": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/http_listener')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/pub_http_listener')]"
                             },
                             "backendAddressPool": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/empty')]"
@@ -1372,11 +1453,41 @@
                         }
                     },
                     {
-                        "Name": "webapp",
+                        "Name": "pub_webapp",
                         "properties": {
                             "RuleType": "Basic",
                             "httpListener": {
-                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/https_listener')]"
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/pub_https_listener')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/webapp')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/https_httpsetting')]"
+                            }
+                        }
+                    },
+                    {
+                        "Name": "pri_empty",
+                        "properties": {
+                            "RuleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/pri_http_listener')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/empty')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendHttpSettingsCollection/http_httpsetting')]"
+                            }
+                        }
+                    },
+                    {
+                        "Name": "pri_webapp",
+                        "properties": {
+                            "RuleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/httpListeners/pri_https_listener')]"
                             },
                             "backendAddressPool": {
                                 "id": "[concat(resourceId('Microsoft.Network/applicationGateways',variables('appGwName')), '/backendAddressPools/webapp')]"
@@ -1461,6 +1572,90 @@
                     ]
                 }
             }
-        }
+        },
+        {
+            "name": "[variables('deploymentNameAgwARecord')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "subscriptionId": "[parameters('sharedSvcVnetSubscriptionId')]",
+            "resourceGroup": "[parameters('sharedSvcResourceGroupName')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameRouteUpdateAgw'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('customDomainName'),'/','*')]",
+                            "type": "Microsoft.Network/privateDnsZones/A",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "properties": {
+                                "aRecords": [
+                                    {
+                                        "ipv4Address": "[parameters('appGwPrivateIp')]"
+                                    }
+                                ],
+                                "ttl": 10
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKeyVaultAppPe')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameAgwARecord'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[variables('privateDnsZoneNameKeyVault')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[variables('_location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('sharedSvcResourceGroupName')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[parameters('sharedSvcVnetSubscriptionId')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('vnetSubnetNameSvc')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "vault"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('vnetNameWorkload')]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[reference(variables('deploymentNameKeyVaultApp')).outputs.KeyVaultResourceId.value]"
+                    },
+                    "resourceName": {
+                        "value": "[reference(variables('deploymentNameKeyVaultApp')).outputs.keyVaultName.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriPe')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
     ]
 }

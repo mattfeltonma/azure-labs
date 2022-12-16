@@ -2,7 +2,7 @@
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "customWebDomain": {
+        "customDomainName": {
             "type": "string",
             "metadata": {
                 "description": "The custom domain name to be used for internal access to the application via the Application Gateway"
@@ -286,6 +286,9 @@
                     "cloudRegionAddressSpace": {
                         "value": "[variables('cloudRegionAddressSpace')]"
                     },
+                    "customDomainName": {
+                        "value": "[parameters('customDomainName')]"
+                    },
                     "devLinuxServerIp": {
                         "value": "[variables('vmIpSharedSvcLinuxDevServer')]"
                     },
@@ -377,8 +380,11 @@
                     "appGwPrivateIp": {
                         "value": "[variables('appGwIpWorkload')]"
                     },
-                    "customWebDomain": {
-                        "value": "[parameters('customWebDomain')]"
+                    "cloudAddressSpace": {
+                        "value": "[variables('cloudRegionAddressSpace')]"
+                    },
+                    "customDomainName": {
+                        "value": "[parameters('customDomainName')]"
                     },
                     "dnsServerIp": {
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.firewallIp.value]"
@@ -397,6 +403,9 @@
                     },
                     "nsgStorageAccountResourceId": {
                         "value": "[reference(variables('rgDeploymentNameTransit')).outputs.nsgStorageAccountResourceId.value]"
+                    },
+                    "onPremisesAddressSpace": {
+                        "value": "[parameters('onPremisesAddressSpace')]"
                     },
                     "sharedSvcResourceGroupName": {
                         "value": "[variables('rgNameSharedSvc')]"
