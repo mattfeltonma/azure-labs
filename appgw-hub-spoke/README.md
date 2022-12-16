@@ -72,6 +72,13 @@ Additional features included:
 
 3.  You will be prompted to provide a password for the local administrator of the virtual machine. The username and password you set will be available to you as secrets in the "central" Key Vault provisioned as part of this lab.
 
+## Post Deployment
+
+Once the lab is deployed, you can access the application both over the public and private IP addresses. 
+
+* To access the application over the private IP address  use one of the machines provisioned into the Shared Services virtual network.
+
+* To access the application over the public IP address use a machine outside the environment. You will need to to ensure the DNS of the machine resolves the www record for the domain you provided to the public IP address of the Application Gateway. This can be done via the local hosts file. You must access the application over port 8443 (ex: https://www.mydomain.com:8443).
 ## Cleanup
 
 Delete the resource groups created by this lab
