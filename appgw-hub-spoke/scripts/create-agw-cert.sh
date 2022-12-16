@@ -59,6 +59,7 @@ AGW_CERT_SECRET_ID=$(az keyvault certificate show \
 
 if [ -z "$AGW_CERT_SECRET_ID"]
 then
+  echo "Certificate does not exist. Creating..."
   # Create a new certificate in Azure Key Vault to be used by the Application Gateway
   az keyvault certificate create \
   --name=$AGW_CERT_NAME \
@@ -66,6 +67,7 @@ then
   --vault-name=$KV_NAME
 
   # Add pause to allow for cert to fully be created
+  echo "Sleeping for certificate to be fully provisioned..."
   sleep 20
 
   # Get the certificate secret id
