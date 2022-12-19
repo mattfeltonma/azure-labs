@@ -1,0 +1,99 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location the VWAN hub"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "vwanHubCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the VWAN hub"
+            }
+        },
+        "vwanResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the VWAN the hub will be created in"
+            }            
+        }
+    },
+    "variables": {
+        "_apiVersionNetworks": "2022-05-01",
+        "virtualNetworkGatewayName": "[concat('vpngw', parameters('location'), parameters('uniqueData'))]",
+        "vwanHubName": "[concat('vhub', parameters('location'), parameters('uniqueData'))]"
+
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualHubs",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "name": "[variables('vwanHubName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "addressPrefix": "[parameters('vwanHubCidr')]",
+                "hubRoutingPreference": "ExpressRoute",
+                "preferredRoutingGateway": "ExpressRoute",
+                "sku": "Standard",
+                "virtualRouterAsn": "65515",
+                "virtualRouterAutoScaleConfiguration": {
+                    "minCapacity": 2
+                },
+                "virtualWan": {
+                    "id": "[parameters('vwanResourceId')]"
+                }
+
+
+            }
+        },
+        {
+            "name": "[variables('virtualNetworkGatewayName')]",
+            "type": "Microsoft.Network/vpnGateways",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
+            ],
+            "properties": {
+                "bgpSettings": {
+                    "asn": 65510
+                },
+                "virtualHub": {
+                    "id": "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
+                },
+                "vpnGatewayScaleUnit": "1"
+            }
+        }
+    ],
+    "outputs": {
+        "vwanHubName": {
+            "type": "string",
+            "value": "[variables('vwanHubName')]"
+        },        
+        "vwanHubResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualHubs',variables('vwanHubName'))]"
+        }
+    }
+}

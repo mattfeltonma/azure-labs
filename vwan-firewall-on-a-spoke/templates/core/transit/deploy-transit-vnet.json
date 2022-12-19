@@ -1,0 +1,881 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "addressSpaceAzureRegion": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to this Azure region"
+            }
+        },
+        "addressSpaceOnPremises": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block used on-premises"
+            }
+        },
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+            }
+        },
+        "loadBalancerInnerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address assigned to the Internal Load Balancer"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location to deploy the resources"
+            }
+        },
+        "nvaAsn": {
+            "type": "string",
+            "metadata": {
+                "description": "The ASN to assign to the NVA in the Quagga config"
+            }
+        },
+        "nva1IpInnerSubnet": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address assigned to the NVA VM 1 inner network interface"
+            }
+        },
+        "nva2IpInnerSubnet": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address assigned to the NVA VM 2 inner network interface"
+            }
+        },
+        "nva1IpOuterSubnet": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address assigned to the NVA VM 1 outer network interface"
+            }
+        },
+        "nva2IpOuterSubnet": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address assigned to the NVA VM 1 outer network interface"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "vmAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the VMs that are created"
+            }
+        },
+        "vmAdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Administrator name for VMs that are created"
+            }
+        },
+        "vnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the virtual network"
+            }
+        },
+        "vnetCidrWorkload1": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the workload 1 virtual network"
+            }
+        },
+        "vnetCidrWorkload2": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the workload 2 virtual network"
+            }
+        },
+        "vnetSubnetCidrInner": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the inner subnet"
+            }
+        },
+        "vnetSubnetCidrInnerGatewayIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the gateway for the subnet the inner nic is in"
+            }
+        },
+        "vnetSubnetCidrOuter": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the outer subnet"
+            }
+        },
+        "vnetSubnetCidrOuterGatewayIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the gateway for the subnet the outer nic is in"
+            }
+        },
+        "vwanHubName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the VWAN hub to connect the virtual network to"
+            }
+        }
+    },
+    "variables": {
+        "_apiVersionDiagnostic": "2017-05-01-preview",
+        "_apiVersionNetwork": "2022-05-01",
+        "_apiVersionResource": "2020-06-01",
+        "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
+        "deploymentNameAssignRouteTables": "deploy-assign-route-tables",
+        "deploymentNameKeyVaultCentral": "deploy-keyvault-central",
+        "deploymentNameKvSecretUsername": "deploy-kv-secret-username",
+        "deploymentNameKvSecretUserPassword": "deploy-kv-secret-user-password",
+        "deploymentNameLaw": "deploy-law",
+        "deploymentNameNvaVm1": "deploy-nvavm1",
+        "deploymentNameNvaVm2": "deploy-nvavm2",
+        "deploymentUriKeyVault": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
+        "deploymentUriKeyVaultSecret": "[concat(variables('_generalTemplatesUri'), 'deploy-keyvault-secret.json')]",
+        "deploymentUriLaw": "[concat(variables('_generalTemplatesUri'), 'deploy-law.json')]",
+        "deploymentUriNvaLinuxVm": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-nva-vm.json')]",
+        "keyVaultNamePrefix":"[concat('kv',parameters('location'))]",
+        "keyVaultSecretNameUsername": "adminusername",
+        "keyVaultSecretNameUserPassword": "adminpassword",
+        "loadBalBeAddPoolNameExt": "bepool-elb-nva",
+        "loadBalBeAddPoolNameInt": "bepool-ilb-nva",
+        "loadBalFeCfgNameExt": "feconfig-elb-nva",
+        "loadBalFeCfgNameInt": "feconfig-ilb-nva",
+        "loadBalNameExternal": "[concat('lb-ext-nva',parameters('location'),parameters('uniqueData'))]",
+        "loadBalNameInternal": "[concat('lb-int-nva',parameters('location'),parameters('uniqueData'))]",
+        "loadBalProbeNameExt": "probe-ext-nva",
+        "loadBalProbeNameInt": "probe-ixt-nva",
+        "loadBalRuleNameInt": "lbrule-ilb-nva",
+        "locationLetter": "[substring(parameters('location'),1)]",
+        "nsgNameOuter": "[concat('nsg-outer', parameters('uniqueData'))]",
+        "publicIpElb": "[concat('pip-elb', parameters('uniqueData'))]",
+        "publicIpVm1": "[concat('pip-nva-vm1',parameters('location'))]",
+        "publicIpVm2": "[concat('pip-nva-vm2',parameters('location'))]",
+        "resourceGroupTransit": "[resourceGroup().name]",
+        "routeTableInnerName": "[concat('rt-inner',parameters('location'))]",
+        "routeTableOuterName": "[concat('rt-outer',parameters('location'))]",
+        "subscriptionIdTransit": "[subscription().subscriptionId]",
+        "vmNameVm1": "[substring(concat('vmnva1',variables('locationLetter'),parameters('uniqueData')),15)]",
+        "vmNameVm2": "[substring(concat('vmnva2',variables('locationLetter'),parameters('uniqueData')),15)]",
+        "vmSku": "Standard_D4s_v5",
+        "vnetName": "[concat('vnet-transit',variables('locationLetter'),parameters('uniqueData'))]",
+        "vnetSubnetTransitNvaInner": "snet-nvainner",
+        "vnetSubnetTransitNvaOuter": "snet-nvaouter",
+        "vnetStandardDdosProtection": false
+    },
+    "resources": [
+        {
+            "name": "[variables('deploymentNameLaw')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriLaw')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKeyVaultCentral')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameLaw'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "defaultAction": {
+                        "value": "Allow"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "keyVaultNamePrefix": {
+                        "value": "[variables('keyVaultNamePrefix')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[reference(variables('deploymentNameLaw')).outputs.logAnalyticsResourceId.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVault')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKvSecretUsername')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "dependsOn": [],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.keyVaultName.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('keyVaultSecretNameUsername')]"
+                    },
+                    "secretValue": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVaultSecret')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKvSecretUserPassword')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "dependsOn": [],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.keyVaultName.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('keyVaultSecretNameUserPassword')]"
+                    },
+                    "secretValue": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVaultSecret')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('publicIpElb')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
+        {
+            "name": "[variables('publicIpVm1')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
+        {
+            "name": "[variables('publicIpVm2')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
+        {
+            "name": "[variables('nsgNameOuter')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowSshHealthProbes",
+                        "properties": {
+                            "description": "Allows health probes from Azure Load Balancer",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "AzureLoadBalancer",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DenyAllInbound",
+                        "properties": {
+                            "description": "Deny all inbound traffic",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 2000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('vnetName')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameLaw'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameOuter'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetCidr')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('vnetSubnetTransitNvaInner')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('vnetSubnetCidrInner')]",
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[variables('vnetSubnetTransitNvaOuter')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('vnetSubnetCidrOuter')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameOuter'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
+            }
+        },
+        {
+            "name": "[variables('loadBalNameExternal')]",
+            "type": "Microsoft.Network/loadBalancers",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpElb'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
+            ],
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "[variables('loadBalFeCfgNameExt')]",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses',variables('publicIpElb'))]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[variables('loadBalBeAddPoolNameExt')]"
+                    }
+                ],
+                "loadBalancingRules": [
+                ],
+                "probes": [
+                    {
+                        "name": "[variables('loadBalProbeNameExt')]",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 22,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[concat(variables('loadBalNameExternal'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.Network/loadBalancers/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostic')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalNameExternal'))]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[reference(variables('deploymentNameLaw')).outputs.logAnalyticsResourceId.value]",
+                "logs": [
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[variables('loadBalNameInternal')]",
+            "type": "Microsoft.Network/loadBalancers",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/loadBalancers/',variables('loadBalNameExternal'),'/providers/microsoft.insights/diagnosticSettings/diag')]"
+            ],
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "[variables('loadBalFeCfgNameInt')]",
+                        "properties": {
+                            "privateIPAddress": "[parameters('loadBalancerInnerIp')]",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets',variables('vnetName'), variables('vnetSubnetTransitNvaInner'))]"
+                            }
+                        }
+
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "[variables('loadBalBeAddPoolNameInt')]"
+                    }
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "[variables('loadBalRuleNameInt')]",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations',variables('loadBalNameInternal'),variables('loadBalFeCfgNameInt'))]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools',variables('loadBalNameInternal'),variables('loadBalBeAddPoolNameInt'))]"
+                            },
+                            "probe": {
+                                "id": "[resourceId('Microsoft.Network/loadBalancers/probes',variables('loadBalNameInternal'),variables('loadBalProbeNameInt'))]"
+                            },
+                            "frontendPort": 0,
+                            "backendPort": 0,
+                            "protocol": "all",
+                            "enableFloatingIP": true,
+                            "idleTimeoutInMinutes": 4,
+                            "loadDistribution": "Default",
+                            "disableOutboundSnat": true
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "[variables('loadBalProbeNameInt')]",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 22,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 1
+                        }
+                    }
+                ]
+            }
+
+        },
+        {
+            "name": "[concat(variables('loadBalNameInternal'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.Network/loadBalancers/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostic')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalNameInternal'))]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[reference(variables('deploymentNameLaw')).outputs.logAnalyticsResourceId.value]",
+                "logs": [
+                ],
+                "metrics": [
+                    {
+                        "category": "AllMetrics",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[variables('deploymentNameNvaVm1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/loadBalancers/',variables('loadBalNameExternal'),'/providers/microsoft.insights/diagnosticSettings/diag')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "cloudRegionAddressSpace": {
+                        "value": "[parameters('addressSpaceAzureRegion')]"
+                    },
+                    "extLoadBalAddressPool": {
+                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalNameExternal'), variables('loadBalBeAddPoolNameExt'))]"
+                    },
+                    "intLoadBalAddressPool": {
+                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalNameInternal'), variables('loadBalBeAddPoolNameInt'))]"
+                    },
+                    "innerNicIpAddress": {
+                        "value": "[parameters('nva1IpInnerSubnet')]"
+                    },
+                    "innerGatewayIp": {
+                        "value": "[parameters('vnetSubnetCidrInnerGatewayIp')]"
+                    },
+                    "innerSubnetName": {
+                        "value": "[variables('vnetSubnetTransitNvaInner')]"
+                    },
+                    "lawResourceId": {
+                        "value": "[reference(variables('deploymentNameLaw')).outputs.logAnalyticsResourceId.value]"
+                    },
+                    "onPremisesAddressSpace": {
+                        "value": "[parameters('addressSpaceOnPremises')]"
+                    },
+                    "outerNicPrivateIpAddress": {
+                        "value": "[parameters('nva1IpOuterSubnet')]"
+                    },
+                    "outerNicPublicIpAddress": {
+                        "value": "[resourceId('Microsoft.Network/publicIpAddresses',variables('publicIpVm1'))]"
+                    },
+                    "outerGatewayIp": {
+                        "value": "[parameters('vnetSubnetCidrOuterGatewayIp')]"
+                    },
+                    "outerSubnetName": {
+                        "value": "[variables('vnetSubnetTransitNvaOuter')]"
+                    },
+                    "routerAsn": {
+                        "value": "[parameters('nvaAsn')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('vmNameVm1')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('vnetName')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNvaLinuxVm')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameNvaVm2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNvaVm1'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+                "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpVm2'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "cloudRegionAddressSpace": {
+                        "value": "[parameters('addressSpaceAzureRegion')]"
+                    },
+                    "extLoadBalAddressPool": {
+                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalNameExternal'), variables('loadBalBeAddPoolNameExt'))]"
+                    },
+                    "intLoadBalAddressPool": {
+                        "value": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalNameInternal'), variables('loadBalBeAddPoolNameInt'))]"
+                    },
+                    "innerGatewayIp": {
+                        "value": "[parameters('vnetSubnetCidrInnerGatewayIp')]"
+                    },
+                    "innerNicIpAddress": {
+                        "value": "[parameters('nva2IpInnerSubnet')]"
+                    },
+                    "innerSubnetName": {
+                        "value": "[variables('vnetSubnetTransitNvaInner')]"
+                    },
+                    "lawResourceId": {
+                        "value": "[reference(variables('deploymentNameLaw')).outputs.logAnalyticsResourceId.value]"
+                    },
+                    "onPremisesAddressSpace": {
+                        "value": "[parameters('addressSpaceOnPremises')]"
+                    },
+                    "outerGatewayIp": {
+                        "value": "[parameters('vnetSubnetCidrOuterGatewayIp')]"
+                    },
+                    "outerNicPrivateIpAddress": {
+                        "value": "[parameters('nva2IpOuterSubnet')]"
+                    },
+                    "outerNicPublicIpAddress": {
+                        "value": "[resourceId('Microsoft.Network/publicIpAddresses',variables('publicIpVm2'))]"
+                    },
+                    "outerSubnetName": {
+                        "value": "[variables('vnetSubnetTransitNvaOuter')]"
+                    },
+                    "routerAsn": {
+                        "value": "[parameters('nvaAsn')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('vmNameVm2')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('vnetName')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNvaLinuxVm')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
+            "name": "[concat(parameters('vwanHubName'),'/',variables('vnetName'),'-conn')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNvaVm2'))]"       
+            ],
+            "properties": {
+                "allowHubToRemoteVnetTransit": true,
+                "allowRemoteVnetToUseHubVnetGateways": true,
+                "enableInternetSecurity": true,
+                "remoteVirtualNetwork": {
+                    "id": "[resourceid('Microsoft.Network/virtualNetworks',variables('vnetName'))]"
+                }
+            }
+        },
+        {
+            "name": "[variables('routeTableOuterName')]",
+            "type": "Microsoft.Network/routeTables",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubName'), concat(variables('vnetName'), '-conn'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-private",
+                        "properties": {
+                            "addressPrefix": "[parameters('vnetSubnetCidrInner')]",
+                            "nextHopType": "None"
+                        }
+                    }
+                ],
+                "disableBgpRoutePropagation": "True"
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[variables('routeTableInnerName')]",
+            "type": "Microsoft.Network/routeTables",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/routeTables', variables('routeTableOuterName'))]"
+            ],
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-public",
+                        "properties": {
+                            "addressPrefix": "[parameters('vnetSubnetCidrOuter')]",
+                            "nextHopType": "None"
+                        }
+                    },
+                    {
+                        "name": "udr-default",
+                        "properties": {
+                            "addressPrefix": "0.0.0.0/0",
+                            "nextHopType": "VirtualAppliance",
+                            "nextHopIpAddress": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].properties.PrivateIPAddress]"
+                        }
+                    }
+                ],
+                "disableBgpRoutePropagation": "False"
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[variables('deploymentNameAssignRouteTables')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/routeTables', variables('routeTableInnerName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworks",
+                            "name": "[variables('vnetName')]",
+                            "apiVersion": "[variables('_apiVersionNetwork')]",
+                            "location": "[parameters('location')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                                "addressSpace": {
+                                    "addressPrefixes": [
+                                        "[parameters('vnetCidr')]"
+                                    ]
+                                },
+                                "subnets": [
+                                    {
+                                        "name": "[variables('vnetSubnetTransitNvaInner')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('vnetSubnetCidrInner')]",
+                                            "routeTable": {
+                                                "id": "[resourceId('Microsoft.Network/routeTables', variables('routeTableInnerName'))]"
+                                            },
+                                            "privateEndpointNetworkPolicies": "Enabled"
+                                        }
+                                    },
+                                    {
+                                        "name": "[variables('vnetSubnetTransitNvaOuter')]",
+                                        "properties": {
+                                            "addressPrefix": "[parameters('vnetSubnetCidrOuter')]",
+                                            "networkSecurityGroup": {
+                                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameOuter'))]"
+                                            },
+                                            "routeTable": {
+                                                "id": "[resourceId('Microsoft.Network/routeTables', variables('routeTableOuterName'))]"
+                                            },
+                                            "privateEndpointNetworkPolicies": "Enabled"
+                                        }
+                                    }
+                                ],
+                                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "lawResourceId": {
+            "type": "string",
+            "value": "[reference(variables('deploymentNameLaw')).outputs.logAnalyticsResourceId.value]"
+        },
+        "transitLoadBalancerNvaInnerIp": {
+            "type": "string",
+            "value": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].properties.PrivateIPAddress]"
+        }
+    }
+}
