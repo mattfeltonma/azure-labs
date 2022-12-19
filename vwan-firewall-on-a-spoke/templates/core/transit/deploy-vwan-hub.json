@@ -77,7 +77,7 @@
             ],
             "properties": {
                 "bgpSettings": {
-                    "asn": 65510
+                    "asn": 65515
                 },
                 "virtualHub": {
                     "id": "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
