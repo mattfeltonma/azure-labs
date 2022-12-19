@@ -71,6 +71,12 @@
                 "environment": "lab"
             }
         },
+        "trustedIp": {
+            "type": "object",
+            "metadata": {
+                "description": "The IP to trust for incoming SSH sessions"
+            }
+        },
         "uniqueData": {
             "type": "string",
             "metadata": {
@@ -361,6 +367,20 @@
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
                             "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowSsh",
+                        "properties": {
+                            "description": "Allow Ssh from trusted Ip",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "[parameters('trustedIp')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
                             "direction": "Inbound"
                         }
                     },
