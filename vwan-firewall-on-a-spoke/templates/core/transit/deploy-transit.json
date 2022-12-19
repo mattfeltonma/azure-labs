@@ -72,7 +72,7 @@
             }
         },
         "trustedIp": {
-            "type": "object",
+            "type": "string",
             "metadata": {
                 "description": "The IP to trust for incoming SSH sessions"
             }
