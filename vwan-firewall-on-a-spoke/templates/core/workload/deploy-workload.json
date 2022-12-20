@@ -92,7 +92,7 @@
         "deploymentNameVhubConnection": "[concat('deploy-vhub-vnet-conn-w',parameters('workloadNumber'))]",
         "deploymentNameVmLinux": "[concat('deploy-vm-linux-w',parameters('workloadNumber'))]",
         "deploymentUriVmLinux": "[concat(variables('_templatesUriGeneral'), 'deploy-ubuntu-vm.json')]",
-        "locationLetter": "[substring(parameters('location'),1)]",
+        "locationLetter": "[substring(parameters('location'),0,1)]",
         "nsgNameApp": "[concat('nsgappw',parameters('workloadNumber'),variables('locationLetter'),parameters('uniqueData'))]",
         "publicIpVm": "[concat('pipvmlw',parameters('workloadNumber'),variables('locationLetter'),parameters('uniqueData'))]",
         "rgNameWorkload": "[resourceGroup().name]",

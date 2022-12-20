@@ -173,7 +173,7 @@
         "loadBalProbeNameExt": "probe-ext-nva",
         "loadBalProbeNameInt": "probe-ixt-nva",
         "loadBalRuleNameInt": "lbrule-ilb-nva",
-        "locationLetter": "[substring(parameters('location'),1)]",
+        "locationLetter": "[substring(parameters('location'),0,1)]",
         "nsgNameOuter": "[concat('nsg-outer', parameters('uniqueData'))]",
         "publicIpElb": "[concat('pip-elb', parameters('uniqueData'))]",
         "publicIpVm1": "[concat('pip-nva-vm1',parameters('location'))]",
