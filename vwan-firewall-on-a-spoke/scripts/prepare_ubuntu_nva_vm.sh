@@ -3,6 +3,7 @@
 #   Update repositories
 export DEBIAN_FRONTEND=dialog
 apt-get -o DPkg::Lock::Timeout=60 update
+sleep 30
 
 #   Disable built-in firewall. Management will be done direct with iptables
 ufw disable
