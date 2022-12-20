@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
-            "type": "object",
+            "type": "string",
             "metadata": {
                 "description": "The location to deploy the resources"
             }
