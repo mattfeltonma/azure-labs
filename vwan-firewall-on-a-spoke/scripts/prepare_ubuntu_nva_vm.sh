@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #   Update repositories
+echo "Updating repositories" >> /var/log/provisioning.log
 export DEBIAN_FRONTEND=noninteractive
 apt-get -o DPkg::Lock::Timeout=60 update
 
@@ -8,20 +9,25 @@ apt-get -o DPkg::Lock::Timeout=60 update
 ufw disable
 
 #   Install net tools
+echo "Installing net-tools" >> /var/log/provisioning.log
 apt-get -o DPkg::Lock::Timeout=30 install net-tools -y
 
 #   Install support for persistency to iptables
+echo "Installing iptables-persistent" >> /var/log/provisioning.log
 echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
 echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
 apt-get -o DPkg::Lock::Timeout=30 install iptables-persistent -y
 
 #   Add kernal modules to support vrfs
+echo "Installing linux-modules-extra-azure" >> /var/log/provisioning.log
 apt-get -o DPkg::Lock::Timeout=30 install linux-modules-extra-azure -y
 
 #   Enable IPv4 forwarding
+echo "Setting up ip forwarding" >> /var/log/provisioning.log
 sed -r -i 's/#{1,}?net.ipv4.ip_forward ?= ?(0|1)/net.ipv4.ip_forward = 1/g' /etc/sysctl.conf
 
 #   Enable vrf support in network stacks
+echo "Enabling vrfs" >> /var/log/provisioning.log
 sysctl -p | grep -i "net.ipv4.tcp_l3"
 if [ $? -eq 1 ]
 then
@@ -31,6 +37,7 @@ then
 fi
 
 #   Configure routing
+echo "Creating startup file to configure routing" >> /var/log/provisioning.log
 ls -l /etc/systemd/system/routingconfig.service
 if [ $? -eq 2 ]
 then
@@ -65,8 +72,10 @@ EOF
 fi
 
 #   Install and configure Quagga
+echo "Installing quagga" >> /var/log/provisioning.log
 apt-get -o DPkg::Lock::Timeout=30 install quagga -y
 
+echo "Configuring quagga" >> /var/log/provisioning.log
 ls -l /var/log/zebra.log > /dev/null
 if [ $? -eq 2 ]
 then
@@ -145,6 +154,7 @@ EOF
 fi
 
 #   Configure iptables
+echo "Configuring iptables" >> /var/log/provisioning.log
 # # Configure support for NAT for Internet-bound traffic
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
