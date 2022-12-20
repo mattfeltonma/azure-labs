@@ -1,7 +1,6 @@
 #!/bin/bash
 
 #   Update repositories
-export DEBIAN_FRONTEND=dialog
 apt-get update &
 wait $!
 
