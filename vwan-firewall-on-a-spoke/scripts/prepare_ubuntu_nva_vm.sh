@@ -2,13 +2,14 @@
 
 #   Update repositories
 echo "Updating repositories" >> /var/log/provisioning.log
-export DEBIAN_FRONTEND=noninteractive
-apt-get -o DPkg::Lock::Timeout=60 update
+export DEBIAN_FRONTEND=dialog
+apt -o DPkg::Lock::Timeout=60 update
 
 #   Disable built-in firewall. Management will be done direct with iptables
 ufw disable
 
 #   Install net tools
+export DEBIAN_FRONTEND=dialog
 echo "Installing net-tools" >> /var/log/provisioning.log
 apt-get -o DPkg::Lock::Timeout=30 install net-tools -y
 
