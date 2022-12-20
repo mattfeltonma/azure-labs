@@ -3,6 +3,7 @@
 #   Update repositories
 echo "Updating repositories" >> /var/log/provisioning.log
 export DEBIAN_FRONTEND=dialog
+apt -o DPkg::Lock::Timeout=60 clean
 apt -o DPkg::Lock::Timeout=60 update
 
 #   Disable built-in firewall. Management will be done direct with iptables
