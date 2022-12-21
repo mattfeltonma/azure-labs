@@ -438,13 +438,13 @@
                     "vmAdminUsername": {
                         "value": "[parameters('vmAdminUsername')]"
                     },
-                    "vnetCidrWorkload": {
+                    "vnetCidr": {
                         "value": "[variables('vnetCidrWorkload2')]"
                     },
-                    "vnetSubnetCidrWorkloadApp": {
+                    "vnetSubnetCidrApp": {
                         "value": "[variables('vnetSubnetCidrWorkload2App')]"
                     },
-                    "vwanHubNameR1": {
+                    "vwanHubName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHub')).outputs.vwanHubName.value]"
                     },
                     "workloadNumber": {
