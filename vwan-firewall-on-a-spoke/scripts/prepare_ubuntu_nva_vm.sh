@@ -163,36 +163,39 @@ fi
 
 #   Configure iptables
 echo "Configuring iptables" >> /var/log/provisioning.log
-# # Configure support for NAT for Internet-bound traffic
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+if ! iptables -v -L | grep vrflan >> /dev/null; then
 
-# # Allow and forward traffic out of vrf (LAN) to eth0 (Internet)
-iptables -A FORWARD -i eth0 -o vrflan -m state --state RELATED,ESTABLISHED -j ACCEPT
-iptables -A FORWARD -i vrflan -o eth0 -j ACCEPT
+    # # Configure support for NAT for Internet-bound traffic
+    iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
-# # Allow and forward traffic between eth1 (LAN) and vrf (LAN)
-iptables -A FORWARD -i eth1 -o vrflan -m state --state RELATED,ESTABLISHED -j ACCEPT
-iptables -A FORWARD -i vrflan -o eth1 -j ACCEPT
+    # # Allow and forward traffic out of vrf (LAN) to eth0 (Internet)
+    iptables -A FORWARD -i eth0 -o vrflan -m state --state RELATED,ESTABLISHED -j ACCEPT
+    iptables -A FORWARD -i vrflan -o eth0 -j ACCEPT
 
-# # Log traffic that is dropped
-iptables -A FORWARD -i eth0 -j LOG --log-prefix "Connection refused: "
-iptables -A FORWARD -i eth0 -j DROP
+    # # Allow and forward traffic between eth1 (LAN) and vrf (LAN)
+    iptables -A FORWARD -i eth1 -o vrflan -m state --state RELATED,ESTABLISHED -j ACCEPT
+    iptables -A FORWARD -i vrflan -o eth1 -j ACCEPT
 
-# # Allow SSH traffic in eth0 and eth1
-iptables -A INPUT -p tcp --dport ssh --tcp-flags SYN,ACK SYN,ACK -j LOG --log-prefix "SSH Connection established: "
-iptables -A INPUT -p tcp --dport ssh -j ACCEPT
+    # # Log traffic that is dropped
+    iptables -A FORWARD -i eth0 -j LOG --log-prefix "Connection refused: "
+    iptables -A FORWARD -i eth0 -j DROP
 
-# # Allow return traffic across all interfaces
-iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+    # # Allow SSH traffic in eth0 and eth1
+    iptables -A INPUT -p tcp --dport ssh --tcp-flags SYN,ACK SYN,ACK -j LOG --log-prefix "SSH Connection established: "
+    iptables -A INPUT -p tcp --dport ssh -j ACCEPT
 
-# # Drop all other traffic sent directly to routers
-iptables -A INPUT -i eth0 -j LOG --log-prefix "Connection refused: "
-iptables -A INPUT -i eth0 -j DROP
+    # # Allow return traffic across all interfaces
+    iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-# # Allow return traffic from sessions that interact with processes running on machine (such as ssh)
-iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+    # # Drop all other traffic sent directly to routers
+    iptables -A INPUT -i eth0 -j LOG --log-prefix "Connection refused: "
+    iptables -A INPUT -i eth0 -j DROP
 
-# # Make the iptable rules persistent
-sudo -i
-sudo iptables-save > /etc/iptables/rules.v4
-exit
+    # # Allow return traffic from sessions that interact with processes running on machine (such as ssh)
+    iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+    # # Make the iptable rules persistent
+    sudo -i
+    sudo iptables-save > /etc/iptables/rules.v4
+    exit
+fi
