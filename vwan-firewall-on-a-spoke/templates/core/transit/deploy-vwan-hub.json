@@ -62,8 +62,6 @@
                 "virtualWan": {
                     "id": "[parameters('vwanResourceId')]"
                 }
-
-
             }
         },
         {

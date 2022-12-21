@@ -262,5 +262,11 @@
                 }
             }
         }
-    ]
+    ],
+    "outputs":{
+        "mediationVwanConnectionId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections',parameters('vwanHubName'),concat(variables('vnetName'), '-conn'))]"
+        }
+    }
 }
