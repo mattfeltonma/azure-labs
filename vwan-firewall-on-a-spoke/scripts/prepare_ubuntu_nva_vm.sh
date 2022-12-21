@@ -6,6 +6,12 @@ export DEBIAN_FRONTEND=dialog
 apt -o DPkg::Lock::Timeout=60 clean
 apt -o DPkg::Lock::Timeout=60 update
 
+#   Run again to account for apt-update failure that seems to occur occasionally
+echo "Updating repositories" >> /var/log/provisioning.log
+export DEBIAN_FRONTEND=dialog
+apt -o DPkg::Lock::Timeout=60 clean
+apt -o DPkg::Lock::Timeout=60 update
+
 #   Disable built-in firewall. Management will be done direct with iptables
 ufw disable
 
