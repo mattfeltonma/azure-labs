@@ -143,6 +143,30 @@
             "metadata": {
                 "description": "The name of the VWAN hub to connect the virtual network to"
             }
+        },
+        "vwanHubNvaRouteTableResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the VWAN Hub NVA routing table"
+            }
+        },
+        "vwanHubDefaultRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The label assigned to the defaultRouteTable for the VWAN hub"
+            }
+        },
+        "vwanHubVnetRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The label assigned to the Azure virtual network route table for the VWAN Hub"
+            }
+        },
+        "vwanHubVnetRouteTableName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the Azure virtual network route table for the VWAN hub"
+            }
         }
     },
     "variables": {
@@ -157,11 +181,12 @@
         "deploymentNameLaw": "deploy-law",
         "deploymentNameNvaVm1": "deploy-nvavm1",
         "deploymentNameNvaVm2": "deploy-nvavm2",
+        "deploymentNameUpdateVhubVnetRoutingTable": "deploy-update-vhub-vnet-route-table",
         "deploymentUriKeyVault": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "deploymentUriKeyVaultSecret": "[concat(variables('_generalTemplatesUri'), 'deploy-keyvault-secret.json')]",
         "deploymentUriLaw": "[concat(variables('_generalTemplatesUri'), 'deploy-law.json')]",
         "deploymentUriNvaLinuxVm": "[concat(variables('_generalTemplatesUri'), 'deploy-ubuntu-nva-vm.json')]",
-        "keyVaultNamePrefix":"[concat('kv',parameters('location'))]",
+        "keyVaultNamePrefix": "[concat('kv',parameters('location'))]",
         "keyVaultSecretNameUsername": "adminusername",
         "keyVaultSecretNameUserPassword": "adminpassword",
         "loadBalBeAddPoolNameExt": "bepool-elb-nva",
@@ -757,28 +782,12 @@
             }
         },
         {
-            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
-            "name": "[concat(parameters('vwanHubName'),'/',variables('vnetName'),'-conn')]",
-            "apiVersion": "[variables('_apiVersionNetwork')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNvaVm2'))]"       
-            ],
-            "properties": {
-                "allowHubToRemoteVnetTransit": true,
-                "allowRemoteVnetToUseHubVnetGateways": true,
-                "enableInternetSecurity": true,
-                "remoteVirtualNetwork": {
-                    "id": "[resourceid('Microsoft.Network/virtualNetworks',variables('vnetName'))]"
-                }
-            }
-        },
-        {
             "name": "[variables('routeTableOuterName')]",
             "type": "Microsoft.Network/routeTables",
             "apiVersion": "[variables('_apiVersionNetwork')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubName'), concat(variables('vnetName'), '-conn'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNvaVm2'))]"
             ],
             "tags": "[parameters('tags')]",
             "properties": {
@@ -881,6 +890,83 @@
                                     }
                                 ],
                                 "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
+            "name": "[concat(parameters('vwanHubName'),'/',variables('vnetName'),'-conn')]",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameAssignRouteTables'))]"
+            ],
+            "properties": {
+                "allowHubToRemoteVnetTransit": true,
+                "allowRemoteVnetToUseHubVnetGateways": true,
+                "enableInternetSecurity": true,
+                "remoteVirtualNetwork": {
+                    "id": "[resourceid('Microsoft.Network/virtualNetworks',variables('vnetName'))]"
+                },
+                "routingConfiguration": {
+                    "associatedRouteTable": "[parameters('vwanHubNvaRouteTableResourceId')]",
+                    "propagatedRouteTables": {
+                        "labels": [
+                            "[parameters('vwanHubDefaultRouteTableLabelName')]",
+                            "[parameters('vwanHubVnetRouteTableLabelName')]"
+                        ]
+                    },
+                    "vnetRoutes": {
+                        "staticRoutes": [
+                            {
+                                "name": "default",
+                                "addressPrefixes": [
+                                    "0.0.0.0/0"
+                                ],
+                                "nextHopIpAddress": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].properties.PrivateIPAddress]"
+                            }
+                        ]
+                    }
+                }
+
+            }
+        },
+        {
+            "name": "[variables('deploymentNameUpdateVhubVnetRoutingTable')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubName'), concat(variables('vnetName'), '-conn'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('vwanHubName'),'/',parameters('vwanHubVnetRouteTableName'))]",
+                            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
+                            "apiVersion": "[variables('_apiVersionNetwork')]",
+                            "properties": {
+                                "labels": [
+                                    "[parameters('vwanHubVnetRouteTableLabelName')]"
+                                ],
+                                "routes": [
+                                    {
+                                        "name": "default",
+                                        "destinationType": "CIDR",
+                                        "destinations": [
+                                            "0.0.0.0/0"
+                                        ],
+                                        "nextHopType": "ResourceId",
+                                        "nextHop": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubName'), concat(variables('vnetName'), '-conn'))]"
+                                    }
+                                ]
                             }
                         }
                     ]

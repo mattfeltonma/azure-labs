@@ -454,7 +454,20 @@
                     },
                     "vwanHubName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubNvaRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubNvaRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableName.value]"
                     }
+
                 },
                 "templateLink": {
                     "uri": "[variables('templateFileMediation')]",
@@ -504,6 +517,18 @@
                     },
                     "vwanHubName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubVnetRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLab": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubNvaRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubNvaRouteTableLabelName.value]"
                     },
                     "workloadNumber": {
                         "value": "1"
@@ -563,6 +588,15 @@
                     },
                     "vwanHubName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubVnetRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubNvaRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubNvaRouteTableLabelName.value]"
                     },
                     "workloadNumber": {
                         "value": "2"
@@ -698,6 +732,18 @@
                     },
                     "vwanHubName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubNvaRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubNvaRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableName.value]"
                     }
                 },
                 "templateLink": {
@@ -748,6 +794,15 @@
                     },
                     "vwanHubName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubVnetRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubNvaRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubNvaRouteTableLabelName.value]"
                     },
                     "workloadNumber": {
                         "value": "1"
@@ -807,6 +862,15 @@
                     },
                     "vwanHubName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubVnetRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubNvaRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubNvaRouteTableLabelName.value]"
                     },
                     "workloadNumber": {
                         "value": "2"

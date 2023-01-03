@@ -62,6 +62,24 @@
                 "description": "The name of the VWAN Hub"
             }
         },
+        "vwanHubVnetRouteTableResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Azure virtual network routing table"
+            }
+        },
+        "vwanHubDefaultRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The label assigned to the defaultRouteTable for the VWAN hub"
+            }
+        },
+        "vwanHubNvaRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The label assigned to the NVA route table for the VWAN Hub"
+            }
+        },
         "workloadNumber": {
             "type": "string",
             "metadata": {
@@ -201,6 +219,17 @@
                                 "enableInternetSecurity": true,
                                 "remoteVirtualNetwork": {
                                     "id": "[resourceid(variables('subIdWorkload'),variables('rgNameWorkload'),'Microsoft.Network/virtualNetworks',variables('vnetName'))]"
+                                },
+                                "routingConfiguration": {
+                                    "associatedRouteTable": {
+                                        "id": "[parameters('vwanHubVnetRouteTableResourceId')]"
+                                    },
+                                    "propagatedRouteTables": {
+                                        "labels": [
+                                            "[parameters('vwanHubDefaultRouteTableLabelName')]",
+                                            "[parameters('vwanHubNvaRouteTableLabelName')]"
+                                        ]
+                                    }
                                 }
                             }
                         }
@@ -264,7 +293,7 @@
         }
     ],
     "outputs":{
-        "mediationVwanConnectionId": {
+        "workloadVwanConnectionId": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections',parameters('vwanHubName'),concat(variables('vnetName'), '-conn'))]"
         }
