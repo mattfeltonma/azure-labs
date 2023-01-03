@@ -521,9 +521,6 @@
                     "vwanHubVnetRouteTableResourceId": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableResourceId.value]"
                     },
-                    "vwanHubDefaultRouteTableLab": {
-                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableResourceId.value]"
-                    },
                     "vwanHubDefaultRouteTableLabelName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"
                     },
