@@ -911,7 +911,9 @@
                     "id": "[resourceid('Microsoft.Network/virtualNetworks',variables('vnetName'))]"
                 },
                 "routingConfiguration": {
-                    "associatedRouteTable": "[parameters('vwanHubNvaRouteTableResourceId')]",
+                    "associatedRouteTable": {
+                        "id": "[parameters('vwanHubNvaRouteTableResourceId')]"
+                    },
                     "propagatedRouteTables": {
                         "labels": [
                             "[parameters('vwanHubDefaultRouteTableLabelName')]",
