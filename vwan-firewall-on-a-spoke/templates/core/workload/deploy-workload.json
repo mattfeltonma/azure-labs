@@ -80,6 +80,12 @@
                 "description": "The label assigned to the NVA route table for the VWAN Hub"
             }
         },
+        "vwanHubVnetRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the Azure virtual network route table for the VWAN hub"
+            }
+        },
         "workloadNumber": {
             "type": "string",
             "metadata": {
@@ -252,7 +258,8 @@
                                     "propagatedRouteTables": {
                                         "labels": [
                                             "[parameters('vwanHubDefaultRouteTableLabelName')]",
-                                            "[parameters('vwanHubNvaRouteTableLabelName')]"
+                                            "[parameters('vwanHubNvaRouteTableLabelName')]",
+                                            "[parameters('vwanHubVnetRouteTableLabelName')]"
                                         ]
                                     }
                                 }

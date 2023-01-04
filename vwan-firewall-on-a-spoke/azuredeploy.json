@@ -527,6 +527,9 @@
                     "vwanHubNvaRouteTableLabelName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubNvaRouteTableLabelName.value]"
                     },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableLabelName.value]"
+                    },
                     "workloadNumber": {
                         "value": "1"
                     },
@@ -594,6 +597,9 @@
                     },
                     "vwanHubNvaRouteTableLabelName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubNvaRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableLabelName.value]"
                     },
                     "workloadNumber": {
                         "value": "2"
@@ -801,6 +807,9 @@
                     "vwanHubNvaRouteTableLabelName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubNvaRouteTableLabelName.value]"
                     },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableLabelName.value]"
+                    },
                     "workloadNumber": {
                         "value": "1"
                     },
@@ -868,6 +877,9 @@
                     },
                     "vwanHubNvaRouteTableLabelName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubNvaRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableLabelName.value]"
                     },
                     "workloadNumber": {
                         "value": "2"
