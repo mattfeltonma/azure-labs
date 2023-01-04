@@ -198,7 +198,8 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]",
+                "[resourceId('Microsoft.Network/routeTables', variables('routeTableNameWorkload'))]"
             ],
             "properties": {
                 "addressSpace": {
@@ -213,6 +214,9 @@
                             "addressPrefix": "[parameters('vnetSubnetCidrApp')]",
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]"
+                            },
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameWorkload'))]"
                             },
                             "privateEndpointNetworkPolicies": "Enabled"
                         }
