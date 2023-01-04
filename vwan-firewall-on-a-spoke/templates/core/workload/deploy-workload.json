@@ -113,6 +113,7 @@
         "locationLetter": "[substring(parameters('location'),0,1)]",
         "nsgNameApp": "[concat('nsgappw',parameters('workloadNumber'),variables('locationLetter'),parameters('uniqueData'))]",
         "publicIpVm": "[concat('pipvmlw',parameters('workloadNumber'),variables('locationLetter'),parameters('uniqueData'))]",
+        "routeTableNameWorkload": "[concat('rt-wl',parameters('workloadNumber'),parameters('location'))]",
         "rgNameWorkload": "[resourceGroup().name]",
         "subIdWorkload": "[subscription().subscriptionId]",
         "vmNameLinux": "[concat('vmlw',variables('locationLetter'),parameters('workloadNumber'),parameters('uniqueData'))]",
@@ -159,6 +160,30 @@
                     }
                 ]
             }
+        },
+        {
+            "name": "[variables('routeTableNameWorkload')]",
+            "type": "Microsoft.Network/routeTables",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-trustedip",
+                        "properties": {
+                            "addressPrefix": "[parameters('trustedIp')]",
+                            "nextHopType": "Internet"
+                        }
+                    }
+                ],
+                "disableBgpRoutePropagation": "False"
+            },
+            "resources": [
+            ]
         },
         {
             "type": "Microsoft.Network/virtualNetworks",
