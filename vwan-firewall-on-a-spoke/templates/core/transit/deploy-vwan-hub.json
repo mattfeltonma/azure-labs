@@ -1,0 +1,180 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location the VWAN hub"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "vwanHubCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the VWAN hub"
+            }
+        },
+        "vwanResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the VWAN the hub will be created in"
+            }            
+        }
+    },
+    "variables": {
+        "_apiVersionNetworks": "2022-05-01",
+        "virtualNetworkGatewayName": "[concat('vpngw', parameters('location'), parameters('uniqueData'))]",
+        "vwanHubName": "[concat('vhub', parameters('location'), parameters('uniqueData'))]",
+        "vwanHubDefaultRouteTableLabelName": "default",        
+        "vwanHubDefaultRouteTableName": "defaultRouteTable",
+        "vwanHubNvaRouteTableLabelName": "nva",
+        "vwanHubNvaRouteTableName": "nva",
+        "vwanHubVnetRouteTableLabelName": "vnet",
+        "vwanHubVnetRouteTableName": "vnet"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualHubs",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "name": "[variables('vwanHubName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "addressPrefix": "[parameters('vwanHubCidr')]",
+                "hubRoutingPreference": "ExpressRoute",
+                "preferredRoutingGateway": "ExpressRoute",
+                "sku": "Standard",
+                "virtualRouterAsn": "65515",
+                "virtualRouterAutoScaleConfiguration": {
+                    "minCapacity": 2
+                },
+                "virtualWan": {
+                    "id": "[parameters('vwanResourceId')]"
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('vwanHubName'),'/',variables('vwanHubDefaultRouteTableName'))]",
+            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
+            ],
+            "properties": {
+                "labels": [
+                    "[variables('vwanHubDefaultRouteTableLabelName')]"
+                ]
+
+            }
+        },
+        {
+            "name": "[concat(variables('vwanHubName'),'/',variables('vwanHubNvaRouteTableName'))]",
+            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]",
+                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubDefaultRouteTableName'))]"
+            ],
+            "properties": {
+                "labels": [
+                    "[variables('vwanHubNvaRouteTableLabelName')]"
+                ]
+            }
+        },
+        {
+            "name": "[concat(variables('vwanHubName'),'/',variables('vwanHubVnetRouteTableName'))]",
+            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]",
+                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubNvaRouteTableName'))]"
+            ],
+            "properties": {
+                "labels": [
+                    "[variables('vwanHubVnetRouteTableLabelName')]"
+                ]
+            }
+        },
+        {
+            "name": "[variables('virtualNetworkGatewayName')]",
+            "type": "Microsoft.Network/vpnGateways",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubVnetRouteTableName'))]"
+            ],
+            "properties": {
+                "bgpSettings": {
+                    "asn": 65515
+                },
+                "virtualHub": {
+                    "id": "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
+                },
+                "vpnGatewayScaleUnit": "1"
+            }
+        }
+    ],
+    "outputs": {
+        "vwanHubName": {
+            "type": "string",
+            "value": "[variables('vwanHubName')]"
+        },        
+        "vwanHubResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualHubs',variables('vwanHubName'))]"
+        },
+        "vwanHubDefaultRouteTableResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubDefaultRouteTableName'))]"
+        },
+        "vwanHubNvaRouteTableResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubNvaRouteTableName'))]"
+        },
+        "vwanHubVnetRouteTableResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubVnetRouteTableName'))]"
+        },
+        "vwanHubDefaultRouteTableLabelName": {
+            "type": "string",
+            "value": "[variables('vwanHubDefaultRouteTableLabelName')]"
+        },
+        "vwanHubNvaRouteTableLabelName": {
+            "type": "string",
+            "value": "[variables('vwanHubNvaRouteTableLabelName')]"
+        },
+        "vwanHubVnetRouteTableLabelName": {
+            "type": "string",
+            "value": "[variables('vwanHubVnetRouteTableLabelName')]"
+        },
+        "vwanHubDefaultRouteTableName": {
+            "type": "string",
+            "value": "[variables('vwanHubDefaultRouteTableName')]"
+        },
+        "vwanHubNvaRouteTableName": {
+            "type": "string",
+            "value": "[variables('vwanHubNvaRouteTableName')]"
+        },
+        "vwanHubVnetRouteTableName": {
+            "type": "string",
+            "value": "[variables('vwanHubVnetRouteTableName')]"
+        }
+    }
+}

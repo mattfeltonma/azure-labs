@@ -1,0 +1,337 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "lawResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource if of the Log Analytics Workspace"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location to resources will be deployed to"
+            }
+        },
+        "rgNameTransit": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group for transit resources"
+            }
+        },
+        "subIdTransit": {
+            "type": "string",
+            "metadata": {
+                "description": "The subscription id of the for the transit resources"
+            }
+        },
+        "trustedIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP to trust for incoming SSH sessions"
+            }
+        },
+        "vmAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the VMs that are created"
+            }
+        },
+        "vmAdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Administrator name for VMs that are created"
+            }
+        },
+        "vnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the virtual network"
+            }
+        },
+        "vnetSubnetCidrApp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the app subnet in the virtual network"
+            }
+        },
+        "vwanHubName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the VWAN Hub"
+            }
+        },
+        "vwanHubVnetRouteTableResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Azure virtual network routing table"
+            }
+        },
+        "vwanHubDefaultRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The label assigned to the defaultRouteTable for the VWAN hub"
+            }
+        },
+        "vwanHubNvaRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The label assigned to the NVA route table for the VWAN Hub"
+            }
+        },
+        "vwanHubVnetRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name assigned to the Azure virtual network route table for the VWAN hub"
+            }
+        },
+        "workloadNumber": {
+            "type": "string",
+            "metadata": {
+                "description": "The number to append to the workload name"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "_apiVersionNetworks": "2022-05-01",
+        "_apiVersionResources": "2020-06-01",
+        "_templatesUriGeneral": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
+        "deploymentNameVhubConnection": "[concat('deploy-vhub-vnet-conn-w',parameters('workloadNumber'))]",
+        "deploymentNameVmLinux": "[concat('deploy-vm-linux-w',parameters('workloadNumber'))]",
+        "deploymentUriVmLinux": "[concat(variables('_templatesUriGeneral'), 'deploy-ubuntu-vm.json')]",
+        "locationLetter": "[substring(parameters('location'),0,1)]",
+        "nsgNameApp": "[concat('nsgappw',parameters('workloadNumber'),variables('locationLetter'),parameters('uniqueData'))]",
+        "publicIpVm": "[concat('pipvmlw',parameters('workloadNumber'),variables('locationLetter'),parameters('uniqueData'))]",
+        "routeTableNameWorkload": "[concat('rt-wl',parameters('workloadNumber'),parameters('location'))]",
+        "rgNameWorkload": "[resourceGroup().name]",
+        "subIdWorkload": "[subscription().subscriptionId]",
+        "vmNameLinux": "[concat('vmlw',variables('locationLetter'),parameters('workloadNumber'),parameters('uniqueData'))]",
+        "vmSku": "Standard_D4s_v5",
+        "vnetName": "[concat('vnetwl',parameters('workloadNumber'),parameters('location'), parameters('uniqueData'))]",
+        "vnetSubnetNameWorkloadApp": "snet-app",
+        "vnetStandardDdosProtection": false
+    },
+    "resources": [
+        {
+            "name": "[variables('publicIpVm')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "publicIpAllocationMethod": "Static"
+            },
+            "sku": {
+                "name": "Standard"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgNameApp')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowSsh",
+                        "properties": {
+                            "description": "Allow Ssh from trusted Ip",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "[parameters('trustedIp')]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('routeTableNameWorkload')]",
+            "type": "Microsoft.Network/routeTables",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "routes": [
+                    {
+                        "name": "udr-trustedip",
+                        "properties": {
+                            "addressPrefix": "[concat(parameters('trustedIp'),'/32')]",
+                            "nextHopType": "Internet"
+                        }
+                    }
+                ],
+                "disableBgpRoutePropagation": "False"
+            },
+            "resources": [
+            ]
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('vnetName')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]",
+                "[resourceId('Microsoft.Network/routeTables', variables('routeTableNameWorkload'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetCidr')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('vnetSubnetNameWorkloadApp')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('vnetSubnetCidrApp')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameApp'))]"
+                            },
+                            "routeTable": {
+                                "id": "[resourceId('Microsoft.Network/routeTables',variables('routeTableNameWorkload'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]"
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[variables('deploymentNameVhubConnection')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "subscriptionId": "[parameters('subIdTransit')]",
+            "resourceGroup": "[parameters('rgNameTransit')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
+                            "name": "[concat(parameters('vwanHubName'),'/',variables('vnetName'),'-conn')]",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
+                            "properties": {
+                                "allowHubToRemoteVnetTransit": true,
+                                "allowRemoteVnetToUseHubVnetGateways": true,
+                                "enableInternetSecurity": true,
+                                "remoteVirtualNetwork": {
+                                    "id": "[resourceid(variables('subIdWorkload'),variables('rgNameWorkload'),'Microsoft.Network/virtualNetworks',variables('vnetName'))]"
+                                },
+                                "routingConfiguration": {
+                                    "associatedRouteTable": {
+                                        "id": "[parameters('vwanHubVnetRouteTableResourceId')]"
+                                    },
+                                    "propagatedRouteTables": {
+                                        "labels": [
+                                            "[parameters('vwanHubDefaultRouteTableLabelName')]",
+                                            "[parameters('vwanHubNvaRouteTableLabelName')]",
+                                            "[parameters('vwanHubVnetRouteTableLabelName')]"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameVmLinux')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameVhubConnection'))]",
+                "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpVm'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
+                    },
+                    "publicIpResourceId": {
+                        "value": "[resourceId('Microsoft.Network/publicIpAddresses',variables('publicIpVm'))]"
+                    },
+                    "subnetName": {
+                        "value": "[variables('vnetSubnetNameWorkloadApp')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('vmNameLinux')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('vnetName')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriVmLinux')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+    ],
+    "outputs":{
+        "workloadVwanConnectionId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections',parameters('vwanHubName'),concat(variables('vnetName'), '-conn'))]"
+        }
+    }
+}

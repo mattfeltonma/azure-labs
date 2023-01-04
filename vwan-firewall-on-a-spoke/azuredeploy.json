@@ -1,0 +1,903 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+            }
+        },
+        "primaryLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The primary Azure region to deploy resources to."
+            },
+            "allowedValues": [
+                "centralus",
+                "eastus",
+                "eastus2",
+                "southcentralus",
+                "westus",
+                "westus2"
+            ]
+        },
+        "secondaryLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The secondary Azure region to deploy resources to."
+            },
+            "allowedValues": [
+                "centralus",
+                "eastus",
+                "eastus2",
+                "southcentralus",
+                "westus",
+                "westus2"
+            ]
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that wil be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "transitSubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The id of the subscription where the Transit resource group and resources will be deployed"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
+        },
+        "trustedIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address to trust for incoming SSH sessions to VMs"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Creates a new GUID to create uniqueness for resources"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "workload1SubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The id of the subscription where the Workload 1 resource group and resources will be deployed"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
+        },
+        "workload2SubscriptionId": {
+            "type": "string",
+            "metadata": {
+                "description": "The id of the subscription where the Workload 2 resource group and resources will be deployed"
+            },
+            "defaultValue": "[subscription().subscriptionId]"
+        },
+        "vmAdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Administrator name for VMs that are created"
+            }
+        },
+        "vmAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the VMs that are created"
+            }
+        }
+    },
+    "variables": {
+        "_apiVersionResources": "2020-06-01",
+        "addressSpaceAzure": "10.0.0.0/8",
+        "addressSpaceOnPremises": "192.168.0.0/16",
+        "loadBalancerInnerIpR1": "10.1.0.100",
+        "loadBalancerInnerIpR2": "10.9.0.100",
+        "nvaAsnR1": "65001",
+        "nvaAsnR2": "65002",
+        "nva1IpInnerSubnetR1": "10.1.0.10",
+        "nva1IpInnerSubnetR2": "10.9.0.10",
+        "nva2IpInnerSubnetR1": "10.1.0.20",
+        "nva2IpInnerSubnetR2": "10.9.0.20",
+        "nva1IpOuterSubnetR1": "10.1.129.10",
+        "nva1IpOuterSubnetR2": "10.9.129.10",
+        "nva2IpOuterSubnetR1": "10.1.129.20",
+        "nva2IpOuterSubnetR2": "10.9.129.20",
+        "rgDeploymentNameMediationR1": "[concat('deploy-medr1',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgDeploymentNameMediationR2": "[concat('deploy-medr2',parameters('secondaryLocation'),parameters('uniqueData'))]",
+        "rgDeploymentNameVwan": "[concat('deploy-vwan',parameters('uniqueData'))]",
+        "rgDeploymentNameVwanHubR1": "[concat('deploy-vwanhr1',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgDeploymentNameVwanHubR2": "[concat('deploy-vwanhr2',parameters('secondaryLocation'),parameters('uniqueData'))]",
+        "rgDeploymentNameWorkload1R1": "[concat('deploy-wl1r1',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgDeploymentNameWorkload1R2": "[concat('deploy-wl1r2',parameters('secondaryLocation'),parameters('uniqueData'))]",
+        "rgDeploymentNameWorkload2R1": "[concat('deploy-wl2r1',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgDeploymentNameWorkload2R2": "[concat('deploy-wl2r2',parameters('secondaryLocation'),parameters('uniqueData'))]",
+        "rgNameTransitR1": "[concat('rg-tr-',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgNameTransitR2": "[concat('rg-tr-',parameters('secondaryLocation'),parameters('uniqueData'))]",
+        "rgNameWorkload1R1": "[concat('rg-wl1-',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgNameWorkload1R2": "[concat('rg-wl1-',parameters('secondaryLocation'),parameters('uniqueData'))]",
+        "rgNameWorkload2R1": "[concat('rg-wl2-',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgNameWorkload2R2": "[concat('rg-wl2-',parameters('secondaryLocation'),parameters('uniqueData'))]",
+        "subDeploymentNameTransitR1": "[concat('deploy-trr1-sub',parameters('uniqueData'))]",
+        "subDeploymentNameTransitR2": "[concat('deploy-trr2-sub',parameters('uniqueData'))]",
+        "subDeploymentNameWorkload1R1": "[concat('deploy-wl1r1-sub',parameters('uniqueData'))]",
+        "subDeploymentNameWorkload1R2": "[concat('deploy-wl1r2-sub',parameters('uniqueData'))]",
+        "subDeploymentNameWorkload2R1": "[concat('deploy-wl2r1-sub',parameters('uniqueData'))]",
+        "subDeploymentNameWorkload2R2": "[concat('deploy-wl2r2-sub',parameters('uniqueData'))]",
+        "templateFileMediation": "[concat(variables('templateUriTransit'), 'deploy-mediation.json')]",
+        "templateFileVwan": "[concat(variables('templateUriTransit'), 'deploy-vwan.json')]",
+        "templateFileVwanHub": "[concat(variables('templateUriTransit'), 'deploy-vwan-hub.json')]",
+        "templateFileWorkload": "[concat(variables('templateUriWorkload'), 'deploy-workload.json')]",
+        "templateUriTransit": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/transit/'))]",
+        "templateUriWorkload": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/workload/'))]",
+        "vnetCidrTransitR1": "10.1.0.0/16",
+        "vnetCidrTransitR2": "10.9.0.0/16",
+        "vnetCidrWorkload1R1": "10.2.0.0/16",
+        "vnetCidrWorkload1R2": "10.10.0.0/16",
+        "vnetCidrWorkload2R1": "10.3.0.0/16",
+        "vnetCidrWorkload2R2": "10.11.0.0/16",
+        "vnetSubnetCidrTransitNvaInnerR1": "10.1.0.0/24",
+        "vnetSubnetCidrTransitNvaInnerR2": "10.9.0.0/24",
+        "vnetSubnetCidrTransitNvaOuterR1": "10.1.129.0/24",
+        "vnetSubnetCidrTransitNvaOuterR2": "10.9.129.0/24",
+        "vnetSubnetCidrTransitNvaInnerGatewayR1": "10.1.0.1",
+        "vnetSubnetCidrTransitNvaInnerGatewayR2": "10.9.0.1",
+        "vnetSubnetCidrTransitNvaOuterGatewayR1": "10.1.129.1",
+        "vnetSubnetCidrTransitNvaOuterGatewayR2": "10.9.129.1",
+        "vnetSubnetCidrWorkload1AppR1": "10.2.0.0/24",
+        "vnetSubnetCidrWorkload1AppR2": "10.10.0.0/24",
+        "vnetSubnetCidrWorkload2AppR1": "10.3.0.0/24",
+        "vnetSubnetCidrWorkload2AppR2": "10.11.0.0/24",
+        "vwanHubCidrR1": "10.0.0.0/16",
+        "vwanHubCidrR2": "10.8.0.0/16"
+    },
+    "resources": [
+        {
+            "name": "[variables('subDeploymentNameTransitR1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "location": "[parameters('primaryLocation')]",
+            "subscriptionId": "[parameters('transitSubscriptionId')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[variables('rgNameTransitR1')]",
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "location": "[parameters('primaryLocation')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('subDeploymentNameWorkload1R1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "location": "[parameters('primaryLocation')]",
+            "subscriptionId": "[parameters('workload1SubscriptionId')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[variables('rgNameWorkload1R1')]",
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "location": "[parameters('primaryLocation')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('subDeploymentNameWorkload2R1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "location": "[parameters('primaryLocation')]",
+            "subscriptionId": "[parameters('workload2SubscriptionId')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[variables('rgNameWorkload2R1')]",
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "location": "[parameters('primaryLocation')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('subDeploymentNameTransitR2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "location": "[parameters('secondaryLocation')]",
+            "subscriptionId": "[parameters('transitSubscriptionId')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[variables('rgNameTransitR2')]",
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "location": "[parameters('secondaryLocation')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('subDeploymentNameWorkload1R2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "location": "[parameters('secondaryLocation')]",
+            "subscriptionId": "[parameters('workload1SubscriptionId')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[variables('rgNameWorkload1R2')]",
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "location": "[parameters('secondaryLocation')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('subDeploymentNameWorkload2R2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "location": "[parameters('secondaryLocation')]",
+            "subscriptionId": "[parameters('workload2SubscriptionId')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "name": "[variables('rgNameWorkload2R2')]",
+                            "type": "Microsoft.Resources/resourceGroups",
+                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "location": "[parameters('secondaryLocation')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameVwan')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('transitSubscriptionId')]",
+            "resourceGroup": "[variables('rgNameTransitR1')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameTransitR1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload1R1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload2R1'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('primaryLocation')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileVwan')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameVwanHubR1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('transitSubscriptionId')]",
+            "resourceGroup": "[variables('rgNameTransitR1')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameTransitR1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameVwan'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('primaryLocation')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "vwanHubCidr": {
+                        "value": "[variables('vwanHubCidrR1')]"
+                    },
+                    "vwanResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwan')).outputs.vwanResourceId.value]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileVwanHub')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameMediationR1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('transitSubscriptionId')]",
+            "resourceGroup": "[variables('rgNameTransitR1')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameTransitR1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameVwanHubR1'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "addressSpaceAzureRegion": {
+                        "value": "[variables('addressSpaceAzure')]"
+                    },
+                    "addressSpaceOnPremises": {
+                        "value": "[variables('addressSpaceOnPremises')]"
+                    },
+                    "keyVaultAdmin": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "loadBalancerInnerIp": {
+                        "value": "[variables('loadBalancerInnerIpR1')]"
+                    },
+                    "location": {
+                        "value": "[parameters('primaryLocation')]"
+                    },
+                    "nvaAsn": {
+                        "value": "[variables('nvaAsnR1')]"
+                    },
+                    "nva1IpInnerSubnet": {
+                        "value": "[variables('nva1IpInnerSubnetR1')]"
+                    },
+                    "nva2IpInnerSubnet": {
+                        "value": "[variables('nva2IpInnerSubnetR1')]"
+                    },
+                    "nva1IpOuterSubnet": {
+                        "value": "[variables('nva1IpOuterSubnetR1')]"
+                    },
+                    "nva2IpOuterSubnet": {
+                        "value": "[variables('nva2IpOuterSubnetR1')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "trustedIp": {
+                        "value": "[parameters('trustedIp')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "vnetCidr": {
+                        "value": "[variables('vnetCidrTransitR1')]"
+                    },
+                    "vnetCidrWorkload1": {
+                        "value": "[variables('vnetCidrWorkload1R1')]"
+                    },
+                    "vnetCidrWorkload2": {
+                        "value": "[variables('vnetCidrWorkload2R1')]"
+                    },
+                    "vnetSubnetCidrInner": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaInnerR1')]"
+                    },
+                    "vnetSubnetCidrInnerGatewayIp": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaInnerGatewayR1')]"
+                    },
+                    "vnetSubnetCidrOuter": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaOuterR1')]"
+                    },
+                    "vnetSubnetCidrOuterGatewayIp": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaOuterGatewayR1')]"
+                    },
+                    "vwanHubName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubNvaRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubNvaRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableName.value]"
+                    }
+
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileMediation')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameWorkload1R1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('workload1SubscriptionId')]",
+            "resourceGroup": "[variables('rgNameWorkload1R1')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload1R1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMediationR1'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "lawResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.lawResourceId.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('primaryLocation')]"
+                    },
+                    "rgNameTransit": {
+                        "value": "[variables('rgNameTransitR1')]"
+                    },
+                    "subIdTransit": {
+                        "value": "[parameters('transitSubscriptionId')]"
+                    },
+                    "trustedIp": {
+                        "value": "[parameters('trustedIp')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "vnetCidr": {
+                        "value": "[variables('vnetCidrWorkload1R1')]"
+                    },
+                    "vnetSubnetCidrApp": {
+                        "value": "[variables('vnetSubnetCidrWorkload1AppR1')]"
+                    },
+                    "vwanHubName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubVnetRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubNvaRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubNvaRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableLabelName.value]"
+                    },
+                    "workloadNumber": {
+                        "value": "1"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileWorkload')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameWorkload2R1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('workload2SubscriptionId')]",
+            "resourceGroup": "[variables('rgNameWorkload2R1')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload2R1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameWorkload1R1'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "lawResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.lawResourceId.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('primaryLocation')]"
+                    },
+                    "rgNameTransit": {
+                        "value": "[variables('rgNameTransitR1')]"
+                    },
+                    "subIdTransit": {
+                        "value": "[parameters('transitSubscriptionId')]"
+                    },
+                    "trustedIp": {
+                        "value": "[parameters('trustedIp')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "vnetCidr": {
+                        "value": "[variables('vnetCidrWorkload2R1')]"
+                    },
+                    "vnetSubnetCidrApp": {
+                        "value": "[variables('vnetSubnetCidrWorkload2AppR1')]"
+                    },
+                    "vwanHubName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubVnetRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubNvaRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubNvaRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubVnetRouteTableLabelName.value]"
+                    },
+                    "workloadNumber": {
+                        "value": "2"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileWorkload')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameVwanHubR2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('transitSubscriptionId')]",
+            "resourceGroup": "[variables('rgNameTransitR2')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameTransitR2'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload1R2'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload2R2'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameWorkload2R1'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('secondaryLocation')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "vwanHubCidr": {
+                        "value": "[variables('vwanHubCidrR2')]"
+                    },
+                    "vwanResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwan')).outputs.vwanResourceId.value]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileVwanHub')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameMediationR2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('transitSubscriptionId')]",
+            "resourceGroup": "[variables('rgNameTransitR2')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameTransitR2'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameVwanHubR2'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "addressSpaceAzureRegion": {
+                        "value": "[variables('addressSpaceAzure')]"
+                    },
+                    "addressSpaceOnPremises": {
+                        "value": "[variables('addressSpaceOnPremises')]"
+                    },
+                    "keyVaultAdmin": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "loadBalancerInnerIp": {
+                        "value": "[variables('loadBalancerInnerIpR2')]"
+                    },
+                    "location": {
+                        "value": "[parameters('secondaryLocation')]"
+                    },
+                    "nvaAsn": {
+                        "value": "[variables('nvaAsnR2')]"
+                    },
+                    "nva1IpInnerSubnet": {
+                        "value": "[variables('nva1IpInnerSubnetR2')]"
+                    },
+                    "nva2IpInnerSubnet": {
+                        "value": "[variables('nva2IpInnerSubnetR2')]"
+                    },
+                    "nva1IpOuterSubnet": {
+                        "value": "[variables('nva1IpOuterSubnetR2')]"
+                    },
+                    "nva2IpOuterSubnet": {
+                        "value": "[variables('nva2IpOuterSubnetR2')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "trustedIp": {
+                        "value": "[parameters('trustedIp')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "vnetCidr": {
+                        "value": "[variables('vnetCidrTransitR2')]"
+                    },
+                    "vnetCidrWorkload1": {
+                        "value": "[variables('vnetCidrWorkload1R2')]"
+                    },
+                    "vnetCidrWorkload2": {
+                        "value": "[variables('vnetCidrWorkload2R2')]"
+                    },
+                    "vnetSubnetCidrInner": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaInnerR2')]"
+                    },
+                    "vnetSubnetCidrInnerGatewayIp": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaInnerGatewayR2')]"
+                    },
+                    "vnetSubnetCidrOuter": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaOuterR2')]"
+                    },
+                    "vnetSubnetCidrOuterGatewayIp": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaOuterGatewayR2')]"
+                    },
+                    "vwanHubName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubNvaRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubNvaRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableName.value]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileMediation')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameWorkload1R2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('workload1SubscriptionId')]",
+            "resourceGroup": "[variables('rgNameWorkload1R2')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload1R2'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMediationR2'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "lawResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR2')).outputs.lawResourceId.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('secondaryLocation')]"
+                    },
+                    "rgNameTransit": {
+                        "value": "[variables('rgNameTransitR2')]"
+                    },
+                    "subIdTransit": {
+                        "value": "[parameters('transitSubscriptionId')]"
+                    },
+                    "trustedIp": {
+                        "value": "[parameters('trustedIp')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "vnetCidr": {
+                        "value": "[variables('vnetCidrWorkload1R2')]"
+                    },
+                    "vnetSubnetCidrApp": {
+                        "value": "[variables('vnetSubnetCidrWorkload1AppR2')]"
+                    },
+                    "vwanHubName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubVnetRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubNvaRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubNvaRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableLabelName.value]"
+                    },
+                    "workloadNumber": {
+                        "value": "1"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileWorkload')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameWorkload2R2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('workload2SubscriptionId')]",
+            "resourceGroup": "[variables('rgNameWorkload2R2')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload2R2'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameWorkload1R2'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "lawResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR2')).outputs.lawResourceId.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('secondaryLocation')]"
+                    },
+                    "rgNameTransit": {
+                        "value": "[variables('rgNameTransitR2')]"
+                    },
+                    "subIdTransit": {
+                        "value": "[parameters('transitSubscriptionId')]"
+                    },
+                    "trustedIp": {
+                        "value": "[parameters('trustedIp')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "vnetCidr": {
+                        "value": "[variables('vnetCidrWorkload2R2')]"
+                    },
+                    "vnetSubnetCidrApp": {
+                        "value": "[variables('vnetSubnetCidrWorkload2AppR2')]"
+                    },
+                    "vwanHubName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubVnetRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableResourceId.value]"
+                    },
+                    "vwanHubDefaultRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubDefaultRouteTableLabelName.value]"
+                    },
+                    "vwanHubNvaRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubNvaRouteTableLabelName.value]"
+                    },
+                    "vwanHubVnetRouteTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR2')).outputs.vwanHubVnetRouteTableLabelName.value]"
+                    },
+                    "workloadNumber": {
+                        "value": "2"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileWorkload')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}
