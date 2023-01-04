@@ -175,7 +175,7 @@
                     {
                         "name": "udr-trustedip",
                         "properties": {
-                            "addressPrefix": "[parameters('trustedIp')]",
+                            "addressPrefix": "[concat(parameters('trustedIp'),'/32')]",
                             "nextHopType": "Internet"
                         }
                     }
