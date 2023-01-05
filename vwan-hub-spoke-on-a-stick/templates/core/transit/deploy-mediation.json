@@ -259,6 +259,9 @@
                     "dnsSubnetCidr": {
                         "value": "[parameters('vnetSubnetCidrSharedSvcDns')]"
                     },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
                     "onPremisesAddressSpace": {
                         "value": "[parameters('addressSpaceOnPremises')]"
                     },
