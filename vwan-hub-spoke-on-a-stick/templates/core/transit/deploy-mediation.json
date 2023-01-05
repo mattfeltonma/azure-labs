@@ -143,11 +143,9 @@
         "nsgNameBastion": "[concat('nsg-bst', parameters('location'))]",
         "publicIpNameAzureFirewall": "[concat('pip-afw', parameters('location'))]",
         "publicIpNameBastion": "[concat('pip-bst', parameters('location'))]",
-        "routeTableNameVng": "rt-vng",
         "storageAccountNamePrefix": "stcent",
         "vnetName": "[concat('vnet-transit', parameters('location'))]",
         "vnetSubnetNameAzFwPayload": "AzureFirewallSubnet",
-        "vnetSubnetNameGateway": "GatewaySubnet",
         "vnetSubnetNameBastion": "AzureBastionSubnet",
         "vnetStandardDdosProtection": false
     },
@@ -473,7 +471,7 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/routeTables', variables('routeTableNameVng'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNsgFlowLogBastion'))]"
             ],
             "properties": {
                 "addressSpace": {
