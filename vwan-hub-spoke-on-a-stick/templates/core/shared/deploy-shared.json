@@ -1208,6 +1208,9 @@
                     "adminUserName": {
                         "value": "[parameters('vmAdminUsername')]"
                     },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
                     "serverIpAddress": {
                         "value": "[parameters('vmServerIpWindowsDev')]"
                     },
