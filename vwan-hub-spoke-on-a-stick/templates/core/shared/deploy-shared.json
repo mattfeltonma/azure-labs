@@ -1070,6 +1070,9 @@
                     "dnsSubnetCidr": {
                         "value": "[parameters('vnetSubnetCidrDnsIn')]"
                     },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
                     "onPremisesAddressSpace": {
                         "value": "[parameters('addressSpaceOnPremises')]"
                     },
