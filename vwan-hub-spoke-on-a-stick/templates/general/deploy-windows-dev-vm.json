@@ -105,7 +105,7 @@
         "nicAcceleratedNetworking": "true",
         "nicNamePrimary": "[concat(parameters('vmName'),parameters('uniqueData'))]",
         "ManagedDiskTypeOs": "StandardSSD_LRS",
-        "customScriptExtensionScriptName": "prepare_windows_dev_vm.ps1",
+        "customScriptExtensionScriptName": "prepare_windows_vm.ps1",
         "customScriptExtensionScriptUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../scripts/', variables('customScriptExtensionScriptName')))]",
         "vnetSubnetRef": "[resourceId(parameters('vnetSubscriptionId'),parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('subnetName'))]"
     },
