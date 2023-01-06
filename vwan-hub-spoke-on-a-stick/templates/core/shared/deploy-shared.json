@@ -1002,7 +1002,7 @@
             "apiVersion": "[variables('_apiVersionDnsResolver')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/privateDnsZones/virtualNetworkLinks', parameters('privateDnsZoneNameKeyVault'), variables('privateDnsZoneLinkKeyVault'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNamePrivateDnsLinks'))]"
             ],
             "tags": "[parameters('tags')]",
             "properties": {
