@@ -103,7 +103,7 @@
         "dscModulesUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../dsc/windowsdevvm.zip'))]",
         "configurationFunction": "windowsdevvm.ps1\\WindowsDevVM",
         "nicAcceleratedNetworking": "true",
-        "nicNamePrimary": "[concat(parameters('vmName'),parameters('uniqueData'))]",
+        "nicNamePrimary": "[concat('nic',parameters('vmName'))]",
         "ManagedDiskTypeOs": "StandardSSD_LRS",
         "customScriptExtensionScriptName": "prepare_windows_vm.ps1",
         "customScriptExtensionScriptUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../scripts/', variables('customScriptExtensionScriptName')))]",
