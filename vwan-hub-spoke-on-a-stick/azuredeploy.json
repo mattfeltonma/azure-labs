@@ -486,7 +486,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionresources')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
-            "resourceGroup": "[variables('rgDeploymentNameSharedSvcR1')]",
+            "resourceGroup": "[variables('rgNameSharedSvcR1')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameSharedSvcR1'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMediationR1'))]"
