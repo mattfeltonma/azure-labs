@@ -552,7 +552,7 @@
                         "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameStorageTable.value]"
                     },
                     "rgNameSharedSvcR1": {
-                        "value": "[variables('rgNameTransitR1')]"
+                        "value": "[variables('rgNameSharedSvcR1')]"
                     },
                     "rgNameTransit": {
                         "value": "[variables('rgNameTransitR1')]"
