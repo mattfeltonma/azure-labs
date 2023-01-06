@@ -714,7 +714,7 @@
                     "vnetRoutes": {
                         "staticRoutes": [
                             {
-                                "name": "default",
+                                "name": "[concat('azure-',parameters('location'))]",
                                 "addressPrefixes": [
                                     "[parameters('addressSpaceAzureRegion')]"
                                 ],
