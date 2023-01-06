@@ -125,6 +125,50 @@
         }
     ],
     "outputs": {
+        "privateDnsZoneNameAcr": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameAcr')]"
+        },
+        "privateDnsZoneNameAksPl": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameAksPLocation')]"
+        },
+        "privateDnsZoneNameAksSl": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameAksSLocation')]"
+        },
+        "privateDnsZoneNameAppService": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameAppService')]"
+        },
+        "privateDnsZoneNameAzureSql": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameAzureSql')]"
+        },
+        "privateDnsZoneNameKeyVault": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameKeyVault')]"
+        },
+        "privateDnsZoneNameStorageBlob": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameStorageBlob')]"
+        },
+        "privateDnsZoneNameStorageDfs": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameStorageDfs')]"
+        },
+        "privateDnsZoneNameStorageFile": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameStorageFile')]"
+        },
+        "privateDnsZoneNameStorageQueue": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameStorageQueue')]"
+        },
+        "privateDnsZoneNameStorageTable": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameStorageTable')]"
+        },
         "privateDnsZoneResIdAcr": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/privateDnsZones',variables('privateDnsZoneNameAcr'))]"

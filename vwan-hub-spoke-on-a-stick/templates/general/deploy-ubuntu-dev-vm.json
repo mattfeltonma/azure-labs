@@ -39,10 +39,10 @@
                 "description": "The Log and Analytics workspace secret"
             }
         },
-        "publicIpResourceId": {
+        "serverIpAddress": {
             "type": "string",
             "metadata": {
-                "description": "The resource id of the public IP address assigned to the NIC"
+                "description": "The IP address to assign to the VM"
             }
         },
         "subnetName": {
@@ -56,13 +56,6 @@
             "metadata": {
                 "description": "The tags that will be associated to the VM"
             }
-        },
-        "uniqueData": {
-            "type": "string",
-            "metadata": {
-                "description": "Data used to append to resources to ensure uniqueness"
-            },
-            "defaultValue": "[substring(newGuid(),0,8)]"
         },
         "virtualMachineSize": {
             "type": "string",
@@ -103,7 +96,7 @@
         "managedDiskTypeOs": "StandardSSD_LRS",
         "nicAcceleratedNetworking": "true",
         "nicNamePrimary": "[concat('nic',parameters('vmName'))]",
-        "customScriptExtensionScriptName": "prepare_ubuntu_vm.sh",
+        "customScriptExtensionScriptName": "prepare_ubuntu_dev_vm.sh",
         "customScriptExtensionScriptUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../scripts/', variables('customScriptExtensionScriptName')))]",
         "vmOffer": "0001-com-ubuntu-server-focal",
         "vmPublisher": "Canonical",
@@ -124,10 +117,8 @@
                     {
                         "name": "ipconfig1",
                         "properties": {
-                            "privateIPAllocationMethod": "Dynamic",
-                            "publicIPAddress":{
-                                "id": "[parameters('publicIpResourceId')]"
-                            },
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('serverIpAddress')]",
                             "subnet": {
                                 "id": "[variables('vnetSubnetRef')]"
                             }

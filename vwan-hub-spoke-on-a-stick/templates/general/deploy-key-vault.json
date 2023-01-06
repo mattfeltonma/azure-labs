@@ -26,6 +26,12 @@
             },
             "defaultValue": "kvcentral"
         },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location to deploy the resource"
+            }
+        },
         "laWorkspaceResourceId": {
             "type": "string",
             "metadata": {
@@ -63,7 +69,6 @@
     "variables": {
         "_apiVersionDiagnostic": "2021-05-01-preview",
         "_apiVersionKeyVault": "2019-09-01",
-        "_location": "[resourceGroup().location]",
         "keyVaultCertPermissions": [
             "backup",
             "create",
@@ -112,7 +117,7 @@
             "name": "[variables('keyVaultName')]",
             "type": "Microsoft.KeyVault/vaults",
             "apiVersion": "[variables('_apiVersionKeyVault')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
                 "accessPolicies": [
@@ -148,7 +153,7 @@
             "name": "[concat(variables('keyVaultName'),'/microsoft.insights/diag')]",
             "type": "Microsoft.KeyVault/vaults/providers/diagnosticSettings",
             "apiVersion": "[variables('_apiVersionDiagnostic')]",
-            "location": "[variables('_location')]",
+            "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
                 "[concat('Microsoft.KeyVault/vaults/',variables('keyVaultName'))]"

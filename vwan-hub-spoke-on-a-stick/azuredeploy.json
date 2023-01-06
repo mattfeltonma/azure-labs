@@ -120,15 +120,17 @@
         "subDeploymentNameSharedSvcR2": "[concat('deploy-ssr2-sub',parameters('uniqueData'))]",
         "subDeploymentNameWorkloadR1": "[concat('deploy-wlr1-sub',parameters('uniqueData'))]",
         "subDeploymentNameWorkloadR2": "[concat('deploy-wlr2-sub',parameters('uniqueData'))]",
-        "templateFileDns": "[concat(variables('templateUriTransit'), 'deploy-dns.json')]",
+        "templateFileDns": "[concat(variables('templateUriSharedSvc'), 'deploy-dns.json')]",
         "templateFileMediation": "[concat(variables('templateUriTransit'), 'deploy-mediation.json')]",
-        "templateFileSharedSvc": "[concat(variables('templateUriTransit'), 'deploy-shared.json')]",
+        "templateFileSharedSvc": "[concat(variables('templateUriSharedSvc'), 'deploy-shared.json')]",
         "templateFileVwan": "[concat(variables('templateUriTransit'), 'deploy-vwan.json')]",
         "templateFileVwanHub": "[concat(variables('templateUriTransit'), 'deploy-vwan-hub.json')]",
         "templateFileWorkload": "[concat(variables('templateUriWorkload'), 'deploy-workload.json')]",
         "templateUriSharedSvc": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/shared/'))]",
         "templateUriTransit": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/transit/'))]",
         "templateUriWorkload": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/workload/'))]",
+        "vmServerIpLinuxDev": "10.2.0.10",
+        "vmServerIpWindowsDev": "10.2.0.20",
         "vnetCidrTransitR1": "10.1.0.0/16",
         "vnetCidrTransitR2": "10.9.0.0/16",
         "vnetCidrSharedSvcR1": "10.2.0.0/16",
@@ -342,7 +344,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionresources')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
-            "resourceGroup": "[variables('rgNameTransitR1')]",
+            "resourceGroup": "[variables('rgNameSharedSvcR1')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameTransitR1'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameSharedSvcR1'))]",
@@ -475,6 +477,134 @@
                 },
                 "templateLink": {
                     "uri": "[variables('templateFileMediation')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('rgDeploymentNameSharedSvcR1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
+            "resourceGroup": "[variables('rgDeploymentNameSharedSvcR1')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameSharedSvcR1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMediationR1'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "addressSpaceAzure": {
+                        "value": "[variables('addressSpaceAzure')]"
+                    },
+                    "addressSpaceAzureRegion": {
+                        "value": "[variables('addressSpaceAzureR1')]"
+                    },
+                    "addressSpaceOnPremises": {
+                        "value": "[parameters('onPremisesAddressSpace')]"
+                    },
+                    "firewallIp": {
+                        "value":  "[reference(variables('rgDeploymentNameMediationR1')).outputs.firewallIp.value]"
+                    },
+                    "keyVaultAdmin": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "lawResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.lawResourceId.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('primaryLocation')]"
+                    },
+                    "nsgStorageAccountResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.nsgStorageAccountResourceId.value]"
+                    },
+                    "privateDnsZoneNameAcr": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAcr.value]"
+                    },
+                    "privateDnsZoneNameAksR1": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAksPl.value]"
+                    },
+                    "privateDnsZoneNameAksR2": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAksS1.value]"
+                    },
+                    "privateDnsZoneNameAppService": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAppService.value]"
+                    },
+                    "privateDnsZoneNameAzureSql": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAzureSql.value]"
+                    },
+                    "privateDnsZoneNameKeyVault": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameKeyVault.value]"
+                    },
+                    "privateDnsZoneNameStorageBlob": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameStorageBlob.value]"
+                    },
+                    "privateDnsZoneNameStorageDfs": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameStorageDfs.value]"
+                    },
+                    "privateDnsZoneNameStorageFile": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameStorageFile.value]"
+                    },
+                    "privateDnsZoneNameStorageQueue": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameStorageQueue.value]"
+                    },
+                    "privateDnsZoneNameStorageTable": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameStorageTable.value]"
+                    },
+                    "rgNameSharedSvcR1": {
+                        "value": "[variables('rgNameTransitR1')]"
+                    },
+                    "rgNameTransit": {
+                        "value": "[variables('rgNameTransitR1')]"
+                    },
+                    "subIdTransit": {
+                        "value": "[parameters('transitSubscriptionId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "vmServerIpLinuxDev": {
+                        "value": "[variables('vmServerIpLinuxDev')]"
+                    },
+                    "vmServerIpWindowsDev": {
+                        "value": "[variables('vmServerIpWindowsDev')]"
+                    },
+                    "vnetCidr": {
+                        "value": "[variables('vnetCidrSharedSvcR1')]"
+                    },
+                    "vnetCidrWorkload": {
+                        "value": "[variables('vnetCidrWorkloadR1')]"
+                    },
+                    "vnetNameTransit": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitVnetName.value]"
+                    },
+                    "vnetResourceIdTransit": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitVnetResourceId.value]"
+                    },
+                    "vnetSubnetCidrDev": {
+                        "value": "[variables('vnetSubnetCidrSharedSvcDevR1')]"
+                    },
+                    "vnetSubnetCidrDnsIn": {
+                        "value": "[variables('vnetSubnetCidrSharedSvcDnsInR1')]"
+                    },
+                    "vnetSubnetCidrDnsOut": {
+                        "value": "[variables('vnetSubnetCidrSharedSvcDnsOutR1')]"
+                    },
+                    "vnetSubnetCidrSvc": {
+                        "value": "[variables('vnetSubnetCidrSharedSvcSvcR1')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileSharedSvc')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
