@@ -802,7 +802,7 @@
                             "properties": {
                                 "allowVirtualNetworkAccess": "true",
                                 "allowForwardedTraffic": "true",
-                                "allowGatewayTransit": "true",
+                                "allowGatewayTransit": "false",
                                 "useRemoteGateways": "false",
                                 "remoteVirtualNetwork": {
                                     "id": "[resourceId(variables('subscriptionIdSharedSvc'), variables('rgNameSharedSvc'), 'Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
