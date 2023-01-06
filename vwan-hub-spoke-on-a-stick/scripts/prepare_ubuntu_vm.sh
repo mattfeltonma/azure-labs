@@ -38,4 +38,5 @@ apt-get -y install docker-ce docker-ce-cli containerd.io
 usermod -aG docker $1
 
 # Install kubectl
+curl -LO https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl
 install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
