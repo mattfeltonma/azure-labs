@@ -312,8 +312,6 @@
                 "virtualWan": {
                     "id": "[resourceId('Microsoft.Network/virtualWans',variables('vwanName'))]"
                 }
-
-
             }
         },
         {

@@ -504,7 +504,7 @@
                         "value": "[parameters('onPremisesAddressSpace')]"
                     },
                     "firewallIp": {
-                        "value":  "[reference(variables('rgDeploymentNameMediationR1')).outputs.firewallIp.value]"
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.firewallIp.value]"
                     },
                     "keyVaultAdmin": {
                         "value": "[parameters('keyVaultAdmin')]"
@@ -608,7 +608,90 @@
                     "contentVersion": "1.0.0.0"
                 }
             }
-        }
+        },
+        {
+            "name": "[variables('rgDeploymentNameWorkloadR1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionresources')]",
+            "subscriptionId": "[parameters('workloadSubscriptionId')]",
+            "resourceGroup": "[variables('rgDeploymentNameWorkloadR1')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkloadR1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMediationR1'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultAdmin": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "ipDnsServer": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.firewallIp.value]"
+                    },
+                    "ipFirewall": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.firewallIp.value]"
+                    },
+                    "lawResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.lawResourceId.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('primaryLocation')]"
+                    },
+                    "nsgStorageAccountResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.nsgStorageAccountResourceId.value]"
+                    },
+                    "rgNameSharedSvcR1": {
+                        "value": "[variables('rgNameSharedSvcR1')]"
+                    },
+                    "rgNameSharedSvcR2": {
+                        "value": "[variables('rgNameSharedSvcR2')]"
+                    },
+                    "rgNameTransit": {
+                        "value": "[variables('rgNameTransitR1')]"
+                    },
+                    "subIdSharedSvc": {
+                        "value": "[parameters('sharedSvcSubscriptionId')]"
+                    },
+                    "subIdTransit": {
+                        "value": "[parameters('transitSubscriptionId')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "vnetCidr": {
+                        "value": "[variables('vnetCidrWorkloadR1')]"
+                    },
+                    "vnetNameTransit": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitVnetName.value]"
+                    },
+                    "vnetResourceIdTransit": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitVnetResourceId.value]"
+                    },
+                    "vnetSubnetCidrApp": {
+                        "value": "[variables('vnetSubnetCidrWorkloadAppR1')]"
+                    },
+                    "vnetSubnetCidrData": {
+                        "value": "[variables('vnetSubnetCidrWorkloadDataR1')]"
+                    },
+                    "vnetSubnetCidrSvc": {
+                        "value": "[variables('vnetSubnetCidrWorkloadSvcR1')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('templateFileWorkload')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
     ],
     "outputs": {
     }
