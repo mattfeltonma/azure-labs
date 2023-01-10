@@ -617,7 +617,8 @@
             "resourceGroup": "[variables('rgNameWorkloadR1')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkloadR1'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMediationR1'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMediationR1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameSharedSvcR1'))]"
             ],
             "properties": {
                 "mode": "Incremental",
