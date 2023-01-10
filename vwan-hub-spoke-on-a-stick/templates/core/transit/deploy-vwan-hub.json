@@ -34,14 +34,14 @@
             "type": "string",
             "metadata": {
                 "description": "The resource id of the VWAN the hub will be created in"
-            }            
+            }
         }
     },
     "variables": {
         "_apiVersionNetworks": "2022-05-01",
         "virtualNetworkGatewayName": "[concat('vpngw', parameters('location'), parameters('uniqueData'))]",
         "vwanHubName": "[concat('vhub', parameters('location'), parameters('uniqueData'))]",
-        "vwanHubDefaultRouteTableLabelName": "default",        
+        "vwanHubDefaultRouteTableLabelName": "default",
         "vwanHubDefaultRouteTableName": "defaultRouteTable",
         "vwanHubMediationRouteTableLabelName": "mediation",
         "vwanHubMediationRouteTableName": "mediation"
@@ -78,7 +78,6 @@
                 "labels": [
                     "[variables('vwanHubDefaultRouteTableLabelName')]"
                 ]
-
             }
         },
         {
@@ -119,7 +118,7 @@
         "vwanHubName": {
             "type": "string",
             "value": "[variables('vwanHubName')]"
-        },        
+        },
         "vwanHubResourceId": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/virtualHubs',variables('vwanHubName'))]"
