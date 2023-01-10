@@ -154,7 +154,7 @@
         "vnetSubnetCidrTransitBastionR1": "10.1.1.0/27",
         "vnetSubnetCidrTransitBastionR2": "10.9.1.0/27",
         "vnetSubnetCidrWorkloadAppR1": "10.3.0.0/24",
-        "vnetSubnetCidrWorkloadAppR2": "10.3.0.0/24",
+        "vnetSubnetCidrWorkloadAppR2": "10.11.0.0/24",
         "vnetSubnetCidrWorkloadDataR1": "10.3.1.0/24",
         "vnetSubnetCidrWorkloadDataR2": "10.11.1.0/24",
         "vnetSubnetCidrWorkloadSvcR2": "10.3.2.0/24",
@@ -1042,7 +1042,7 @@
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('templateFileWorkload')]",
+                    "uri": "[variables('templateFileRoutes')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
