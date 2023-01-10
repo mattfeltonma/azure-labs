@@ -44,9 +44,7 @@
         "vwanHubDefaultRouteTableLabelName": "default",        
         "vwanHubDefaultRouteTableName": "defaultRouteTable",
         "vwanHubMediationRouteTableLabelName": "mediation",
-        "vwanHubMediationRouteTableName": "mediation",
-        "vwanHubVnetRouteTableLabelName": "vnet",
-        "vwanHubVnetRouteTableName": "vnet"
+        "vwanHubMediationRouteTableName": "mediation"
     },
     "resources": [
         {
@@ -98,27 +96,13 @@
             }
         },
         {
-            "name": "[concat(variables('vwanHubName'),'/',variables('vwanHubVnetRouteTableName'))]",
-            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]",
-                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubMediationRouteTableName'))]"
-            ],
-            "properties": {
-                "labels": [
-                    "[variables('vwanHubVnetRouteTableLabelName')]"
-                ]
-            }
-        },
-        {
             "name": "[variables('virtualNetworkGatewayName')]",
             "type": "Microsoft.Network/vpnGateways",
             "apiVersion": "[variables('_apiVersionNetworks')]",
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubVnetRouteTableName'))]"
+                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubMediationRouteTableName'))]"
             ],
             "properties": {
                 "bgpSettings": {
@@ -148,10 +132,6 @@
             "type": "string",
             "value": "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubMediationRouteTableName'))]"
         },
-        "vwanHubVnetRouteTableResourceId": {
-            "type": "string",
-            "value": "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubVnetRouteTableName'))]"
-        },
         "vwanHubDefaultRouteTableLabelName": {
             "type": "string",
             "value": "[variables('vwanHubDefaultRouteTableLabelName')]"
@@ -160,21 +140,13 @@
             "type": "string",
             "value": "[variables('vwanHubMediationRouteTableLabelName')]"
         },
-        "vwanHubVnetRouteTableLabelName": {
-            "type": "string",
-            "value": "[variables('vwanHubVnetRouteTableLabelName')]"
-        },
         "vwanHubDefaultRouteTableName": {
             "type": "string",
             "value": "[variables('vwanHubDefaultRouteTableName')]"
         },
-        "vwanHubNvaRouteTableName": {
-            "type": "string",
-            "value": "[variables('vwanHubMediationRouteTableName')]"
-        },
         "vwanHubMediationRouteTableName": {
             "type": "string",
-            "value": "[variables('vwanHubVnetRouteTableName')]"
+            "value": "[variables('vwanHubMediationRouteTableName')]"
         }
     }
 }
