@@ -614,7 +614,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionresources')]",
             "subscriptionId": "[parameters('workloadSubscriptionId')]",
-            "resourceGroup": "[variables('rgDeploymentNameWorkloadR1')]",
+            "resourceGroup": "[variables('rgNameWorkloadR1')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkloadR1'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMediationR1'))]"
