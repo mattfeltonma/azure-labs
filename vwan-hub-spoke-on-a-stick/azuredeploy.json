@@ -662,12 +662,6 @@
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
                     },
-                    "vmAdminPassword": {
-                        "value": "[parameters('vmAdminPassword')]"
-                    },
-                    "vmAdminUsername": {
-                        "value": "[parameters('vmAdminUsername')]"
-                    },
                     "vnetCidr": {
                         "value": "[variables('vnetCidrWorkloadR1')]"
                     },
