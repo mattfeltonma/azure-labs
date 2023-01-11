@@ -643,26 +643,20 @@
                     "addressSpaceAzureRegionR1": {
                         "value": "[variables('addressSpaceAzureR1')]"
                     },
-                    "addressSpaceAzureRegionR2": {
-                        "value": "[variables('addressSpaceAzureR2')]"
-                    },
                     "mediationVnetNameR1": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR2')).outputs.transitVnetName.value]"
-                    },
-                    "mediationVnetNameR2": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR2')).outputs.transitVnetName.value]"
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitVnetName.value]"
                     },
                     "regionSetting": {
                         "value": "[parameters('regionSetting')]"
-                    },
-                    "rgNameMediationR2": {
-                        "value": "[variables('rgNameTransitR2')]"
                     },
                     "vhubDefaultRouteTableLabelName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"
                     },
                     "vhubDefaultRouteTableName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableName.value]"
+                    },
+                    "vwanHubNameR1": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
                     }
                 },
                 "templateLink": {
@@ -1086,7 +1080,6 @@
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "resourceGroup": "[variables('rgNameTransitR1')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameWorkloadR1'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameWorkloadR2'))]"
             ],
             "properties": {
@@ -1115,6 +1108,12 @@
                     },
                     "vhubDefaultRouteTableName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableName.value]"
+                    },
+                    "vwanHubNameR1": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
+                    },
+                    "vwanHubNameR2": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
                     }
                 },
                 "templateLink": {

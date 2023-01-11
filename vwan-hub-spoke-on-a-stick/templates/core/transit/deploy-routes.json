@@ -12,7 +12,8 @@
             "type": "string",
             "metadata": {
                 "description": "The address space used in the secondary Azure region"
-            }
+            },
+            "defaultValue": "None"
         },
         "mediationVnetNameR1": {
             "type": "string",
@@ -24,7 +25,8 @@
             "type": "string",
             "metadata": {
                 "description": "The name of the mediation vnet in the secondary region"
-            }
+            },
+            "defaultValue": "None"
         },
         "regionSetting": {
             "type": "string",
@@ -36,7 +38,8 @@
             "type": "string",
             "metadata": {
                 "description": "The name of the mediation resource group in the secondary region"
-            }
+            },
+            "defaultValue": "None"
         },
         "vhubDefaultRouteTableLabelName": {
             "type": "string",
@@ -72,7 +75,8 @@
             "type": "string",
             "metadata": {
                 "description": "The name of the VWAN hub in the secondary region"
-            }
+            },
+            "defaultValue": "None"
         }
     },
     "variables": {
