@@ -647,7 +647,7 @@
                         "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitVnetName.value]"
                     },
                     "regionSetting": {
-                        "value": "[parameters('regionSetting')]"
+                        "value": "single"
                     },
                     "vhubDefaultRouteTableLabelName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"
