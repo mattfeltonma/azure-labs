@@ -655,6 +655,12 @@
                     "vhubDefaultRouteTableName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableName.value]"
                     },
+                    "vhubMediationTableLabelName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubMediationRouteTableLabelName.value]"
+                    },
+                    "vhubMediationTableName": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubMediationRouteTableName.value]"
+                    },
                     "vwanHubNameR1": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
                     }
