@@ -157,8 +157,8 @@
         "vnetSubnetCidrWorkloadAppR2": "10.11.0.0/24",
         "vnetSubnetCidrWorkloadDataR1": "10.3.1.0/24",
         "vnetSubnetCidrWorkloadDataR2": "10.11.1.0/24",
-        "vnetSubnetCidrWorkloadSvcR2": "10.3.2.0/24",
-        "vnetSubnetCidrWorkloadSvcR1": "10.11.2.0/24",
+        "vnetSubnetCidrWorkloadSvcR1": "10.3.2.0/24",
+        "vnetSubnetCidrWorkloadSvcR2": "10.11.2.0/24",
         "vwanHubCidrR1": "10.0.0.0/16",
         "vwanHubCidrR2": "10.8.0.0/16"
     },
