@@ -125,7 +125,7 @@
                             "type": "Microsoft.Network/virtualHubs/hubRouteTables",
                             "apiVersion": "[variables('_apiVersionNetworks')]",
                             "dependsOn": [
-                                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', parameters('vwanHubNameR2'), parameters('vhubDefaultRouteTableName'))]"
+                                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', parameters('vwanHubNameR1'), parameters('vhubDefaultRouteTableName'))]"
                             ],
                             "properties": {
                                 "labels": [
