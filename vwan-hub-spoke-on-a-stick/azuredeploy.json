@@ -1098,7 +1098,7 @@
                         "value": "[variables('addressSpaceAzureR2')]"
                     },
                     "mediationVnetNameR1": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR2')).outputs.transitVnetName.value]"
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitVnetName.value]"
                     },
                     "mediationVnetNameR2": {
                         "value": "[reference(variables('rgDeploymentNameMediationR2')).outputs.transitVnetName.value]"
