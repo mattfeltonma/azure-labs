@@ -219,7 +219,7 @@
                                             "[parameters('addressSpaceAzureRegionR2')]"
                                         ],
                                         "nextHopType": "ResourceId",
-                                        "nextHop": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
+                                        "nextHop": "[resourceId(parameters('rgNameMediationR2'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
                                     }
                                 ]
                             }
@@ -252,7 +252,7 @@
                                             "[parameters('addressSpaceAzureRegionR2')]"
                                         ],
                                         "nextHopType": "ResourceId",
-                                        "nextHop": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
+                                        "nextHop": "[resourceId(parameters('rgNameMediationR2'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
                                     }
                                 ]
                             }
