@@ -1,0 +1,56 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location the VWAN resource is deployed."
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "_apiVersionNetworks": "2022-05-01",
+        "vwanName": "[concat('vwan', parameters('uniqueData'))]"
+
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualWans",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "name": "[variables('vwanName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "allowBranchToBranchTraffic": "true",
+                "allowVnetToVnetTraffic": "true",
+                "disableVpnEncryption": "false",
+                "type": "Standard"
+            }
+        }
+    ],
+    "outputs": {
+        "vwanResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualWans',variables('vwanName'))]"
+        }
+    }
+}
