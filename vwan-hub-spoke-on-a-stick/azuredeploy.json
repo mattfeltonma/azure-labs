@@ -178,7 +178,7 @@
         {
             "name": "[variables('subDeploymentNameTransitR1')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "location": "[parameters('primaryLocation')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "properties": {
@@ -190,7 +190,7 @@
                         {
                             "name": "[variables('rgNameTransitR1')]",
                             "type": "Microsoft.Resources/resourceGroups",
-                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "apiVersion": "[variables('_apiVersionResources')]",
                             "location": "[parameters('primaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
@@ -203,7 +203,7 @@
         {
             "name": "[variables('subDeploymentNameSharedSvcR1')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "location": "[parameters('primaryLocation')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "properties": {
@@ -215,7 +215,7 @@
                         {
                             "name": "[variables('rgNameSharedSvcR1')]",
                             "type": "Microsoft.Resources/resourceGroups",
-                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "apiVersion": "[variables('_apiVersionResources')]",
                             "location": "[parameters('primaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
@@ -228,7 +228,7 @@
         {
             "name": "[variables('subDeploymentNameWorkloadR1')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "location": "[parameters('primaryLocation')]",
             "subscriptionId": "[parameters('workloadSubscriptionId')]",
             "properties": {
@@ -240,7 +240,7 @@
                         {
                             "name": "[variables('rgNameWorkloadR1')]",
                             "type": "Microsoft.Resources/resourceGroups",
-                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "apiVersion": "[variables('_apiVersionResources')]",
                             "location": "[parameters('primaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
@@ -253,7 +253,7 @@
         {
             "name": "[variables('rgDeploymentNameVwan')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "resourceGroup": "[variables('rgNameTransitR1')]",
             "dependsOn": [
@@ -283,7 +283,7 @@
         {
             "name": "[variables('rgDeploymentNameDns')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "resourceGroup": "[variables('rgNameSharedSvcR1')]",
             "dependsOn": [
@@ -316,7 +316,7 @@
         {
             "name": "[variables('rgDeploymentNameVwanHubR1')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "resourceGroup": "[variables('rgNameTransitR1')]",
             "dependsOn": [
@@ -351,7 +351,7 @@
         {
             "name": "[variables('rgDeploymentNameMediationR1')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "resourceGroup": "[variables('rgNameTransitR1')]",
             "dependsOn": [
@@ -425,7 +425,7 @@
         {
             "name": "[variables('rgDeploymentNameSharedSvcR1')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "resourceGroup": "[variables('rgNameSharedSvcR1')]",
             "dependsOn": [
@@ -553,7 +553,7 @@
         {
             "name": "[variables('rgDeploymentNameWorkloadR1')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('workloadSubscriptionId')]",
             "resourceGroup": "[variables('rgNameWorkloadR1')]",
             "dependsOn": [
@@ -631,7 +631,7 @@
         {
             "name": "[variables('rgDeploymentNameRoutesR1')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "resourceGroup": "[variables('rgNameTransitR1')]",
             "dependsOn": [
@@ -675,7 +675,7 @@
             "condition": "[equals(parameters('regionSetting'), 'multi')]",
             "name": "[variables('subDeploymentNameTransitR2')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "location": "[parameters('secondaryLocation')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "dependsOn": [
@@ -690,7 +690,7 @@
                         {
                             "name": "[variables('rgNameTransitR2')]",
                             "type": "Microsoft.Resources/resourceGroups",
-                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "apiVersion": "[variables('_apiVersionResources')]",
                             "location": "[parameters('secondaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
@@ -704,7 +704,7 @@
             "condition": "[equals(parameters('regionSetting'), 'multi')]",
             "name": "[variables('subDeploymentNameSharedSvcR2')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "location": "[parameters('secondaryLocation')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "dependsOn": [
@@ -719,7 +719,7 @@
                         {
                             "name": "[variables('rgNameSharedSvcR2')]",
                             "type": "Microsoft.Resources/resourceGroups",
-                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "apiVersion": "[variables('_apiVersionResources')]",
                             "location": "[parameters('secondaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
@@ -733,7 +733,7 @@
             "condition": "[equals(parameters('regionSetting'), 'multi')]",
             "name": "[variables('subDeploymentNameWorkloadR2')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "location": "[parameters('secondaryLocation')]",
             "subscriptionId": "[parameters('workloadSubscriptionId')]",
             "dependsOn": [
@@ -748,7 +748,7 @@
                         {
                             "name": "[variables('rgNameWorkloadR2')]",
                             "type": "Microsoft.Resources/resourceGroups",
-                            "apiVersion": "[variables('_apiVersionresources')]",
+                            "apiVersion": "[variables('_apiVersionResources')]",
                             "location": "[parameters('secondaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
@@ -762,7 +762,7 @@
             "condition": "[equals(parameters('regionSetting'), 'multi')]",
             "name": "[variables('rgDeploymentNameVwanHubR2')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "resourceGroup": "[variables('rgNameTransitR2')]",
             "dependsOn": [
@@ -799,7 +799,7 @@
             "condition": "[equals(parameters('regionSetting'), 'multi')]",
             "name": "[variables('rgDeploymentNameMediationR2')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "resourceGroup": "[variables('rgNameTransitR2')]",
             "dependsOn": [
@@ -874,7 +874,7 @@
             "condition": "[equals(parameters('regionSetting'), 'multi')]",
             "name": "[variables('rgDeploymentNameSharedSvcR2')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "resourceGroup": "[variables('rgNameSharedSvcR2')]",
             "dependsOn": [
@@ -1003,7 +1003,7 @@
             "condition": "[equals(parameters('regionSetting'), 'multi')]",
             "name": "[variables('rgDeploymentNameWorkloadR2')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('workloadSubscriptionId')]",
             "resourceGroup": "[variables('rgNameWorkloadR2')]",
             "dependsOn": [
@@ -1082,7 +1082,7 @@
             "condition": "[equals(parameters('regionSetting'), 'multi')]",
             "name": "[variables('rgDeploymentNameRoutesR2')]",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionresources')]",
+            "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "resourceGroup": "[variables('rgNameTransitR1')]",
             "dependsOn": [
