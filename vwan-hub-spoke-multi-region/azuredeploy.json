@@ -454,6 +454,9 @@
                     "privateDnsZoneNameAksR1": {
                         "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAksPl.value]"
                     },
+                    "privateDnsZoneNameAksR2": {
+                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAksSl.value]"
+                    },
                     "privateDnsZoneNameAppService": {
                         "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAppService.value]"
                     },
