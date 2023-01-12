@@ -41,7 +41,6 @@
             ],
             "properties": {
                 "allowBranchToBranchTraffic": "true",
-                "allowVnetToVnetTraffic": "true",
                 "disableVpnEncryption": "false",
                 "type": "Standard"
             }
