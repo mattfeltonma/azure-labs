@@ -69,12 +69,6 @@
                 "description": "The name of the Private DNS Zone for AKS private endpoints in the primary region"
             }
         },
-        "privateDnsZoneNameAksR2": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the Private DNS Zone for AKS private endpoints in the secondary region"
-            }
-        },
         "privateDnsZoneNameAppService": {
             "type": "string",
             "metadata": {
@@ -873,28 +867,14 @@
                                 }
                             }
                         },
-                        {
-                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
-                            "apiVersion": "[variables('_apiVersionDns')]",
-                            "name": "[concat(parameters('privateDnsZoneNameAksR2'), '/', variables('privateDnsZoneLinkAksR2'))]",
-                            "location": "global",
-                            "dependsOn": [
-                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameAksR1'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkAksR1'))]"
-                            ],
-                            "properties": {
-                                "registrationEnabled": false,
-                                "virtualNetwork": {
-                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
-                                }
-                            }
-                        },
+
                         {
                             "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
                             "apiVersion": "[variables('_apiVersionDns')]",
                             "name": "[concat(parameters('privateDnsZoneNameAzureSql'), '/', variables('privateDnsZoneLinkAzureSql'))]",
                             "location": "global",
                             "dependsOn": [
-                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameAksR2'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkAksR2'))]"
+                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameAksR1'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkAksR2'))]"
                             ],
                             "properties": {
                                 "registrationEnabled": false,
