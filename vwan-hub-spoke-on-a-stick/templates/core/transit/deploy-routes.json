@@ -85,7 +85,8 @@
         "deploymentNameSingleRegion": "deploy-single-region-routes",
         "deploymentNameMultiRegion1": "deploy-multi-region1-routes",
         "deploymentNameMultiRegion2": "deploy-multi-region2-routes",
-        "rgGroupNameMediationR1": "[resourceGroup().name]"
+        "rgGroupNameMediationR1": "[resourceGroup().name]",
+        "subscriptionIdTransit": "[subscription().subscriptionId]"
     },
     "resources": [
         {
@@ -218,6 +219,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "resourceGroup": "[parameters('rgNameMediationR2')]",
+            "subscriptionId": "[variables('subscriptionIdTransit')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('deploymentNameMultiRegion1'))]"
             ],
