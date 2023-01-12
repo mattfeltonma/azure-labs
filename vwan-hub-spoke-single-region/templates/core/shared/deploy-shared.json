@@ -261,7 +261,6 @@
         "nsgNameSupportSvcs": "[concat('nsg-svcs', variables('locationLetter'), parameters('uniqueData'))]",
         "privateDnsZoneLinkAcr": "[concat(variables('locationLetter'), parameters('uniqueData'),'acrlink')]",
         "privateDnsZoneLinkAksR1": "[concat(variables('locationLetter'), parameters('uniqueData'),'aksr1link')]",
-        "privateDnsZoneLinkAksR2": "[concat(variables('locationLetter'), parameters('uniqueData'),'aksr2link')]",
         "privateDnsZoneLinkAppService": "[concat(variables('locationLetter'), parameters('uniqueData'),'appsvclink')]",
         "privateDnsZoneLinkAzureSql": "[concat(variables('locationLetter'), parameters('uniqueData'),'azsqllink')]",
         "privateDnsZoneLinkKeyVault": "[concat(variables('locationLetter'), parameters('uniqueData'),'keyvaultlink')]",
@@ -874,7 +873,7 @@
                             "name": "[concat(parameters('privateDnsZoneNameAzureSql'), '/', variables('privateDnsZoneLinkAzureSql'))]",
                             "location": "global",
                             "dependsOn": [
-                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameAksR1'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkAksR2'))]"
+                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameAksR1'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkAksR1'))]"
                             ],
                             "properties": {
                                 "registrationEnabled": false,
