@@ -111,7 +111,7 @@
         "deploymentNameVmLinux": "[concat('deploy-vm-linux-w',parameters('workloadNumber'))]",
         "deploymentNameVnetPeering": "[concat('deploy-vnet-peering',parameters('workloadNumber'))]",
         "deploymentUriNsgFlowLog": "[concat(variables('_templatesUriGeneral'), 'deploy-nsg-flow-log.json')]",
-        "deploymentUriVmLinux": "[concat(variables('_templatesUriGeneral'), 'deploy-ubuntu-dev-vm.json')]",
+        "deploymentUriVmLinux": "[concat(variables('_templatesUriGeneral'), 'deploy-ubuntu-vm.json')]",
         "locationLetter": "[substring(parameters('location'),0,1)]",
         "nsgNameApp": "[concat('nsgappw',parameters('workloadNumber'),variables('locationLetter'),parameters('uniqueData'))]",
         "routeTableNameWorkload": "[concat('rt-wl',parameters('workloadNumber'),parameters('location'))]",

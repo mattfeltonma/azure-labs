@@ -39,12 +39,6 @@
                 "description": "The Log and Analytics workspace secret"
             }
         },
-        "serverIpAddress": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address to assign to the VM"
-            }
-        },
         "subnetName": {
             "type": "string",
             "metadata": {
@@ -56,6 +50,13 @@
             "metadata": {
                 "description": "The tags that will be associated to the VM"
             }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
         },
         "virtualMachineSize": {
             "type": "string",
@@ -117,8 +118,7 @@
                     {
                         "name": "ipconfig1",
                         "properties": {
-                            "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[parameters('serverIpAddress')]",
+                            "privateIPAllocationMethod": "Dynamic",
                             "subnet": {
                                 "id": "[variables('vnetSubnetRef')]"
                             }
