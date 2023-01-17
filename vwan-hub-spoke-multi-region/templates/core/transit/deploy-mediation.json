@@ -178,7 +178,6 @@
         "deploymentNameLaw": "deploy-law",
         "deploymentNameNvaVm1": "deploy-nvavm1",
         "deploymentNameNvaVm2": "deploy-nvavm2",
-        "deploymentNameUpdateVhubVnetRoutingTable": "deploy-update-vhub-vnet-route-table",
         "deploymentUriKeyVault": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "deploymentUriKeyVaultSecret": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault-secret.json')]",
         "deploymentUriLaw": "[concat(variables('_generalTemplatesUri'), 'deploy-law.json')]",
@@ -262,6 +261,9 @@
                     },
                     "laWorkspaceResourceId": {
                         "value": "[reference(variables('deploymentNameLaw')).outputs.logAnalyticsResourceId.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
