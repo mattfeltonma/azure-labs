@@ -12,8 +12,7 @@
             "type": "string",
             "metadata": {
                 "description": "The address space used in the secondary Azure region"
-            },
-            "defaultValue": "None"
+            }
         },
         "mediationVnetNameR1": {
             "type": "string",
@@ -25,21 +24,19 @@
             "type": "string",
             "metadata": {
                 "description": "The name of the mediation vnet in the secondary region"
-            },
-            "defaultValue": "None"
-        },
-        "regionSetting": {
-            "type": "string",
-            "metadata": {
-                "description": "Set to either single for single region or multi for multi-region deployment"
             }
         },
-        "rgNameMediationR2": {
+        "rgNameTransitR1": {
             "type": "string",
             "metadata": {
-                "description": "The name of the mediation resource group in the secondary region"
-            },
-            "defaultValue": "None"
+                "description": "The name of the transit resource group in the primary region"
+            }
+        },
+        "rgNameTransitR2": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the transit resource group in the secondary region"
+            }
         },
         "vhubDefaultRouteTableLabelName": {
             "type": "string",
@@ -53,18 +50,6 @@
                 "description": "The name of the defaultRouteTable in the VWAN hubs"
             }
         },
-        "vhubMediationRouteTableLabelName": {
-            "type": "string",
-            "metadata": {
-                "description": "The label associated with the mediation route table in the vhubs"
-            }
-        },
-        "vhubMediationRouteTableName": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the mediation route table in the VWAN hubs"
-            }
-        },
         "vwanHubNameR1": {
             "type": "string",
             "metadata": {
@@ -75,78 +60,21 @@
             "type": "string",
             "metadata": {
                 "description": "The name of the VWAN hub in the secondary region"
-            },
-            "defaultValue": "None"
+            }
         }
     },
     "variables": {
         "_apiVersionNetworks": "2022-05-01",
         "_apiVersionResources": "2020-06-01",
-        "deploymentNameSingleRegion": "deploy-single-region-routes",
         "deploymentNameMultiRegion1": "deploy-multi-region1-routes",
-        "deploymentNameMultiRegion2": "deploy-multi-region2-routes",
-        "rgGroupNameMediationR1": "[resourceGroup().name]",
-        "subscriptionIdTransit": "[subscription().subscriptionId]"
+        "deploymentNameMultiRegion2": "deploy-multi-region2-routes"
     },
     "resources": [
         {
-            "condition": "[equals(parameters('regionSetting'), 'single')]",
-            "name": "[variables('deploymentNameSingleRegion')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionResources')]",
-            "properties": {
-                "mode": "Incremental",
-                "template": {
-                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                    "contentVersion": "1.0.0.0",
-                    "parameters": {},
-                    "variables": {},
-                    "resources": [
-                        {
-                            "name": "[concat(parameters('vwanHubNameR1'),'/',parameters('vhubDefaultRouteTableName'))]",
-                            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
-                            "apiVersion": "[variables('_apiVersionNetworks')]",
-                            "properties": {
-                                "labels": [
-                                    "[parameters('vhubDefaultRouteTableLabelName')]"
-                                ],
-                                "routes": [
-                                    {
-                                        "name": "azureregion1",
-                                        "destinationType": "CIDR",
-                                        "destinations": [
-                                            "[parameters('addressSpaceAzureRegionR1')]"
-                                        ],
-                                        "nextHopType": "ResourceId",
-                                        "nextHop": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR1'), concat(parameters('mediationVnetNameR1'), '-conn'))]"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "[concat(parameters('vwanHubNameR1'),'/',parameters('vhubMediationRouteTableName'))]",
-                            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
-                            "apiVersion": "[variables('_apiVersionNetworks')]",
-                            "dependsOn": [
-                                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', parameters('vwanHubNameR1'), parameters('vhubDefaultRouteTableName'))]"
-                            ],
-                            "properties": {
-                                "labels": [
-                                    "[parameters('vhubMediationRouteTableLabelName')]"
-                                ],
-                                "routes": [
-                                ]
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "condition": "[equals(parameters('regionSetting'), 'multi')]",
             "name": "[variables('deploymentNameMultiRegion1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('rgNameTransitR1')]",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -171,7 +99,7 @@
                                             "[parameters('addressSpaceAzureRegionR1')]"
                                         ],
                                         "nextHopType": "ResourceId",
-                                        "nextHop": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR1'), concat(parameters('mediationVnetNameR1'), '-conn'))]"
+                                        "nextHop": "[resourceId(parameters('rgNameTransitR1'), 'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR1'), concat(parameters('mediationVnetNameR1'), '-conn'))]"
                                     },
                                     {
                                         "name": "azureregion2",
@@ -180,31 +108,7 @@
                                             "[parameters('addressSpaceAzureRegionR2')]"
                                         ],
                                         "nextHopType": "ResourceId",
-                                        "nextHop": "[resourceId(parameters('rgNameMediationR2'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "[concat(parameters('vwanHubNameR1'),'/',parameters('vhubMediationRouteTableName'))]",
-                            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
-                            "apiVersion": "[variables('_apiVersionNetworks')]",
-                            "dependsOn": [
-                                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', parameters('vwanHubNameR1'), parameters('vhubDefaultRouteTableName'))]"
-                            ],
-                            "properties": {
-                                "labels": [
-                                    "[parameters('vhubMediationRouteTableLabelName')]"
-                                ],
-                                "routes": [
-                                    {
-                                        "name": "azureregion2",
-                                        "destinationType": "CIDR",
-                                        "destinations": [
-                                            "[parameters('addressSpaceAzureRegionR2')]"
-                                        ],
-                                        "nextHopType": "ResourceId",
-                                        "nextHop": "[resourceId(parameters('rgNameMediationR2'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
+                                        "nextHop": "[resourceId(parameters('rgNameTransitR2'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
                                     }
                                 ]
                             }
@@ -214,15 +118,10 @@
             }
         },
         {
-            "condition": "[equals(parameters('regionSetting'), 'multi')]",
             "name": "[variables('deploymentNameMultiRegion2')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "resourceGroup": "[parameters('rgNameMediationR2')]",
-            "subscriptionId": "[variables('subscriptionIdTransit')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameMultiRegion1'))]"
-            ],
+            "resourceGroup": "[parameters('rgNameTransitR2')]",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -247,7 +146,7 @@
                                             "[parameters('addressSpaceAzureRegionR1')]"
                                         ],
                                         "nextHopType": "ResourceId",
-                                        "nextHop": "[resourceId(variables('rgGroupNameMediationR1'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR1'), concat(parameters('mediationVnetNameR1'), '-conn'))]"
+                                        "nextHop": "[resourceId(parameters('rgNameTransitR1'), 'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR1'), concat(parameters('mediationVnetNameR1'), '-conn'))]"
                                     },
                                     {
                                         "name": "azureregion2",
@@ -256,31 +155,7 @@
                                             "[parameters('addressSpaceAzureRegionR2')]"
                                         ],
                                         "nextHopType": "ResourceId",
-                                        "nextHop": "[resourceId(parameters('rgNameMediationR2'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "name": "[concat(parameters('vwanHubNameR2'),'/',parameters('vhubMediationRouteTableName'))]",
-                            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
-                            "apiVersion": "[variables('_apiVersionNetworks')]",
-                            "dependsOn": [
-                                "[resourceId(parameters('rgNameMediationR2'),'Microsoft.Network/virtualHubs/hubRouteTables', parameters('vwanHubNameR2'), parameters('vhubDefaultRouteTableName'))]"
-                            ],
-                            "properties": {
-                                "labels": [
-                                    "[parameters('vhubMediationRouteTableLabelName')]"
-                                ],
-                                "routes": [
-                                    {
-                                        "name": "azureregion1",
-                                        "destinationType": "CIDR",
-                                        "destinations": [
-                                            "[parameters('addressSpaceAzureRegionR1')]"
-                                        ],
-                                        "nextHopType": "ResourceId",
-                                        "nextHop": "[resourceId(variables('rgGroupNameMediationR1'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR1'), concat(parameters('mediationVnetNameR1'), '-conn'))]"
+                                        "nextHop": "[resourceId(parameters('rgNameTransitR2'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
                                     }
                                 ]
                             }
