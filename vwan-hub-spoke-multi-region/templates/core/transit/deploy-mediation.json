@@ -577,7 +577,7 @@
                         "value": "[parameters('location')]"
                     },
                     "targetLaWorkspaceResourceId": {
-                        "value": "[reference(variables('deploymentNameLaw')).outputs.logAnalyticsName.value]"
+                        "value": "[reference(variables('deploymentNameLaw')).outputs.logAnalyticsResourceId.value]"
                     },
                     "targetNsgName": {
                         "value": "[variables('nsgNameBastion')]"
