@@ -120,8 +120,8 @@
         "vmNameLinux": "[concat('vmlw',variables('locationLetter'),parameters('workloadNumber'),parameters('uniqueData'))]",
         "vmSku": "Standard_D4s_v5",
         "vnetName": "[concat('vnetwl',parameters('workloadNumber'),parameters('location'), parameters('uniqueData'))]",
-        "vnetPeeringWorkloadToMediation": "peersworkload1tomed",
-        "vnetPeeringMediationToShared": "peermedtoworkload1",
+        "vnetPeeringWorkloadToMediation": "[concat('peerworkload', parameters('workloadNumber'), 'tomed')]",
+        "vnetPeeringMediationToShared": "[concat('peermedtoworkload', parameters('workloadNumber'))]",
         "vnetSubnetNameWorkloadApp": "snet-app",
         "vnetStandardDdosProtection": false
     },
