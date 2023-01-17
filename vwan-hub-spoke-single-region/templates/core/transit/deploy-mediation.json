@@ -67,6 +67,12 @@
                 "description": "The IP address block assigned to the mediation virtual network"
             }
         },
+        "vnetCidrSharedSvc": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address block assigned to the shared services virtual network"
+            }
+        },
         "vnetCidrWorkload": {
             "type": "string",
             "metadata": {
@@ -103,22 +109,16 @@
                 "description": "The name of the VWAN Hub the virtual network will be attached to"
             }
         },
-        "vwanHubMediationRouteTableResourceId": {
+        "vwanHubDefaultRouteTableResourceId": {
             "type": "string",
             "metadata": {
-                "description": "The resource id of the VWAN mediation route table"
+                "description": "The resource id of the VWAN defaultRouteTable"
             }
         },
         "vwanHubDefaultRouteTableLabelName": {
             "type": "string",
             "metadata": {
                 "description": "The label name assigned to the VWAN defaultRouteTable route table"
-            }
-        },
-        "vwanHubMediationRouteTableLabelName": {
-            "type": "string",
-            "metadata": {
-                "description": "The label name assigned to the VWAN mediation route table"
             }
         }
     },
@@ -704,20 +704,26 @@
                 },
                 "routingConfiguration": {
                     "associatedRouteTable": {
-                        "id": "[parameters('vwanHubMediationRouteTableResourceId')]"
+                        "id": "[parameters('vwanHubDefaultRouteTableResourceId')]"
                     },
                     "propagatedRouteTables": {
                         "labels": [
-                            "[parameters('vwanHubDefaultRouteTableLabelName')]",
-                            "[parameters('vwanHubMediationRouteTableLabelName')]"
+                            "[parameters('vwanHubDefaultRouteTableLabelName')]"
                         ]
                     },
                     "vnetRoutes": {
                         "staticRoutes": [
                             {
-                                "name": "[concat('azure-',parameters('location'))]",
+                                "name": "[concat('azure-',parameters('location'), 'ss')]",
                                 "addressPrefixes": [
-                                    "[parameters('addressSpaceAzureRegion')]"
+                                    "[parameters('vnetCidrSharedSvc')]"
+                                ],
+                                "nextHopIpAddress": "[reference(variables('azureFirewallName')).ipConfigurations[0].properties.privateIPAddress]"
+                            },
+                            {
+                                "name": "[concat('azure-',parameters('location'), 'wl')]",
+                                "addressPrefixes": [
+                                    "[parameters('vnetCidrWorkload')]"
                                 ],
                                 "nextHopIpAddress": "[reference(variables('azureFirewallName')).ipConfigurations[0].properties.privateIPAddress]"
                             }

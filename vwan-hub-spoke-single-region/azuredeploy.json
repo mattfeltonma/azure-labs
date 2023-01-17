@@ -333,6 +333,9 @@
                     "vnetCidr": {
                         "value": "[variables('vnetCidrTransitR1')]"
                     },
+                    "vnetCidrSharedSvc": {
+                        "value": "[variables('vnetCidrSharedSvcR1')]"
+                    },
                     "vnetCidrWorkload": {
                         "value": "[variables('vnetCidrWorkloadR1')]"
                     },
@@ -351,14 +354,11 @@
                     "vwanHubName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
                     },
-                    "vwanHubMediationRouteTableResourceId": {
-                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubMediationRouteTableResourceId.value]"
+                    "vwanHubDefaultRouteTableResourceId": {
+                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableResourceId.value]"
                     },
                     "vwanHubDefaultRouteTableLabelName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"
-                    },
-                    "vwanHubMediationRouteTableLabelName": {
-                        "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubMediationRouteTableLabelName.value]"
                     }
                 },
                 "templateLink": {
