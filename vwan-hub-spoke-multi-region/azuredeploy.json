@@ -457,6 +457,9 @@
                     "vnetCidr": {
                         "value": "[variables('vnetCidrWorkload1R1')]"
                     },
+                    "vnetNameMediation": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.vnetNameMediation.value]"
+                    },
                     "vnetResourceIdMediation": {
                         "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.vnetResourceIdMediation.value]"
                     },
@@ -521,6 +524,9 @@
                     },
                     "vnetCidr": {
                         "value": "[variables('vnetCidrWorkload2R1')]"
+                    },
+                    "vnetNameMediation": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.vnetNameMediation.value]"
                     },
                     "vnetResourceIdMediation": {
                         "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.vnetResourceIdMediation.value]"
@@ -805,6 +811,9 @@
                     "vnetCidr": {
                         "value": "[variables('vnetCidrWorkload1R2')]"
                     },
+                    "vnetNameMediation": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR2')).outputs.vnetNameMediation.value]"
+                    },
                     "vnetResourceIdMediation": {
                         "value": "[reference(variables('rgDeploymentNameMediationR2')).outputs.vnetResourceIdMediation.value]"
                     },
@@ -869,6 +878,9 @@
                     },
                     "vnetCidr": {
                         "value": "[variables('vnetCidrWorkload2R2')]"
+                    },
+                    "vnetNameMediation": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR2')).outputs.vnetNameMediation.value]"
                     },
                     "vnetResourceIdMediation": {
                         "value": "[reference(variables('rgDeploymentNameMediationR2')).outputs.vnetResourceIdMediation.value]"

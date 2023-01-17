@@ -1246,6 +1246,10 @@
             "type": "string",
             "value": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].properties.PrivateIPAddress]"
         },
+        "vnetNameMediation": {
+            "type": "string",
+            "value": "[variables('vnetName')]"
+        },
         "vnetResourceIdMediation": {
             "type": "string",
             "value": "[resourceId('Microsoft.Network/virtualNetworks',variables('vnetName'))]"
