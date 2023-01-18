@@ -1,0 +1,82 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "addressSpaceAzureRegionR1": {
+            "type": "string",
+            "metadata": {
+                "description": "The address space used in the primary Azure region"
+            }
+        },
+        "mediationVnetNameR1": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the mediation vnet in the primary region"
+            }
+        },
+        "vhubDefaultRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The label associated with the defaultRouteTable in the vhubs"
+            }
+        },
+        "vhubDefaultRouteTableName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the defaultRouteTable in the VWAN hubs"
+            }
+        },
+        "vwanHubNameR1": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the VWAN hub in the primary region"
+            }
+        }
+    },
+    "variables": {
+        "_apiVersionNetworks": "2022-05-01",
+        "_apiVersionResources": "2020-06-01",
+        "deploymentNameSingleRegion": "deploy-single-region-routes"
+    },
+    "resources": [
+        {
+            "name": "[variables('deploymentNameSingleRegion')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('vwanHubNameR1'),'/',parameters('vhubDefaultRouteTableName'))]",
+                            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
+                            "properties": {
+                                "labels": [
+                                    "[parameters('vhubDefaultRouteTableLabelName')]"
+                                ],
+                                "routes": [
+                                    {
+                                        "name": "azureregion1",
+                                        "destinationType": "CIDR",
+                                        "destinations": [
+                                            "[parameters('addressSpaceAzureRegionR1')]"
+                                        ],
+                                        "nextHopType": "ResourceId",
+                                        "nextHop": "[resourceId('Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR1'), concat(parameters('mediationVnetNameR1'), '-conn'))]"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}

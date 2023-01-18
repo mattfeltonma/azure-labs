@@ -1,0 +1,280 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "defaultAction": {
+            "type": "string",
+            "metadata": {
+                "description": "Set the default network rule to allow all traffic or deny all traffic"
+            },
+            "allowedValues": [
+                "Allow",
+                "Deny"
+            ],
+            "defaultValue": "Deny"
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The Azure region to deploy the resource to"
+            }
+        },
+        "storageAccountNamePrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "The prefix name to append to the storage account name"
+            }
+        },
+        "storageAccountSku": {
+            "type": "string",
+            "metadata": {
+                "description": "The sku of storage account to create"
+            },
+            "defaultValue": "Standard_RAGRS"
+        },
+        "laWorkspaceResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource ID of the Log Analytics Workspace the logs and metrics will be sent to"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the VM"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "_apiVersionDiagnostics": "2021-05-01-preview",
+        "_apiVersionStorage": "2019-06-01",
+        "storageAccountName": "[concat(parameters('storageAccountNamePrefix'),parameters('location'),parameters('uniqueData'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('storageAccountName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "[variables('_apiVersionStorage')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "kind": "StorageV2",
+            "sku": {
+                "name": "[parameters('storageAccountSku')]"
+            },
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "[parameters('defaultAction')]"
+                },
+                "supportsHttpsTrafficOnly": true
+            }
+        },
+        {
+            "name": "[concat(variables('storageAccountName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.Storage/storageAccounts/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostics')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[parameters('laWorkspaceResourceId')]",
+                "logs": [
+                ],
+                "metrics": [
+                    {
+                        "category": "Capacity",
+                        "enabled": true
+                    },
+                    {
+                        "category": "Transaction",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
+            "type": "Microsoft.Storage/storageAccounts/blobServices/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostics')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                 "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'),'/providers/microsoft.insights/diagnosticSettings/diag')]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[parameters('laWorkspaceResourceId')]",
+                "logs": [
+                    {
+                        "category": "StorageRead",
+                        "enabled": true
+                    },
+                    {
+                        "category": "StorageWrite",
+                        "enabled": true
+                    },
+                    {
+                        "category": "StorageDelete",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "Capacity",
+                        "enabled": true
+                    },
+                    {
+                        "category": "Transaction",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
+            "type": "Microsoft.Storage/storageAccounts/fileServices/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostics')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                 "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'),'/blobServices/default','/providers/microsoft.insights/diagnosticSettings/diag')]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[parameters('laWorkspaceResourceId')]",
+                "logs": [
+                    {
+                        "category": "StorageRead",
+                        "enabled": true
+                    },
+                    {
+                        "category": "StorageWrite",
+                        "enabled": true
+                    },
+                    {
+                        "category": "StorageDelete",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "Capacity",
+                        "enabled": true
+                    },
+                    {
+                        "category": "Transaction",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
+            "type": "Microsoft.Storage/storageAccounts/queueServices/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostics')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                 "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'),'/fileServices/default','/providers/microsoft.insights/diagnosticSettings/diag')]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[parameters('laWorkspaceResourceId')]",
+                "logs": [
+                    {
+                        "category": "StorageRead",
+                        "enabled": true
+                    },
+                    {
+                        "category": "StorageWrite",
+                        "enabled": true
+                    },
+                    {
+                        "category": "StorageDelete",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "Capacity",
+                        "enabled": true
+                    },
+                    {
+                        "category": "Transaction",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[concat(variables('storageAccountName'),'/default/microsoft.insights/diag')]",
+            "type": "Microsoft.Storage/storageAccounts/tableServices/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostics')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                 "[concat('Microsoft.Storage/storageAccounts/',variables('storageAccountName'),'/queueServices/default','/providers/microsoft.insights/diagnosticSettings/diag')]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[parameters('laWorkspaceResourceId')]",
+                "logs": [
+                    {
+                        "category": "StorageRead",
+                        "enabled": true
+                    },
+                    {
+                        "category": "StorageWrite",
+                        "enabled": true
+                    },
+                    {
+                        "category": "StorageDelete",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                    {
+                        "category": "Capacity",
+                        "enabled": true
+                    },
+                    {
+                        "category": "Transaction",
+                        "enabled": true
+                    }
+                ]
+            },
+            "resources": [
+            ]
+        }
+    ],
+    "outputs": {
+        "storageAccountName": {
+            "type": "string",
+            "value": "[variables('storageAccountName')]"
+        },
+        "storageAccountResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        }
+    }
+}

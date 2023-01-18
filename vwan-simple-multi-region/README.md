@@ -1,4 +1,4 @@
-# Azure VWAN Basic Lab
+# Azure VWAN Multi-Region Simple Any/Any Lab
 
 ## Updates
 12/2022 - Initial release

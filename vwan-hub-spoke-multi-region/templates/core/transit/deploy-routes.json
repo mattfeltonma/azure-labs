@@ -1,0 +1,170 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "addressSpaceAzureRegionR1": {
+            "type": "string",
+            "metadata": {
+                "description": "The address space used in the primary Azure region"
+            }
+        },
+        "addressSpaceAzureRegionR2": {
+            "type": "string",
+            "metadata": {
+                "description": "The address space used in the secondary Azure region"
+            }
+        },
+        "mediationVnetNameR1": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the mediation vnet in the primary region"
+            }
+        },
+        "mediationVnetNameR2": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the mediation vnet in the secondary region"
+            }
+        },
+        "rgNameTransitR1": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the transit resource group in the primary region"
+            }
+        },
+        "rgNameTransitR2": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the transit resource group in the secondary region"
+            }
+        },
+        "vhubDefaultRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The label associated with the defaultRouteTable in the vhubs"
+            }
+        },
+        "vhubDefaultRouteTableName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the defaultRouteTable in the VWAN hubs"
+            }
+        },
+        "vwanHubNameR1": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the VWAN hub in the primary region"
+            }
+        },
+        "vwanHubNameR2": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the VWAN hub in the secondary region"
+            }
+        }
+    },
+    "variables": {
+        "_apiVersionNetworks": "2022-05-01",
+        "_apiVersionResources": "2020-06-01",
+        "deploymentNameMultiRegion1": "deploy-multi-region1-routes",
+        "deploymentNameMultiRegion2": "deploy-multi-region2-routes"
+    },
+    "resources": [
+        {
+            "name": "[variables('deploymentNameMultiRegion1')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('rgNameTransitR1')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('vwanHubNameR1'),'/',parameters('vhubDefaultRouteTableName'))]",
+                            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
+                            "properties": {
+                                "labels": [
+                                    "[parameters('vhubDefaultRouteTableLabelName')]"
+                                ],
+                                "routes": [
+                                    {
+                                        "name": "azureregion1",
+                                        "destinationType": "CIDR",
+                                        "destinations": [
+                                            "[parameters('addressSpaceAzureRegionR1')]"
+                                        ],
+                                        "nextHopType": "ResourceId",
+                                        "nextHop": "[resourceId(parameters('rgNameTransitR1'), 'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR1'), concat(parameters('mediationVnetNameR1'), '-conn'))]"
+                                    },
+                                    {
+                                        "name": "azureregion2",
+                                        "destinationType": "CIDR",
+                                        "destinations": [
+                                            "[parameters('addressSpaceAzureRegionR2')]"
+                                        ],
+                                        "nextHopType": "ResourceId",
+                                        "nextHop": "[resourceId(parameters('rgNameTransitR1'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameMultiRegion2')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('rgNameTransitR1')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('vwanHubNameR2'),'/',parameters('vhubDefaultRouteTableName'))]",
+                            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
+                            "properties": {
+                                "labels": [
+                                    "[parameters('vhubDefaultRouteTableLabelName')]"
+                                ],
+                                "routes": [
+                                    {
+                                        "name": "azureregion1",
+                                        "destinationType": "CIDR",
+                                        "destinations": [
+                                            "[parameters('addressSpaceAzureRegionR1')]"
+                                        ],
+                                        "nextHopType": "ResourceId",
+                                        "nextHop": "[resourceId(parameters('rgNameTransitR1'), 'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR1'), concat(parameters('mediationVnetNameR1'), '-conn'))]"
+                                    },
+                                    {
+                                        "name": "azureregion2",
+                                        "destinationType": "CIDR",
+                                        "destinations": [
+                                            "[parameters('addressSpaceAzureRegionR2')]"
+                                        ],
+                                        "nextHopType": "ResourceId",
+                                        "nextHop": "[resourceId(parameters('rgNameTransitR1'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}
