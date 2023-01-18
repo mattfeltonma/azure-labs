@@ -68,6 +68,12 @@
                 "description": "The resource group name of the Network Watcher resource"
             }
         },
+        "rgNameVwan": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group where the VWAN resource exists"
+            }
+        },
         "tags": {
             "type": "object",
             "metadata": {
@@ -178,6 +184,7 @@
         "deploymentNameLaw": "deploy-law",
         "deploymentNameNvaVm1": "deploy-nvavm1",
         "deploymentNameNvaVm2": "deploy-nvavm2",
+        "deploymentNameVhubConnection": "[concat('deploy-vhub-connection', parameters('location'))]",
         "deploymentUriKeyVault": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "deploymentUriKeyVaultSecret": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault-secret.json')]",
         "deploymentUriLaw": "[concat(variables('_generalTemplatesUri'), 'deploy-law.json')]",
@@ -202,11 +209,11 @@
         "publicIpBastion": "[concat('pip-bst',parameters('location'))]",
         "publicIpVm1": "[concat('pip-nva-vm1',parameters('location'))]",
         "publicIpVm2": "[concat('pip-nva-vm2',parameters('location'))]",
-        "resourceGroupTransit": "[resourceGroup().name]",
+        "rgNameMediation": "[resourceGroup().name]",
         "routeTableInnerName": "[concat('rt-inner',parameters('location'))]",
         "routeTableOuterName": "[concat('rt-outer',parameters('location'))]",
         "storageAccountNsg": "[concat('st', variables('locationLetter'), parameters('uniqueData'))]",
-        "subscriptionIdTransit": "[subscription().subscriptionId]",
+        "subscriptionIdMediation": "[subscription().subscriptionId]",
         "vmNameVm1": "[substring(concat('vmnva1',variables('locationLetter'),parameters('uniqueData')),0,15)]",
         "vmNameVm2": "[substring(concat('vmnva2',variables('locationLetter'),parameters('uniqueData')),0,15)]",
         "vmSku": "Standard_D4s_v5",
@@ -1180,6 +1187,19 @@
             }
         },
         {
+            "name": "[variables('deploymentNameVhubConnection')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResource')]",
+            "resourceGroup": "[parameters('rgNameVwan')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+        {
             "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
             "name": "[concat(parameters('vwanHubName'),'/',variables('vnetName'),'-conn')]",
             "apiVersion": "[variables('_apiVersionNetwork')]",
@@ -1191,7 +1211,7 @@
                 "allowRemoteVnetToUseHubVnetGateways": true,
                 "enableInternetSecurity": true,
                 "remoteVirtualNetwork": {
-                    "id": "[resourceid('Microsoft.Network/virtualNetworks',variables('vnetName'))]"
+                    "id": "[resourceid(variables('rgNameMediation'),'Microsoft.Network/virtualNetworks',variables('vnetName'))]"
                 },
                 "routingConfiguration": {
                     "associatedRouteTable": {
@@ -1222,6 +1242,10 @@
                     }
                 }
 
+            }
+        }
+                    ]
+                }
             }
         }
     ],
