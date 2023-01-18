@@ -121,7 +121,7 @@
             "name": "[variables('deploymentNameMultiRegion2')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "resourceGroup": "[parameters('rgNameTransitR2')]",
+            "resourceGroup": "[parameters('rgNameTransitR1')]",
             "properties": {
                 "mode": "Incremental",
                 "template": {
