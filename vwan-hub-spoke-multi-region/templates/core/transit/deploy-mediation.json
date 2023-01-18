@@ -175,6 +175,7 @@
         "_apiVersionResource": "2020-06-01",
         "_apiVersionStorage": "2019-06-01",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
+        "bastionName": "[concat('bst', variables('locationLetter'), parameters('uniqueData'))]",
         "deploymentNameAssignRouteTables": "deploy-assign-route-tables",
         "deploymentNameNsgFlowLogBastion": "deploy-nsg-flow-log-bastion",
         "deploymentNameNsgFlowLogOuter": "deploy-nsg-flow-log-outer",
@@ -1187,12 +1188,64 @@
             }
         },
         {
+            "name": "[variables('bastionName')]",
+            "type": "Microsoft.Network/bastionHosts",
+            "apiVersion": "[variables('_apiVersionNetwork')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpBastion'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameAssignRouteTables'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "bastionConfig",
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('vnetSubnetNameTransitBastion'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpBastion'))]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[concat(variables('bastionName'),'/microsoft.insights/diag')]",
+            "type": "Microsoft.Network/bastionHosts/providers/diagnosticSettings",
+            "apiVersion": "[variables('_apiVersionDiagnostic')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/bastionHosts',variables('bastionName'))]"
+            ],
+            "properties": {
+                "name": "SendToWorkspace",
+                "workspaceId": "[reference(variables('deploymentNameLaw')).outputs.logAnalyticsResourceId.value]",
+                "logs": [
+                    {
+                        "category": "BastionAuditLogs",
+                        "enabled": true
+                    }
+                ],
+                "metrics": [
+                ]
+            },
+            "resources": [
+            ]
+        },
+        {
             "name": "[variables('deploymentNameVhubConnection')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResource')]",
             "resourceGroup": "[parameters('rgNameVwan')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameAssignRouteTables'))]"
+                "[resourceId('Microsoft.Network/bastionHosts',variables('bastionName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
