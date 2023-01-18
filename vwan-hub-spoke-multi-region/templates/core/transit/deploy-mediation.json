@@ -219,7 +219,7 @@
         "vmNameVm2": "[substring(concat('vmnva2',variables('locationLetter'),parameters('uniqueData')),0,15)]",
         "vmSku": "Standard_D4s_v5",
         "vnetName": "[concat('vnet-transit',variables('locationLetter'),parameters('uniqueData'))]",
-        "vnetSubnetNameTransitBastion": "snet-bastion",
+        "vnetSubnetNameTransitBastion": "AzureBastionSubnet",
         "vnetSubnetNameTransitNvaInner": "snet-nvainner",
         "vnetSubnetNameTransitNvaOuter": "snet-nvaouter",
         "vnetStandardDdosProtection": false
