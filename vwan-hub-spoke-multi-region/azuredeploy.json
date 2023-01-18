@@ -713,6 +713,9 @@
                     "rgNameNetworkWatcher": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
                     },
+                    "rgNameVwan": {
+                        "value": "[variables('rgNameTransitR1')]"
+                    },
                     "tags": {
                         "value": "[parameters('tags')]"
                     },
