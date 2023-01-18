@@ -468,7 +468,7 @@
                         "value": "[variables('vnetCidrWorkloadR1')]"
                     },
                     "vnetNameTransit": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitVnetName.value]"
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.mediationVnetName.value]"
                     },
                     "vnetResourceIdTransit": {
                         "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitVnetResourceId.value]"
