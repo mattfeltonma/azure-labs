@@ -643,7 +643,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "location": {
-                        "value": "[parameters('primaryLocation')]"
+                        "value": "[parameters('secondaryLocation')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
