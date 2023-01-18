@@ -1,4 +1,4 @@
-# Azure VWAN "VWAN Hub-and-Spoke-on-a-Stick - Single Region Lab"
+# Azure VWAN Single Region "VWAN Hub-and-Spoke-on-a-Stick"
 
 ## Updates
 1/2023 - Initial release
@@ -10,8 +10,7 @@ This deployable lab provides an enteprise-like environment supporting north/sout
 
 The lab deploys an Azure Virtual WAN with a single VWAN hub in a single region. The VWAN hub is deployed with a VPN Gateway.
 
-Directly attached to the VWAN Hub is a mediation virtual network. Within this virtual network there are two Ubuntu VMs configured with as simple firewalls using iptables and kernal support for VRFs. These VMs are placed behind both an internal and external load balancer. This configuration closely emualates a 3rd-party security appliance deployment such as Palo Alto firewalls. Quagga comes pre-installed and can configured to experiment with the [BGP support of VWAN](https://learn.microsoft.com/en-us/azure/virtual-wan/create-bgp-peering-hub-portal).
-An Azure Bastion instance is additionally deployed to each mediation VNet to allow for SSH access to the VMs in each region. 
+Directly attached to the VWAN Hub is a mediation virtual network. Within this virtual network there are two Ubuntu VMs configured with as simple firewalls using iptables and kernal support for VRFs. These VMs are placed behind both an internal and external load balancer. This configuration closely emualates a 3rd-party security appliance deployment such as Palo Alto firewalls. Quagga comes pre-installed and can configured to experiment with the [BGP support of VWAN](https://learn.microsoft.com/en-us/azure/virtual-wan/create-bgp-peering-hub-portal). An Azure Bastion instance is additionally deployed to each mediation VNet to allow for SSH access to the VMs in each region. 
 
 Two virtual networks are peered to the mediation virtual network using virtual network peering. The shared services virtual network contains an [Azure Private DNS Resolver](https://learn.microsoft.com/en-us/azure/dns/dns-private-resolver-overview) and is linked to multiple Azure Private DNS Zones used by common Azure PaaS services. All virtual networks are configured to use the Private DNS Resolver for DNS resolution. Ubuntu and Windows VMs are deployed as utility servers. The Windows VM comes loaded with Google Chrome, Visual Studio Code, Azure CLI, and Azure PowerShell. The Linux VM comes loaded with Azure CLI, kubectl, and Docker. 
 
