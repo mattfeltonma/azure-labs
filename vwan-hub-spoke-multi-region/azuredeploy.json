@@ -633,7 +633,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
-            "resourceGroup": "[variables('rgNameTransitR2')]",
+            "resourceGroup": "[variables('rgNameTransitR1')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameTransitR2'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload1R2'))]",
