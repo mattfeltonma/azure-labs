@@ -1191,6 +1191,9 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResource')]",
             "resourceGroup": "[parameters('rgNameVwan')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameAssignRouteTables'))]"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -1199,51 +1202,48 @@
                     "parameters": {},
                     "variables": {},
                     "resources": [
-        {
-            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
-            "name": "[concat(parameters('vwanHubName'),'/',variables('vnetName'),'-conn')]",
-            "apiVersion": "[variables('_apiVersionNetwork')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameAssignRouteTables'))]"
-            ],
-            "properties": {
-                "allowHubToRemoteVnetTransit": true,
-                "allowRemoteVnetToUseHubVnetGateways": true,
-                "enableInternetSecurity": true,
-                "remoteVirtualNetwork": {
-                    "id": "[resourceid(variables('rgNameMediation'),'Microsoft.Network/virtualNetworks',variables('vnetName'))]"
-                },
-                "routingConfiguration": {
-                    "associatedRouteTable": {
-                        "id": "[parameters('vwanHubDefaultRouteTableResourceId')]"
-                    },
-                    "propagatedRouteTables": {
-                        "labels": [
-                            "[parameters('vwanHubDefaultRouteTableLabelName')]"
-                        ]
-                    },
-                    "vnetRoutes": {
-                        "staticRoutes": [
-                            {
-                                "name": "[concat('azure', parameters('location'), 'wl1')]",
-                                "addressPrefixes": [
-                                    "[parameters('vnetCidrWorkload1')]"
-                                ],
-                                "nextHopIpAddress": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].properties.PrivateIPAddress]"
-                            },
-                            {
-                                "name": "[concat('azure', parameters('location'), 'wl2')]",
-                                "addressPrefixes": [
-                                    "[parameters('vnetCidrWorkload2')]"
-                                ],
-                                "nextHopIpAddress": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].properties.PrivateIPAddress]"
-                            }
-                        ]
-                    }
-                }
+                        {
+                            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
+                            "name": "[concat(parameters('vwanHubName'),'/',variables('vnetName'),'-conn')]",
+                            "apiVersion": "[variables('_apiVersionNetwork')]",
+                            "properties": {
+                                "allowHubToRemoteVnetTransit": true,
+                                "allowRemoteVnetToUseHubVnetGateways": true,
+                                "enableInternetSecurity": true,
+                                "remoteVirtualNetwork": {
+                                    "id": "[resourceid(variables('rgNameMediation'),'Microsoft.Network/virtualNetworks',variables('vnetName'))]"
+                                },
+                                "routingConfiguration": {
+                                    "associatedRouteTable": {
+                                        "id": "[parameters('vwanHubDefaultRouteTableResourceId')]"
+                                    },
+                                    "propagatedRouteTables": {
+                                        "labels": [
+                                            "[parameters('vwanHubDefaultRouteTableLabelName')]"
+                                        ]
+                                    },
+                                    "vnetRoutes": {
+                                        "staticRoutes": [
+                                            {
+                                                "name": "[concat('azure', parameters('location'), 'wl1')]",
+                                                "addressPrefixes": [
+                                                    "[parameters('vnetCidrWorkload1')]"
+                                                ],
+                                                "nextHopIpAddress": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].properties.PrivateIPAddress]"
+                                            },
+                                            {
+                                                "name": "[concat('azure', parameters('location'), 'wl2')]",
+                                                "addressPrefixes": [
+                                                    "[parameters('vnetCidrWorkload2')]"
+                                                ],
+                                                "nextHopIpAddress": "[reference(variables('loadBalNameInternal')).frontendIPConfigurations[0].properties.PrivateIPAddress]"
+                                            }
+                                        ]
+                                    }
+                                }
 
-            }
-        }
+                            }
+                        }
                     ]
                 }
             }
