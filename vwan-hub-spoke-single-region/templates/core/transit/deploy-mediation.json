@@ -750,7 +750,7 @@
             "type": "string",
             "value": "[reference(variables('deploymentNameStorageAccountNsg')).outputs.storageAccountResourceId.value]"
         },
-        "transitVnetName": {
+        "mediationVnetName": {
             "type": "string",
             "value": "[variables('vnetName')]"
         },

@@ -582,6 +582,9 @@
                     "addressSpaceAzureRegionR1": {
                         "value": "[variables('addressSpaceAzureR1')]"
                     },
+                    "mediationVnetNameR1": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.mediationVnetName.value]"
+                    },
                     "vhubDefaultRouteTableLabelName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"
                     },
