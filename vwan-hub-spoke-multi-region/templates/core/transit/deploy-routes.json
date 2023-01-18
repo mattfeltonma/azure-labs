@@ -108,7 +108,7 @@
                                             "[parameters('addressSpaceAzureRegionR2')]"
                                         ],
                                         "nextHopType": "ResourceId",
-                                        "nextHop": "[resourceId(parameters('rgNameTransitR2'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
+                                        "nextHop": "[resourceId(parameters('rgNameTransitR1'),'Microsoft.Network/virtualHubs/hubVirtualNetworkConnections', parameters('vwanHubNameR2'), concat(parameters('mediationVnetNameR2'), '-conn'))]"
                                     }
                                 ]
                             }
