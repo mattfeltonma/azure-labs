@@ -856,7 +856,7 @@
                         "value": "[reference(variables('rgDeploymentNameMediationR2')).outputs.lawResourceId.value]"
                     },
                     "location": {
-                        "value": "[parameters('primaryLocation')]"
+                        "value": "[parameters('secondaryLocation')]"
                     },
                     "rgNameNetworkWatcher": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
