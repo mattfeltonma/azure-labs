@@ -57,7 +57,7 @@ Additional features included:
 3.  You will be prompted to provide a password for the local administrator of the virtual machines. The username and password you set will be available to you as secrets in the Key Vault provisioned as part of this lab.
 
 ## Post Installation
-Once the lab is deployed, you can SSH into the virtual machines from a machine associated with the trusted IP.
+Once the lab is deployed, you can SSH into the virtual machines using the Azure Bastion instance.
 
 ## Removal
 Once finished with the lab you can delete the resource groups.
