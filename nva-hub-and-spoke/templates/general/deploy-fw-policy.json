@@ -115,7 +115,8 @@
                                         "ruleConditionType": "NetworkRuleCondition",
                                         "ruleType": "NetworkRule",
                                         "destinationFqdns": [
-                                            "kms.core.windows.net"
+                                            "kms.core.windows.net",
+                                            "azkms.core.windows.net"
                                         ]
                                     },
                                     {
