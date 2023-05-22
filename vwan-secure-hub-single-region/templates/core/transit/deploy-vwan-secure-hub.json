@@ -180,7 +180,7 @@
                 "firewallPolicy": {
                     "id": "[reference(variables('deploymentNameAzureFirewallPolicy')).outputs.firewallPolicyId.value]"
                 },
-                "hubIpAddress": {
+                "hubIpAddresses": {
                     "publicIPs": {
                         "count": 1
                     }
