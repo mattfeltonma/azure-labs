@@ -127,6 +127,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubDefaultRouteTableName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
