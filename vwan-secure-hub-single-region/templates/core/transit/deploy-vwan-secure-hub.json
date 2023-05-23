@@ -84,6 +84,7 @@
         "deploymentUriAzureFirewall": "[concat(variables('_templatesUriGeneral'), 'deploy-fw-policy.json')]",
         "dnsServerIpPlaceholder": "168.63.129.16",
         "locationLetter": "[substring(parameters('location'),0,1)]",
+        "virtualNetworkGatewayName": "[concat('vpngw', parameters('location'), parameters('uniqueData'))]",
         "vwanHubName": "[concat('vhub', parameters('location'), parameters('uniqueData'))]",
         "vwanHubDefaultRouteTableLabelName": "default",
         "vwanHubDefaultRouteTableName": "defaultRouteTable"
@@ -123,11 +124,30 @@
             }
         },
         {
+            "name": "[variables('virtualNetworkGatewayName')]",
+            "type": "Microsoft.Network/vpnGateways",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubDefaultRouteTableName'))]"
+            ],
+            "properties": {
+                "bgpSettings": {
+                    "asn": 65515
+                },
+                "virtualHub": {
+                    "id": "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
+                },
+                "vpnGatewayScaleUnit": "1"
+            }
+        },
+        {
             "name": "[variables('deploymentNameAzureFirewallPolicy')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubDefaultRouteTableName'))]"
+                "[resourceId('Microsoft.Network/vpnGateways', variables('virtualNetworkGatewayName'))]"
             ],
             "properties": {
                 "mode": "Incremental",
