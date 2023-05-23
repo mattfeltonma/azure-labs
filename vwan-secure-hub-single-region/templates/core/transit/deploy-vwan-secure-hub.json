@@ -232,6 +232,10 @@
         }
     ],
     "outputs": {
+        "azureFirewallIp": {
+            "type": "string",
+            "value": "[reference(variables('azureFirewallName')).ipConfigurations[0].privateIPAddress]"
+        },
         "vwanHubName": {
             "type": "string",
             "value": "[variables('vwanHubName')]"
