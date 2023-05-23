@@ -234,7 +234,7 @@
     "outputs": {
         "azureFirewallIp": {
             "type": "string",
-            "value": "[reference(variables('azureFirewallName')).ipConfigurations[0].privateIPAddress]"
+            "value": "[reference(variables('azureFirewallName')).hubIpAddresses.privateIPAddress]"
         },
         "vwanHubName": {
             "type": "string",
