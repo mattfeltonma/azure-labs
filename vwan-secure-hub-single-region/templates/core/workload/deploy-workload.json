@@ -134,7 +134,6 @@
         "deployKeyVaultApp": "deploy-kv-app",
         "deployKeyVaultPe": "deploy-kv-pe",
         "deployKeyVaultAppPerm": "deploy-kv-app-perm",
-        "deployWorkloadVnetPeering": "deploy-workload-vnet-peering",
         "deploymentNamevHubConnection": "deploy-vhub-connection-workload",
         "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
@@ -146,15 +145,10 @@
         "svcNsgName": "[concat('nsg-svc',parameters('uniqueData'))]",
         "svcNsgFlowLogDeploymentName": "deploy-svcflowlog",
         "workloadVnetName": "[concat('vnet-workload', variables('locationLetter') ,parameters('uniqueData'))]",
-        "workloadAppRouteTableName": "rt-app",
-        "workloadDataRouteTableName": "rt-data",
         "workloadAppSubnetName": "snet-app",
         "workloadDataSubnetName": "snet-data",
         "workloadVnetSvcSubnetName": "snet-svc",
-        "workloadToTransitPeeringName": "peerworkloadtotransit",
-        "workloadRgName": "[resourceGroup().name]",
-        "workloadUmi": "[concat('umi',variables('locationLetter'), parameters('uniqueData'))]",
-        "transitToWorkloadPeeringName": "peertransittoworkload"
+        "workloadUmi": "[concat('umi',variables('locationLetter'), parameters('uniqueData'))]"
     },
     "resources": [
         {
@@ -378,7 +372,7 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/routeTables',variables('workloadDataRouteTableName'))]"
+                "[resourceId('Microsoft.Resources/deployments', variables('svcNsgFlowLogDeploymentName'))]"
             ],
             "properties": {
                 "addressSpace": {
