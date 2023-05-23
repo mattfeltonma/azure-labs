@@ -14,12 +14,6 @@
                 "description": "The IP address to set for the Virtual Network DNS server"
             }
         },
-        "ipFirewall": {
-            "type": "string",
-            "metadata": {
-                "description": "The IP address of the Azure Firewall to route traffic to"
-            }
-        },
         "lawResourceId": {
             "type": "string",
             "metadata": {
@@ -91,18 +85,6 @@
                 "description": "The IP address block assigned to the Workload virtual network"
             }
         },
-        "vnetNameTransit": {
-            "type": "string",
-            "metadata": {
-                "description": "The name assigned to the Transit virtual network"
-            }
-        },
-        "vnetResourceIdTransit": {
-            "type": "string",
-            "metadata": {
-                "description": "The resource id of the Transit virtual network"
-            }
-        },
         "vnetSubnetCidrApp": {
             "type": "string",
             "metadata": {
@@ -120,6 +102,24 @@
             "metadata": {
                 "description": "The IP address block assigned to the subnet used for other services in the Workload virtual network"
             }
+        },
+        "vwanHubName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the VWAN Hub"
+            }
+        },
+        "vwanHubDefaultRouteTableResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the default route table for the VWAN Hub"
+            }
+        },
+        "vwanHubDefaultRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The label name of the default route table for the VWAN Hub"
+            }
         }
     },
     "variables": {
@@ -135,6 +135,7 @@
         "deployKeyVaultPe": "deploy-kv-pe",
         "deployKeyVaultAppPerm": "deploy-kv-app-perm",
         "deployWorkloadVnetPeering": "deploy-workload-vnet-peering",
+        "deploymentNamevHubConnection": "deploy-vhub-connection-workload",
         "keyVaultDeploymentUri": "[concat(variables('_generalTemplatesUri'), 'deploy-key-vault.json')]",
         "keyVaultDnsZoneName": "privatelink.vaultcore.azure.net",
         "keyVaultNamePrefix": "[concat('kvapp', variables('locationLetter'), parameters('uniqueData'))]",
@@ -371,56 +372,6 @@
             }
         },
         {
-            "name": "[variables('workloadAppRouteTableName')]",
-            "type": "Microsoft.Network/routeTables",
-            "apiVersion": "[variables('_apiVersionNetwork')]",
-            "location": "[parameters('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/',variables('svcNsgFlowLogDeploymentName'))]"
-            ],
-            "properties": {
-                "routes": [
-                    {
-                        "name": "udr-default",
-                        "properties": {
-                            "addressPrefix": "0.0.0.0/0",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[parameters('ipFirewall')]"
-                        }
-                    }
-                ],
-                "disableBgpRoutePropagation": "True"
-            },
-            "resources": [
-            ]
-        },
-        {
-            "name": "[variables('workloadDataRouteTableName')]",
-            "type": "Microsoft.Network/routeTables",
-            "apiVersion": "[variables('_apiVersionNetwork')]",
-            "location": "[parameters('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/routeTables',variables('workloadAppRouteTableName'))]"
-            ],
-            "properties": {
-                "routes": [
-                    {
-                        "name": "udr-default",
-                        "properties": {
-                            "addressPrefix": "0.0.0.0/0",
-                            "nextHopType": "VirtualAppliance",
-                            "nextHopIpAddress": "[parameters('ipFirewall')]"
-                        }
-                    }
-                ],
-                "disableBgpRoutePropagation": "True"
-            },
-            "resources": [
-            ]
-        },
-        {
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('workloadVnetName')]",
             "apiVersion": "[variables('_apiVersionNetwork')]",
@@ -440,9 +391,6 @@
                         "name": "[variables('workloadAppSubnetName')]",
                         "properties": {
                             "addressPrefix": "[parameters('vnetSubnetCidrApp')]",
-                            "routeTable": {
-                                "id": "[resourceId('Microsoft.Network/routeTables',variables('workloadAppRouteTableName'))]"
-                            },
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appNsgName'))]"
                             },
@@ -453,9 +401,6 @@
                         "name": "[variables('workloadDataSubnetName')]",
                         "properties": {
                             "addressPrefix": "[parameters('vnetSubnetCidrData')]",
-                            "routeTable": {
-                                "id": "[resourceId('Microsoft.Network/routeTables',variables('workloadDataRouteTableName'))]"
-                            },
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('dataNsgName'))]"
                             },
@@ -484,7 +429,7 @@
             ]
         },
         {
-            "name": "[variables('deployWorkloadVnetPeering')]",
+            "name": "[variables('deploymentNamevHubConnection')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResource')]",
             "subscriptionId": "[parameters('subIdTransit')]",
@@ -501,17 +446,30 @@
                     "variables": {},
                     "resources": [
                         {
-                            "name": "[concat(parameters('vnetNameTransit'),'/',variables('transitToWorkloadPeeringName'))]",
-                            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+                            "name": "[concat(parameters('vwanHubName'),'/',variables('workloadVnetName'),'-conn')]",
+                            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
                             "apiVersion": "[variables('_apiVersionNetwork')]",
                             "location": "[resourceGroup().location]",
                             "properties": {
-                                "allowVirtualNetworkAccess": "true",
-                                "allowForwardedTraffic": "true",
-                                "allowGatewayTransit": "false",
-                                "useRemoteGateways": "false",
+                                "allowHubToRemoteVnetTransit": true,
+                                "allowRemoteVnetToUseHubVnetGateways": true,
+                                "enableInternetSecurity": true,
                                 "remoteVirtualNetwork": {
-                                    "id": "[resourceId(variables('workloadRgName'), 'Microsoft.Network/virtualNetworks', variables('workloadVnetName'))]"
+                                    "id": "[resourceid('Microsoft.Network/virtualNetworks',variables('workloadVnetName'))]"
+                                },
+                                "routingConfiguration": {
+                                    "associatedRouteTable": {
+                                        "id": "[parameters('vwanHubDefaultRouteTableResourceId')]"
+                                    },
+                                    "propagatedRouteTables": {
+                                        "labels": [
+                                            "[parameters('vwanHubDefaultRouteTableLabelName')]"
+                                        ]
+                                    },
+                                    "vnetRoutes": {
+                                        "staticRoutes": [
+                                        ]
+                                    }
                                 }
                             }
                         }
@@ -520,29 +478,11 @@
             }
         },
         {
-            "name": "[concat(variables('workloadVnetName'),'/',variables('workloadToTransitPeeringName'))]",
-            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
-            "apiVersion": "[variables('_apiVersionNetwork')]",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('deployWorkloadVnetPeering'))]"
-            ],
-            "properties": {
-                "allowVirtualNetworkAccess": "true",
-                "allowForwardedTraffic": "true",
-                "allowGatewayTransit": "false",
-                "useRemoteGateways": "false",
-                "remoteVirtualNetwork": {
-                    "id": "[parameters('vnetResourceIdTransit')]"
-                }
-            }
-        },
-        {
             "name": "[variables('deployKeyVaultPe')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResource')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks/virtualNetworkPeerings',variables('workloadVnetName'), variables('workloadToTransitPeeringName'))]"
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNamevHubConnection'))]"
             ],
             "properties": {
                 "mode": "Incremental",
