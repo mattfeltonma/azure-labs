@@ -481,11 +481,11 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "dnsServerIp": {
+                        "value": "[reference(variables('rgDeploymentNameVwanSecureHubR1')).outputs.azureFirewallIp.value]"
+                    },
                     "keyVaultAdmin": {
                         "value": "[parameters('keyVaultAdmin')]"
-                    },
-                    "ipDnsServer": {
-                        "value": "[reference(variables('rgDeploymentNameVwanSecureHubR1')).outputs.azureFirewallIp.value]"
                     },
                     "lawResourceId": {
                         "value": "[reference(variables('rgDeploymentNameMonitoring')).outputs.lawResourceId.value]"
