@@ -372,7 +372,7 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('svcNsgFlowLogDeploymentName'))]"
+                "[concat('Microsoft.Resources/deployment/', variables('svcNsgFlowLogDeploymentName'))]"
             ],
             "properties": {
                 "addressSpace": {
