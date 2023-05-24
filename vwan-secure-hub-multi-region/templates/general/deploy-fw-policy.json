@@ -1,0 +1,410 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "cloudAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "The summarized IP address space used for this lab"
+            }
+        },
+        "devSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The subnet CIDR assigned to the subnet containing the development virtual machines"
+            }
+        },
+        "dnsServerIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP of the DNS server"
+            }
+        }, 
+        "dnsSubnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The subnet CIDR assigned to the subnet containing the Private DNS Resolver Inbound Endpoint"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location to the resource will be deployed to"
+            }
+        },  
+        "onPremisesAddressSpace": {
+            "type": "string",
+            "metadata": {
+                "description": "The summarized IP address space used for on-premises"
+            }
+        },        
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        },
+        "workloadVnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The subnet CIDR assigned to the workload virtual network"
+            }
+        }
+    },
+    "variables": {
+        "_apiVersionFwPolicy": "2020-11-01",
+        "azureFirewallPolicyName": "[concat('afwpol',parameters('location'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('azureFirewallPolicyName')]",
+            "type": "Microsoft.Network/firewallPolicies",
+            "apiVersion": "[variables('_apiVersionFwPolicy')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "dnsSettings": {
+                    "enableProxy": true,
+                    "servers": [
+                        "[parameters('dnsServerIp')]"
+                    ]
+                },
+                "sku": {
+                    "tier": "Standard"
+                },
+                "threatIntelMode": "Alert"
+            },
+            "resources": [
+                {
+                    "name": "DefaultDnatRuleCollectionGroup",
+                    "type": "ruleCollectionGroups",
+                    "apiVersion": "[variables('_apiVersionFwPolicy')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('azureFirewallPolicyName'))]"
+                    ],
+                    "properties": {
+                        "priority": 100,
+                        "ruleCollections": [
+                        ]
+                    }
+                },
+                {
+                    "name": "DefaultNetworkRuleCollectionGroup",
+                    "type": "ruleCollectionGroups",
+                    "apiVersion": "[variables('_apiVersionFwPolicy')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('azureFirewallPolicyName'))]",
+                        "[concat('Microsoft.Network/firewallPolicies/', variables('azureFirewallPolicyName'), '/ruleCollectionGroups/', 'DefaultDnatRuleCollectionGroup')]"
+                    ],
+                    "properties": {
+                        "priority": 200,
+                        "ruleCollections": [
+                            {
+                                "name": "AllowWindowsVmRequired",
+                                "priority": 100,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowKMSActivation",
+                                        "ipProtocols": [
+                                            "TCP"
+                                        ],
+                                        "destinationPorts": [
+                                            "1688"
+                                        ],
+                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "destinationIpGroups": [],
+                                        "destinationAddresses": [],
+                                        "ruleConditionType": "NetworkRuleCondition",
+                                        "ruleType": "NetworkRule",
+                                        "destinationFqdns": [
+                                            "kms.core.windows.net",
+                                            "azkms.core.windows.net"
+                                        ]
+                                    },
+                                    {
+                                        "name": "AllowNtp",
+                                        "ipProtocols": [
+                                            "TCP",
+                                            "UDP"
+                                        ],
+                                        "destinationPorts": [
+                                            "123"
+                                        ],
+                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "destinationIpGroups": [],
+                                        "destinationAddresses": [],
+                                        "ruleConditionType": "NetworkRuleCondition",
+                                        "ruleType": "NetworkRule",
+                                        "destinationFqdns": [
+                                            "time.windows.com"
+                                        ]
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            },
+                            {
+                                "name": "AllowUbuntuVmRequired",
+                                "priority": 200,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowNtp",
+                                        "ipProtocols": [
+                                            "TCP",
+                                            "UDP"
+                                        ],
+                                        "destinationPorts": [
+                                            "123"
+                                        ],
+                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "destinationIpGroups": [],
+                                        "destinationAddresses": [],
+                                        "ruleConditionType": "NetworkRuleCondition",
+                                        "ruleType": "NetworkRule",
+                                        "destinationFqdns": [
+                                            "ntp.ubuntu.com"
+                                        ]
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            },
+                            {
+                                "name": "AllowOnPremisesRemote",
+                                "priority": 300,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowOnPremRemoteAccess",
+                                        "ipProtocols": [
+                                            "TCP"
+                                        ],
+                                        "destinationPorts": [
+                                            "22",
+                                            "3389"
+                                        ],
+                                        "sourceAddresses": [
+                                            "[parameters('onPremisesAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "destinationIpGroups": [],
+                                        "destinationAddresses": [
+                                            "[parameters('cloudAddressSpace')]"
+                                        ],
+                                        "ruleConditionType": "NetworkRuleCondition",
+                                        "ruleType": "NetworkRule"
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            },
+                            {
+                                "name": "AllowDns",
+                                "priority": 400,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowDnsToInboundEndpoint",
+                                        "ipProtocols": [
+                                            "TCP",
+                                            "UDP"
+                                        ],
+                                        "destinationPorts": [
+                                            "53"
+                                        ],
+                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]",
+                                            "[parameters('onPremisesAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "destinationIpGroups": [],
+                                        "destinationAddresses": [
+                                            "[parameters('dnsSubnetCidr')]"
+                                        ],
+                                        "ruleConditionType": "NetworkRuleCondition",
+                                        "ruleType": "NetworkRule"
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            },
+                            {
+                                "name": "AllowDevVmWorkload",
+                                "priority": 500,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowDevVmToWorkloadVnet",
+                                        "ipProtocols": [
+                                            "Any"
+                                        ],
+                                        "destinationPorts": [
+                                            "*"
+                                        ],
+                                        "sourceAddresses": [
+                                            "[parameters('devSubnetCidr')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "destinationIpGroups": [],
+                                        "destinationAddresses": [
+                                            "[parameters('workloadVnetCidr')]"
+                                        ],
+                                        "ruleConditionType": "NetworkRuleCondition",
+                                        "ruleType": "NetworkRule"
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "DefaultApplicationRuleCollectionGroup",
+                    "type": "ruleCollectionGroups",
+                    "apiVersion": "[variables('_apiVersionFwPolicy')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/firewallPolicies', variables('azureFirewallPolicyName'))]",
+                        "[concat('Microsoft.Network/firewallPolicies/', variables('azureFirewallPolicyName'), '/ruleCollectionGroups/', 'DefaultNetworkRuleCollectionGroup')]"
+                    ],
+                    "properties": {
+                        "priority": 300,
+                        "ruleCollections": [
+                            {
+                                "name": "AllowAzureToInternetTraffic",
+                                "priority": 100,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowAzureResourcesToInternet",
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            },
+                                            {
+                                                "protocolType": "Http",
+                                                "port": 80
+                                            }
+                                        ],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "targetFqdns": [
+                                            "*"
+                                        ],
+                                        "fqdnTags": [],
+                                        "ruleType": "ApplicationRule"
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            },
+                            {
+                                "name": "AllowInfraAzureTraffic",
+                                "priority": 200,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowVmToAppServices",
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            },
+                                            {
+                                                "protocolType": "Http",
+                                                "port": 80
+                                            }
+                                        ],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "targetFqdns": [
+                                            "*"
+                                        ],
+                                        "fqdnTags": [],
+                                        "ruleType": "ApplicationRule"
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            },
+                            {
+                                "name": "AllowOnPremToAzure",
+                                "priority": 300,
+                                "action": {
+                                    "type": "Allow"
+                                },
+                                "rules": [
+                                    {
+                                        "name": "AllowVmToAppServices",
+                                        "protocols": [
+                                            {
+                                                "protocolType": "Https",
+                                                "port": 443
+                                            },
+                                            {
+                                                "protocolType": "Http",
+                                                "port": 80
+                                            }
+                                        ],
+                                        "terminateTLS": false,
+                                        "sourceAddresses": [
+                                            "[parameters('onPremisesAddressSpace')]"
+                                        ],
+                                        "sourceIpGroups": [],
+                                        "targetFqdns": [
+                                            "*"
+                                        ],
+                                        "fqdnTags": [],
+                                        "ruleType": "ApplicationRule"
+                                    }
+                                ],
+                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "firewallPolicyId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/firewallPolicies', variables('azureFirewallPolicyName'))]"
+        }
+    }
+}
