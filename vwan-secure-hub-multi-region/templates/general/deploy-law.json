@@ -28,7 +28,8 @@
     "variables": {
         "_apiVersionLaw": "2015-11-01-preview",
         "_apiVersionWorkspaceSecrets": "2015-03-20",
-        "laWorkspaceName": "[concat('la', parameters('uniqueData'))]"
+        "locationLetter": "[substring(parameters('location'),0,1)]",
+        "laWorkspaceName": "[concat('la', variables('locationLetter'), parameters('uniqueData'))]"
    
     },
     "resources": [
