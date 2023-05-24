@@ -342,7 +342,6 @@
                 }
             }
         },
-,
         {
             "name": "[variables('rgDeploymentNameDns')]",
             "type": "Microsoft.Resources/deployments",
