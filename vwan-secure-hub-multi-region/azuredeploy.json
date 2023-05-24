@@ -250,7 +250,7 @@
                     "contentVersion": "1.0.0.0",
                     "resources": [
                         {
-                            "name": "[variables('rgNameSharedSvcR1')]",
+                            "name": "[variables('rgNameSharedSvcR2')]",
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "[variables('_apiVersionResources')]",
                             "location": "[parameters('secondaryLocation')]",
@@ -300,7 +300,7 @@
                     "contentVersion": "1.0.0.0",
                     "resources": [
                         {
-                            "name": "[variables('rgNameWorkloadR1')]",
+                            "name": "[variables('rgNameWorkloadR2')]",
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "[variables('_apiVersionResources')]",
                             "location": "[parameters('secondaryLocation')]",
