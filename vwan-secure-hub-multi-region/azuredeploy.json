@@ -200,7 +200,7 @@
                     "contentVersion": "1.0.0.0",
                     "resources": [
                         {
-                            "name": "[variables('rgNameTransitR1')]",
+                            "name": "[variables('rgNameTransitR2')]",
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "[variables('_apiVersionResources')]",
                             "location": "[parameters('secondaryLocation')]",
