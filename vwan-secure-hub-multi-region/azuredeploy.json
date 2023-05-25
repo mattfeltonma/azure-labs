@@ -909,7 +909,7 @@
                         "value": "[reference(variables('rgDeploymentNameMonitoringR2')).outputs.nsgStorageAccountResourceId.value]"
                     },
                     "rgNameSharedSvcR1": {
-                        "value": "[variables('rgNameSharedSvcR2')]"
+                        "value": "[variables('rgNameSharedSvcR1')]"
                     },
                     "rgNameTransit": {
                         "value": "[variables('rgNameTransitR2')]"
