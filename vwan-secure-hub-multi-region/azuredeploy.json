@@ -500,6 +500,7 @@
             "resourceGroup": "[variables('rgNameTransitR2')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameTransitR2'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameVwanSecureHubR1'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMonitoringR2'))]"
 
             ],
