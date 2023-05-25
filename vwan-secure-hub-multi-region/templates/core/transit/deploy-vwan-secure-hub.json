@@ -26,6 +26,12 @@
                 "description": "The location the VWAN hub"
             }
         },
+        "rgNameVwan": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the resource group the VWAN is deployed in"
+            }
+        },
         "tags": {
             "type": "object",
             "metadata": {
@@ -81,6 +87,7 @@
         "azureFirewallName": "[concat('afw', variables('locationLetter'), parameters('uniqueData'))]",
         "azureFirewallSkuTier": "Standard",
         "deploymentNameAzureFirewallPolicy": "[concat('deploy-fw-policy', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNamevHub": "[concat('deploy-vhub', variables('locationLetter'), parameters('uniqueData'))]",
         "deploymentUriAzureFirewall": "[concat(variables('_templatesUriGeneral'), 'deploy-fw-policy.json')]",
         "dnsServerIpPlaceholder": "168.63.129.16",
         "locationLetter": "[substring(parameters('location'),0,1)]",
@@ -91,55 +98,74 @@
     },
     "resources": [
         {
-            "type": "Microsoft.Network/virtualHubs",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "name": "[variables('vwanHubName')]",
-            "location": "[parameters('location')]",
-            "tags": "[parameters('tags')]",
+            "name": "[variables('deploymentNamevHub')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('rgNameVwan')]",
+            "dependsOn": [
+            ],
             "properties": {
-                "addressPrefix": "[parameters('vwanHubCidr')]",
-                "hubRoutingPreference": "ExpressRoute",
-                "preferredRoutingGateway": "ExpressRoute",
-                "sku": "Standard",
-                "virtualRouterAsn": "65515",
-                "virtualRouterAutoScaleConfiguration": {
-                    "minCapacity": 2
-                },
-                "virtualWan": {
-                     "id": "[parameters('vwanResourceId')]"
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualHubs",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
+                            "name": "[variables('vwanHubName')]",
+                            "location": "[parameters('location')]",
+                            "tags": "[parameters('tags')]",
+                            "properties": {
+                                "addressPrefix": "[parameters('vwanHubCidr')]",
+                                "hubRoutingPreference": "ExpressRoute",
+                                "preferredRoutingGateway": "ExpressRoute",
+                                "sku": "Standard",
+                                "virtualRouterAsn": "65515",
+                                "virtualRouterAutoScaleConfiguration": {
+                                    "minCapacity": 2
+                                },
+                                "virtualWan": {
+                                    "id": "[parameters('vwanResourceId')]"
+                                }
+                            }
+                        },
+                        {
+                            "name": "[concat(variables('vwanHubName'),'/',variables('vwanHubDefaultRouteTableName'))]",
+                            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
+                            ],
+                            "properties": {
+                                "labels": [
+                                    "[variables('vwanHubDefaultRouteTableLabelName')]"
+                                ]
+                            }
+                        },
+                        {
+                            "name": "[variables('virtualNetworkGatewayName')]",
+                            "type": "Microsoft.Network/vpnGateways",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
+                            "location": "[parameters('location')]",
+                            "tags": "[parameters('tags')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubDefaultRouteTableName'))]"
+                            ],
+                            "properties": {
+                                "bgpSettings": {
+                                    "asn": 65515
+                                },
+                                "virtualHub": {
+                                    "id": "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
+                                },
+                                "vpnGatewayScaleUnit": "1"
+                            }
+                        }
+                    ]
                 }
-            }
-        },
-        {
-            "name": "[concat(variables('vwanHubName'),'/',variables('vwanHubDefaultRouteTableName'))]",
-            "type": "Microsoft.Network/virtualHubs/hubRouteTables",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
-            ],
-            "properties": {
-                "labels": [
-                    "[variables('vwanHubDefaultRouteTableLabelName')]"
-                ]
-            }
-        },
-        {
-            "name": "[variables('virtualNetworkGatewayName')]",
-            "type": "Microsoft.Network/vpnGateways",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[parameters('location')]",
-            "tags": "[parameters('tags')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualHubs/hubRouteTables', variables('vwanHubName'), variables('vwanHubDefaultRouteTableName'))]"
-            ],
-            "properties": {
-                "bgpSettings": {
-                    "asn": 65515
-                },
-                "virtualHub": {
-                    "id": "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
-                },
-                "vpnGatewayScaleUnit": "1"
             }
         },
         {
@@ -147,7 +173,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/vpnGateways', variables('virtualNetworkGatewayName'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNamevHub'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -193,7 +219,7 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('deploymentNameAzureFirewallPolicy'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNamevHub'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deploymentNameAzureFirewallPolicy'))]"
             ],
             "properties": {
@@ -205,12 +231,12 @@
                         "count": 1
                     }
                 },
-                "sku":{
+                "sku": {
                     "name": "AZFW_Hub",
                     "tier": "[variables('azureFirewallSkuTier')]"
                 },
                 "virtualHub": {
-                    "id": "[resourceId('Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
+                    "id": "[resourceId(parameters('rgNameVwan'),'Microsoft.Network/virtualHubs', variables('vwanHubName'))]"
                 }
             }
         },
@@ -262,7 +288,7 @@
         },
         "vwanHubResourceId": {
             "type": "string",
-            "value": "[resourceId('Microsoft.Network/virtualHubs',variables('vwanHubName'))]"
+            "value": "[resourceId(parameters('rgNameVwan'),'Microsoft.Network/virtualHubs',variables('vwanHubName'))]"
         },
         "vwanHubDefaultRouteTableResourceId": {
             "type": "string",
