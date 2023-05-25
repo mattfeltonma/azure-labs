@@ -683,6 +683,7 @@
             "resourceGroup": "[variables('rgNameSharedSvcR2')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameSharedSvcR2'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameSharedSvcR1'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameVwanSecureHubR2'))]"
             ],
             "properties": {
