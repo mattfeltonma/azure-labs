@@ -1,4 +1,4 @@
-{
+{ 
     "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
@@ -15,7 +15,7 @@
             },
             "defaultValue": "192.168.0.0/16"
         },
-        "location": {
+        "primaryLocation": {
             "type": "string",
             "metadata": {
                 "description": "The primary Azure region to deploy resources to."
@@ -59,10 +59,10 @@
             },
             "defaultValue": "[subscription().subscriptionId]"
         },
-        "workloadSubscriptionId": {
+        "workload1SubscriptionId": {
             "type": "string",
             "metadata": {
-                "description": "The id of the subscription where the Workload resource group and resources will be deployed"
+                "description": "The id of the subscription where first workload resource group and resources will be deployed"
             },
             "defaultValue": "[subscription().subscriptionId]"
         },
@@ -84,14 +84,14 @@
         "addressSpaceAzure": "10.0.0.0/8",
         "addressSpaceAzureR1": "10.0.0.0/13",
         "rgDeploymentNameDns": "[concat('deploy-dns',parameters('uniqueData'))]",
-        "rgDeploymentNameMonitoring": "[concat('deploy-monitoring',parameters('uniqueData'))]",
-        "rgDeploymentNameSharedSvcR1": "[concat('deploy-ssr1',parameters('location'),parameters('uniqueData'))]",
+        "rgDeploymentNameMonitoringR1": "[concat('deploy-monitoring',parameters('primaryLocation'), parameters('uniqueData'))]",
+        "rgDeploymentNameSharedSvcR1": "[concat('deploy-ssr1',parameters('primaryLocation'),parameters('uniqueData'))]",
         "rgDeploymentNameVwan": "[concat('deploy-vwan',parameters('uniqueData'))]",
-        "rgDeploymentNameVwanSecureHubR1": "[concat('deploy-vwanshr1',parameters('location'),parameters('uniqueData'))]",
-        "rgDeploymentNameWorkloadR1": "[concat('deploy-wlr1',parameters('location'),parameters('uniqueData'))]",
-        "rgNameTransitR1": "[concat('rg-tr-',parameters('location'),parameters('uniqueData'))]",
-        "rgNameSharedSvcR1": "[concat('rg-ss-',parameters('location'),parameters('uniqueData'))]",
-        "rgNameWorkloadR1": "[concat('rg-wl-',parameters('location'),parameters('uniqueData'))]",
+        "rgDeploymentNameVwanSecureHubR1": "[concat('deploy-vwanshr1',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgDeploymentNameWorkloadR1": "[concat('deploy-wlr1',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgNameTransitR1": "[concat('rg-tr-',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgNameSharedSvcR1": "[concat('rg-ss-',parameters('primarylocation'),parameters('uniqueData'))]",
+        "rgNameWorkloadR1": "[concat('rg-wl-',parameters('primaryLocation'),parameters('uniqueData'))]",
         "subDeploymentNameTransitR1": "[concat('deploy-trr1-sub',parameters('uniqueData'))]",
         "subDeploymentNameSharedSvcR1": "[concat('deploy-ssr1-sub',parameters('uniqueData'))]",
         "subDeploymentNameWorkloadR1": "[concat('deploy-wlr1-sub',parameters('uniqueData'))]",
@@ -122,7 +122,7 @@
             "name": "[variables('subDeploymentNameTransitR1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "location": "[parameters('location')]",
+            "location": "[parameters('primaryLocation')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "properties": {
                 "mode": "Incremental",
@@ -134,7 +134,7 @@
                             "name": "[variables('rgNameTransitR1')]",
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "[variables('_apiVersionResources')]",
-                            "location": "[parameters('location')]",
+                            "location": "[parameters('primaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
                             }
@@ -147,7 +147,7 @@
             "name": "[variables('subDeploymentNameSharedSvcR1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "location": "[parameters('location')]",
+            "location": "[parameters('primaryLocation')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
             "properties": {
                 "mode": "Incremental",
@@ -159,7 +159,7 @@
                             "name": "[variables('rgNameSharedSvcR1')]",
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "[variables('_apiVersionResources')]",
-                            "location": "[parameters('location')]",
+                            "location": "[parameters('primaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
                             }
@@ -172,8 +172,8 @@
             "name": "[variables('subDeploymentNameWorkloadR1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "location": "[parameters('location')]",
-            "subscriptionId": "[parameters('workloadSubscriptionId')]",
+            "location": "[parameters('primaryLocation')]",
+            "subscriptionId": "[parameters('workload1SubscriptionId')]",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -184,7 +184,7 @@
                             "name": "[variables('rgNameWorkloadR1')]",
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "[variables('_apiVersionResources')]",
-                            "location": "[parameters('location')]",
+                            "location": "[parameters('primaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
                             }
@@ -208,7 +208,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "location": {
-                        "value": "[parameters('location')]"
+                        "value": "[parameters('primaryLocation')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -239,7 +239,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "primaryLocation": {
-                        "value": "[parameters('location')]"
+                        "value": "[parameters('primaryLocation')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -255,7 +255,7 @@
             }
         },
         {
-            "name": "[variables('rgDeploymentNameMonitoring')]",
+            "name": "[variables('rgDeploymentNameMonitoringR1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
@@ -270,7 +270,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "location": {
-                        "value": "[parameters('location')]"
+                        "value": "[parameters('primaryLocation')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -293,7 +293,7 @@
             "resourceGroup": "[variables('rgNameTransitR1')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameTransitR1'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMonitoring'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMonitoringR1'))]"
 
             ],
             "properties": {
@@ -306,10 +306,10 @@
                         "value": "[parameters('onPremisesAddressSpace')]"
                     },
                     "lawResourceId": {
-                        "value": "[reference(variables('rgDeploymentNameMonitoring')).outputs.lawResourceId.value]"
+                        "value": "[reference(variables('rgDeploymentNameMonitoringR1')).outputs.lawResourceId.value]"
                     },
                     "location": {
-                        "value": "[parameters('location')]"
+                        "value": "[parameters('primaryLocation')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -368,13 +368,13 @@
                         "value": "[parameters('keyVaultAdmin')]"
                     },
                     "lawResourceId": {
-                        "value": "[reference(variables('rgDeploymentNameMonitoring')).outputs.lawResourceId.value]"
+                        "value": "[reference(variables('rgDeploymentNameMonitoringR1')).outputs.lawResourceId.value]"
                     },
                     "location": {
-                        "value": "[parameters('location')]"
+                        "value": "[parameters('primaryLocation')]"
                     },
                     "nsgStorageAccountResourceId": {
-                        "value": "[reference(variables('rgDeploymentNameMonitoring')).outputs.nsgStorageAccountResourceId.value]"
+                        "value": "[reference(variables('rgDeploymentNameMonitoringR1')).outputs.nsgStorageAccountResourceId.value]"
                     },
                     "privateDnsZoneNameAcr": {
                         "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAcr.value]"
@@ -471,7 +471,7 @@
             "name": "[variables('rgDeploymentNameWorkloadR1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "subscriptionId": "[parameters('workloadSubscriptionId')]",
+            "subscriptionId": "[parameters('workload1SubscriptionId')]",
             "resourceGroup": "[variables('rgNameWorkloadR1')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkloadR1'))]",
@@ -481,6 +481,12 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "addressSpaceOnPremises": {
+                        "value": "[parameters('onPremisesAddressSpace')]"
+                    },
+                    "addressSpaceAzure": {
+                        "value": "[variables('addressSpaceAzure')]"
+                    },
                     "dnsServerIp": {
                         "value": "[reference(variables('rgDeploymentNameVwanSecureHubR1')).outputs.azureFirewallIp.value]"
                     },
@@ -488,13 +494,13 @@
                         "value": "[parameters('keyVaultAdmin')]"
                     },
                     "lawResourceId": {
-                        "value": "[reference(variables('rgDeploymentNameMonitoring')).outputs.lawResourceId.value]"
+                        "value": "[reference(variables('rgDeploymentNameMonitoringR1')).outputs.lawResourceId.value]"
                     },
                     "location": {
-                        "value": "[parameters('location')]"
+                        "value": "[parameters('primaryLocation')]"
                     },
                     "nsgStorageAccountResourceId": {
-                        "value": "[reference(variables('rgDeploymentNameMonitoring')).outputs.nsgStorageAccountResourceId.value]"
+                        "value": "[reference(variables('rgDeploymentNameMonitoringR1')).outputs.nsgStorageAccountResourceId.value]"
                     },
                     "rgNameSharedSvcR1": {
                         "value": "[variables('rgNameSharedSvcR1')]"

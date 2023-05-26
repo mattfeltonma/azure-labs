@@ -392,7 +392,42 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
-                "securityRules": []
+                "securityRules": [
+                    {
+                        "name": "AllowRdp",
+                        "properties": {
+                            "description": "Allow RDP",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefixes": [
+                                "[parameters('addressSpaceAzure')]",
+                                "[parameters('addressSpaceOnPremises')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowSsh",
+                        "properties": {
+                            "description": "Allow Ssh",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefixes": [
+                                "[parameters('addressSpaceAzure')]",
+                                "[parameters('addressSpaceOnPremises')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
             }
         },
         {
@@ -457,7 +492,42 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
-                "securityRules": []
+                "securityRules": [
+                    {
+                        "name": "AllowHttp",
+                        "properties": {
+                            "description": "Allow Http",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefixes": [
+                                "[parameters('addressSpaceAzure')]",
+                                "[parameters('addressSpaceOnPremises')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHttps",
+                        "properties": {
+                            "description": "Allow Https",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefixes": [
+                                "[parameters('addressSpaceAzure')]",
+                                "[parameters('addressSpaceOnPremises')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
             }
         },
         {

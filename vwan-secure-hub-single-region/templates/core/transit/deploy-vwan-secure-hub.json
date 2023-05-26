@@ -193,7 +193,6 @@
             "location": "[parameters('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/deployments', variables('deploymentNameAzureFirewallPolicy'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('deploymentNameAzureFirewallPolicy'))]"
             ],
             "properties": {
