@@ -254,14 +254,14 @@
                                 "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
                             },
                             {
-                                "name": "AllowDevVmWorkload",
+                                "name": "AllowAzureToAzure",
                                 "priority": 500,
                                 "action": {
                                     "type": "Allow"
                                 },
                                 "rules": [
                                     {
-                                        "name": "AllowDevVmToWorkloadVnet",
+                                        "name": "AzureAzureToAzure",
                                         "ipProtocols": [
                                             "Any"
                                         ],
@@ -269,12 +269,12 @@
                                             "*"
                                         ],
                                         "sourceAddresses": [
-                                            "[parameters('devSubnetCidr')]"
+                                            "[parameters('cloudAddressSpace')]"
                                         ],
                                         "sourceIpGroups": [],
                                         "destinationIpGroups": [],
                                         "destinationAddresses": [
-                                            "[parameters('workloadVnetCidr')]"
+                                            "[parameters('cloudAddressSpace')]"
                                         ],
                                         "ruleConditionType": "NetworkRuleCondition",
                                         "ruleType": "NetworkRule"
@@ -297,14 +297,14 @@
                         "priority": 300,
                         "ruleCollections": [
                             {
-                                "name": "AllowAzureToInternetTraffic",
+                                "name": "AllowWebTraffic",
                                 "priority": 100,
                                 "action": {
                                     "type": "Allow"
                                 },
                                 "rules": [
                                     {
-                                        "name": "AllowAzureResourcesToInternet",
+                                        "name": "AllowToAll",
                                         "protocols": [
                                             {
                                                 "protocolType": "Https",
@@ -317,72 +317,7 @@
                                         ],
                                         "terminateTLS": false,
                                         "sourceAddresses": [
-                                            "[parameters('cloudAddressSpace')]"
-                                        ],
-                                        "sourceIpGroups": [],
-                                        "targetFqdns": [
-                                            "*"
-                                        ],
-                                        "fqdnTags": [],
-                                        "ruleType": "ApplicationRule"
-                                    }
-                                ],
-                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
-                            },
-                            {
-                                "name": "AllowInfraAzureTraffic",
-                                "priority": 200,
-                                "action": {
-                                    "type": "Allow"
-                                },
-                                "rules": [
-                                    {
-                                        "name": "AllowVmToAppServices",
-                                        "protocols": [
-                                            {
-                                                "protocolType": "Https",
-                                                "port": 443
-                                            },
-                                            {
-                                                "protocolType": "Http",
-                                                "port": 80
-                                            }
-                                        ],
-                                        "terminateTLS": false,
-                                        "sourceAddresses": [
-                                            "[parameters('cloudAddressSpace')]"
-                                        ],
-                                        "sourceIpGroups": [],
-                                        "targetFqdns": [
-                                            "*"
-                                        ],
-                                        "fqdnTags": [],
-                                        "ruleType": "ApplicationRule"
-                                    }
-                                ],
-                                "ruleCollectionType": "FirewallPolicyFilterRuleCollection"
-                            },
-                            {
-                                "name": "AllowOnPremToAzure",
-                                "priority": 300,
-                                "action": {
-                                    "type": "Allow"
-                                },
-                                "rules": [
-                                    {
-                                        "name": "AllowVmToAppServices",
-                                        "protocols": [
-                                            {
-                                                "protocolType": "Https",
-                                                "port": 443
-                                            },
-                                            {
-                                                "protocolType": "Http",
-                                                "port": 80
-                                            }
-                                        ],
-                                        "terminateTLS": false,
-                                        "sourceAddresses": [
+                                            "[parameters('cloudAddressSpace')]",
                                             "[parameters('onPremisesAddressSpace')]"
                                         ],
                                         "sourceIpGroups": [],

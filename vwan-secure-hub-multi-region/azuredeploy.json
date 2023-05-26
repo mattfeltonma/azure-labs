@@ -818,6 +818,12 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "addressSpaceOnPremises": {
+                        "value": "[parameters('onPremisesAddressSpace')]"
+                    },
+                    "addressSpaceAzure": {
+                        "value": "[variables('addressSpaceAzure')]"
+                    },
                     "dnsServerIp": {
                         "value": "[reference(variables('rgDeploymentNameVwanSecureHubR1')).outputs.azureFirewallIp.value]"
                     },
@@ -893,6 +899,12 @@
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
+                    "addressSpaceOnPremises": {
+                        "value": "[parameters('onPremisesAddressSpace')]"
+                    },
+                    "addressSpaceAzure": {
+                        "value": "[variables('addressSpaceAzure')]"
+                    },
                     "dnsServerIp": {
                         "value": "[reference(variables('rgDeploymentNameVwanSecureHubR1')).outputs.azureFirewallIp.value]"
                     },
