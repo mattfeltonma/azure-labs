@@ -292,7 +292,7 @@
                             ],
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 1000,
+                            "priority": 1020,
                             "direction": "Inbound"
                         }
                     },
@@ -309,7 +309,7 @@
                             ],
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 1010,
+                            "priority": 1030,
                             "direction": "Inbound"
                         }
                     }
