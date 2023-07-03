@@ -252,6 +252,10 @@
                         "enabled": true
                     },
                     {
+                        "category": "AZFWFqdnResolveFailure",
+                        "enabled": true
+                    },
+                    {
                         "category": "AZFWFatFlow",
                         "enabled": false
                     },
