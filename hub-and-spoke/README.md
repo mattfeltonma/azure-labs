@@ -1,6 +1,8 @@
 # Azure Hub and Spoke Base Lab
 
 ## Updates
+* 7/2023 - Initial release
+* * Added support for new Azure Firewall logs
 * 11/2022
 * * Added Private DNS Resolver for DNS resolution
 * * Configured Azure Firewall to use Private DNS Resolver as DNS server to allow capturing of DNS queries on Azure Firewall

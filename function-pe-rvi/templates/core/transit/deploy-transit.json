@@ -522,17 +522,54 @@
             "properties": {
                 "name": "SendToWorkspace",
                 "workspaceId": "[reference(variables('deployLaw')).outputs.logAnalyticsResourceId.value]",
+                "logAnalyticsDestinationType": "Dedicated",
                 "logs": [
                     {
-                        "category": "AzureFirewallApplicationRule",
+                        "category": "AZFWNetworkRule",
                         "enabled": true
                     },
                     {
-                        "category": "AzureFirewallNetworkRule",
+                        "category": "AZFWApplicationRule",
                         "enabled": true
                     },
                     {
-                        "category": "AzureFirewallDnsProxy",
+                        "category": "AZFWNatRule",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AZFWThreatIntel",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AZFWIdpsSignature",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AZFWDnsQuery",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AZFWFqdnResolveFailure",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AZFWFatFlow",
+                        "enabled": false
+                    },
+                    {
+                        "category": "AZFWFlowTrace",
+                        "enabled": false
+                    },
+                    {
+                        "category": "AZFWApplicationRuleAggregation",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AZFWNetworkRuleAggregation",
+                        "enabled": true
+                    },
+                    {
+                        "category": "AZFWNatRuleAggregation",
                         "enabled": true
                     }
                 ],

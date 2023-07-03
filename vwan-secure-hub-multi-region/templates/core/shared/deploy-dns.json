@@ -1,0 +1,195 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "primaryLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "The primary location of resources"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that will be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
+        }
+    },
+    "variables": {
+        "_apiVersionDns": "2018-09-01",
+        "privateDnsZoneNameAcr": "privatelink.azurecr.io",
+        "privateDnsZoneNameAppService": "privatelink.azurewebsites.net",
+        "privateDnsZoneNameAksPLocation": "[concat('privatelink.', parameters('primaryLocation'),'.azmk8s.io')]",
+        "privateDnsZoneNameAzureSql": "privatelink.database.windows.net",
+        "privateDnsZoneNameKeyVault": "privatelink.vaultcore.azure.net",
+        "privateDnsZoneNameStorageBlob": "privatelink.blob.core.windows.net",
+        "privateDnsZoneNameStorageDfs": "privatelink.dfs.core.windows.net",
+        "privateDnsZoneNameStorageFile": "privatelink.file.core.windows.net",
+        "privateDnsZoneNameStorageQueue": "privatelink.queue.core.windows.net",
+        "privateDnsZoneNameStorageTable": "privatelink.table.core.windows.net"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('_apiVersionDns')]",
+            "name": "[variables('privateDnsZoneNameAcr')]",
+            "location": "global",
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('_apiVersionDns')]",
+            "name": "[variables('privateDnsZoneNameAksPLocation')]",
+            "location": "global",
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('_apiVersionDns')]",
+            "name": "[variables('privateDnsZoneNameAppService')]",
+            "location": "global",
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('_apiVersionDns')]",
+            "name": "[variables('privateDnsZoneNameAzureSql')]",
+            "location": "global",
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('_apiVersionDns')]",
+            "name": "[variables('privateDnsZoneNameKeyVault')]",
+            "location": "global",
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('_apiVersionDns')]",
+            "name": "[variables('privateDnsZoneNameStorageBlob')]",
+            "location": "global",
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('_apiVersionDns')]",
+            "name": "[variables('privateDnsZoneNameStorageDfs')]",
+            "location": "global",
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('_apiVersionDns')]",
+            "name": "[variables('privateDnsZoneNameStorageFile')]",
+            "location": "global",
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('_apiVersionDns')]",
+            "name": "[variables('privateDnsZoneNameStorageQueue')]",
+            "location": "global",
+            "tags": "[parameters('tags')]"
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "[variables('_apiVersionDns')]",
+            "name": "[variables('privateDnsZoneNameStorageTable')]",
+            "location": "global",
+            "tags": "[parameters('tags')]"
+        }
+    ],
+    "outputs": {
+        "privateDnsZoneNameAcr": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameAcr')]"
+        },
+        "privateDnsZoneNameAksPl": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameAksPLocation')]"
+        },
+        "privateDnsZoneNameAppService": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameAppService')]"
+        },
+        "privateDnsZoneNameAzureSql": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameAzureSql')]"
+        },
+        "privateDnsZoneNameKeyVault": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameKeyVault')]"
+        },
+        "privateDnsZoneNameStorageBlob": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameStorageBlob')]"
+        },
+        "privateDnsZoneNameStorageDfs": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameStorageDfs')]"
+        },
+        "privateDnsZoneNameStorageFile": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameStorageFile')]"
+        },
+        "privateDnsZoneNameStorageQueue": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameStorageQueue')]"
+        },
+        "privateDnsZoneNameStorageTable": {
+            "type": "string",
+            "value": "[variables('privateDnsZoneNameStorageTable')]"
+        },
+        "privateDnsZoneResIdAcr": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/privateDnsZones',variables('privateDnsZoneNameAcr'))]"
+        },
+        "privateDnsZoneResIdAksPl": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/privateDnsZones',variables('privateDnsZoneNameAksPLocation'))]"
+        },
+        "privateDnsZoneResIdAppService": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/privateDnsZones',variables('privateDnsZoneNameAppService'))]"
+        },
+        "privateDnsZoneResIdAzureSql": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/privateDnsZones',variables('privateDnsZoneNameAzureSql'))]"
+        },
+        "privateDnsZoneResIdKeyVault": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/privateDnsZones',variables('privateDnsZoneNameKeyVault'))]"
+        },
+        "privateDnsZoneResIdStorageBlob": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/privateDnsZones',variables('privateDnsZoneNameStorageBlob'))]"
+        },
+        "privateDnsZoneResIdStorageDfs": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/privateDnsZones',variables('privateDnsZoneNameStorageDfs'))]"
+        },
+        "privateDnsZoneResIdStorageFile": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/privateDnsZones',variables('privateDnsZoneNameStorageFile'))]"
+        },
+        "privateDnsZoneResIdStorageQueue": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/privateDnsZones',variables('privateDnsZoneNameStorageQueue'))]"
+        },
+        "privateDnsZoneResIdStorageTable": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/privateDnsZones',variables('privateDnsZoneNameStorageTable'))]"
+        }
+    }
+}

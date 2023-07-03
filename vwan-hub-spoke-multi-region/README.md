@@ -1,12 +1,13 @@
 # Azure VWAN Multi-Region "Hub-and-Spoke-on-Stick"
 
 ## Updates
+7/2023 - Update README to mention routing intent; add support for new Azure Firewall logs
 1/2023 - Initial release
 
 ## Overview
 Microsoft has positioned [Azure VWAN (Virtual WAN)](https://learn.microsoft.com/en-us/azure/virtual-wan/virtual-wan-about) to be the next evolution of the traditional [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli). VWAN provides new features that allow for out-of-the-box transitive connectivity, additional support for [SD-WAN connectivity](https://learn.microsoft.com/en-us/azure/virtual-wan/sd-wan-connectivity-architecture), [new routing capabilities](https://learn.microsoft.com/en-us/azure/virtual-wan/about-virtual-hub-routing), and even [managed security appliances](https://learn.microsoft.com/en-us/azure/firewall-manager/secured-virtual-hub?toc=%2Fazure%2Fvirtual-wan%2Ftoc.json). With any new product, there are feature gaps and VWAN is no exception. Organizations operating in regulated industries must exercise considerable planning to determine if VWAN's current capabilities and gaps will work for its organizational requirements.
 
-This lab provides a multi-region environment supporting north/south and east/west traffic inspection and central mediation. The network design used in this lab is referred to as a [hub-and-spoke-on-a-stick or an indirect spoke model](https://learn.microsoft.com/en-us/azure/virtual-wan/scenario-route-through-nva#architecture). This is one of the only designs today that supports east/west inspection across regions.
+This lab provides a multi-region environment supporting north/south and east/west traffic inspection and central mediation. The network design used in this lab is referred to as a [hub-and-spoke-on-a-stick or an indirect spoke model](https://learn.microsoft.com/en-us/azure/virtual-wan/scenario-route-through-nva#architecture). This is a design that can be used when an enterprise requires a security appliance which is not supported to run in a [VWAN Secure Hub](https://learn.microsoft.com/en-us/azure/firewall-manager/secured-virtual-hub).
 
 The lab deploys an Azure Virtual WAN with two VWAN hubs in different regions. Each VWAN hub is deployed with a virtual network gateway. All connections are associated with the defaultRouteTable and all virtual network connections are configure to propagate to the default route table. Static routes have been added to the default route table and virtual network connections to ensure traffic flows for north/south and east/west flow through a set of VMs inside of an indirect hub virtual network referred to as a mediation virtual network.
 
@@ -24,7 +25,7 @@ Additional features included:
 ![lab image](images/lab_image.svg)
 
 ## Prerequisites
-1. You must hold at least the Contributor role within each Azure subscription you configure the template to deploy resources to.
+1. You must hold the Owner role within each Azure subscription you configure the template to deploy resources to. Contributor may work but has not been tested.
 
 2. Get the object id of the security principal (user, managed identity, service principal) that will have access to the Azure Key Vault instance. This will be used for the keyVaultAdmin parameter of the template. Ensure you are using the most up to date version of az cli.
 

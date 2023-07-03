@@ -1,5 +1,8 @@
 # Azure Function with Private Endpoint and Regional VNet Integration
 
+## Updates
+* 7/2023 - Added support for new Azure Firewall logs
+
 ## Overview
 Organizations in regulated industries are often required to mediate and sometimes inspect traffic to and from applications or code that provide access to or are capable of accessing sensitive data. These applications or code may also need to access resources which exists on-premises or are being exposed only within a customer's private network within a public cloud provider using a feature such as Microsoft Azure's [Private Endpoints](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview). While influencing incoming and outgoing network for applications or code running in an IaaS (Infrastructure-as-a-Service) offering is straightforward, the patterns differ when using PaaS (Platform-as-a-Service).
 

@@ -1,12 +1,13 @@
 # Azure VWAN "Firewall-On-A-Stick"
 
 ## Updates
+7/2023 - Update README to mention routing intent; add support for new Azure Firewall logs
 1/2023 - Initial release
 
 ## Overview
 Microsoft has positioned [Azure VWAN (Virtual WAN)](https://learn.microsoft.com/en-us/azure/virtual-wan/virtual-wan-about) to be the next evolution of the traditional [hub and spoke networking architecture](https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/hybrid-networking/hub-spoke?tabs=cli). VWAN provides new features that allow for out-of-the-box transitive connectivity, additional support for [SD-WAN connectivity](https://learn.microsoft.com/en-us/azure/virtual-wan/sd-wan-connectivity-architecture), [new routing capabilities](https://learn.microsoft.com/en-us/azure/virtual-wan/about-virtual-hub-routing), and even [managed security appliances](https://learn.microsoft.com/en-us/azure/firewall-manager/secured-virtual-hub?toc=%2Fazure%2Fvirtual-wan%2Ftoc.json). With any new product, there are feature gaps and VWAN is no exception. Organizations operating in regulated industries must exercise considerable planning to determine if VWAN's current capabilities and gaps will work for its organizational requirements.
 
-This deployable lab seeks to demonstrate a pattern for regulated organizations that have requirements for inspection and mediation of north/south traffic (to and from the Internet) [is not a supported appliance to run in a Secure Hub](https://learn.microsoft.com/en-us/azure/firewall-manager/trusted-security-partners). This pattern in this lab does not support inspection of east/west traffic (between Azure virtual networks, between on-premises and Azure). If customers have requirements for east/west inspections, customers should either use a traditional hub and spoke architecture or a [VWAN indirect spoke architecture (or "hub and spoke on a stick")](https://learn.microsoft.com/en-us/azure/virtual-wan/scenario-route-through-nva#architecture).
+This deployable lab seeks to demonstrate a pattern for regulated organizations that have requirements for inspection and mediation of north/south traffic (to and from the Internet) [is not a supported appliance to run in a Secure Hub](https://learn.microsoft.com/en-us/azure/firewall-manager/trusted-security-partners). This pattern in this lab does not support inspection of east/west traffic (between Azure virtual networks, between on-premises and Azure) and should only be used if the organization requires a security appliance that is not supported in a [VWAN Secure Hub](https://learn.microsoft.com/en-us/azure/firewall-manager/secured-virtual-hub).
 
 The lab deploys an Azure Virtual WAN with two VWAN hubs in different regions with each hub configured with a VPN Gateway. Each region includes three attached VNets (virtual networks) with one VNet acting as a security VNet and the other VNets acting as workload VNets. 
 

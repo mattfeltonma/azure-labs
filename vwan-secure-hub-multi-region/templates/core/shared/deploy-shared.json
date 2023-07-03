@@ -1,0 +1,1234 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "addressSpaceAzure": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block of address space used in Azure"
+            }
+        },
+        "addressSpaceAzureRegion": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR block of address space used in this Azure region"
+            }
+        },
+        "addressSpaceOnPremises": {
+            "type": "string",
+            "metadata": {
+                "description": "The address space used on-premises"
+            }
+        },
+        "firewallIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP assigned to the Azure Firewall or load balancer in front of the 3rd party firewall pair"
+            }
+        },
+        "keyVaultAdmin": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the user or group who will have full permissons on Azure Key Vault"
+            }
+        },
+        "lawResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Log Analytics Workspace in the Shared Services subscription"
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location to deploy the resources"
+            }
+        },
+        "networkWatcherRg": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where the Network Watcher instances are stored"
+            },
+            "defaultValue": "NetworkWatcherRG"
+        },
+        "nsgStorageAccountResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the Storage Account for NSG Flow logs in the Transit subscription"
+            }
+        },
+        "privateDnsZoneNameAcr": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Private DNS Zone for Azure Container Registry private endpoints"
+            }
+        },
+        "privateDnsZoneNameAksR1": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Private DNS Zone for AKS private endpoints in the primary region"
+            }
+        },
+        "privateDnsZoneNameAppService": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Private DNS Zone for Azure App Services private endpoints"
+            }
+        },
+        "privateDnsZoneNameAzureSql": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Private DNS Zone for Azure SQL private endpoints"
+            }
+        },
+        "privateDnsZoneNameKeyVault": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Private DNS Zone for Azure Key Vault private endpoints"
+            }
+        },
+        "privateDnsZoneNameStorageBlob": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Private DNS Zone for Azure Storage blob private endpoints"
+            }
+        },
+        "privateDnsZoneNameStorageDfs": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Private DNS Zone for Azure Storage DFS private endpoints"
+            }
+        },
+        "privateDnsZoneNameStorageFile": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Private DNS Zone for Azure Storage file private endpoints"
+            }
+        },
+        "privateDnsZoneNameStorageQueue": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Private DNS Zone for Azure Storage queue private endpoints"
+            }
+        },
+        "privateDnsZoneNameStorageTable": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Private DNS Zone for Azure Storage table private endpoints"
+            }
+        },
+        "rgNameSharedSvcR1": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the primary region's shared services resource group"
+            }
+        },
+        "rgNameTransit": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the transit resource group"
+            }
+        },
+        "subIdTransit": {
+            "type": "string",
+            "metadata": {
+                "description": "The transit subscription id"
+            }
+        },
+        "tags": {
+            "type": "object",
+            "metadata": {
+                "description": "The tags that wil be associated to the resources"
+            },
+            "defaultValue": {
+                "environment": "lab"
+            }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            }
+        },
+        "vmAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the VMs that are created"
+            }
+        },
+        "vmAdminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Administrator name for VMs that are created"
+            }
+        },
+        "vmServerIpLinuxDev": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP assigned to the Linux development virtual machine"
+            }
+        },
+        "vmServerIpWindowsDev": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP assigned to the Windows development virtual machine"
+            }
+        },
+        "vnetCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the Shared Services virtual network"
+            }
+        },
+        "vnetCidrWorkload": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the workload virtual network"
+            }
+        },
+        "vnetSubnetCidrDev": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the subnet used for the VM used to deploy code"
+            }
+        },
+        "vnetSubnetCidrDnsIn": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the subnet used for the Private DNS Resolver Inbound Endpoint"
+            }
+        },
+        "vnetSubnetCidrDnsOut": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the subnet used for the Private DNS Resolver Outbound Endpoint"
+            }
+        },
+        "vnetSubnetCidrSvc": {
+            "type": "string",
+            "metadata": {
+                "description": "The CIDR assigned to the subnet used for support services served up behind private endpoints for central services"
+            }
+        },
+        "vwanHubName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the VWAN Hub"
+            }
+        },
+        "vwanHubDefaultRouteTableResourceId": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the default route table for the VWAN Hub"
+            }
+        },
+        "vwanHubDefaultRouteTableLabelName": {
+            "type": "string",
+            "metadata": {
+                "description": "The label name of the default route table for the VWAN Hub"
+            }
+        }
+    },
+    "variables": {
+        "_apiVersionDns": "2018-09-01",
+        "_apiVersionDnsResolver": "2022-07-01",
+        "_apiVersionNetworks": "2020-04-01",
+        "_apiVersionResources": "2020-06-01",
+        "deploymentNameKeyVaultCentral": "[concat('deploy-keyvault-central', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNameKvSecretUsername": "[concat('deploy-kv-secret-username', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNameKvSecretUserPassword": "[concat('deploy-kv-secret-user-password', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNameNsgFlowLogDev": "[concat('deploy-flowlog-dev-shared', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNameNsgFlowLogDnsIn": "[concat('deploy-flowlog-dnsin-shared', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNameNsgFlowLogDnsOut": "[concat('deploy-flowlog-dnsout-shared', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNameNsgFlowLogSvc": "[concat('deploy-flowlog-svc-shared', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNamePeKeyVault": "[concat('deploy-pe-keyvault-shared', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNamePrivateDnsLinks": "[concat('deploy-pdns-links', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNamevHubConnection": "[concat('deploy-vhub-conn-shared', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNameVmLinuxDev": "[concat('deploy-dev-linux-vm', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNameVmWindowsDev": "[concat('deploy-dev-win-vm', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentNameFirewallDnsSettings": "[concat('deploy-fw-dns-transit', variables('locationLetter'), parameters('uniqueData'))]",
+        "deploymentUriAzureFirewall": "[concat(variables('templatesUriGeneral'), 'deploy-fw-policy.json')]",
+        "deploymentUriKeyVault": "[concat(variables('templatesUriGeneral'), 'deploy-key-vault.json')]",
+        "deploymentUriKeyVaultSecret": "[concat(variables('templatesUriGeneral'), 'deploy-keyvault-secret.json')]",
+        "deploymentUriLinuxDevVm": "[concat(variables('templatesUriGeneral'), 'deploy-ubuntu-dev-vm.json')]",
+        "deploymentUriPe": "[concat(variables('templatesUriGeneral'), 'deploy-private-endpoint.json')]",
+        "deploymentUriNsgFlowLog": "[concat(variables('templatesUriGeneral'), 'deploy-nsg-flow-log.json')]",
+        "deploymentUriWindowsDevVm": "[concat(variables('templatesUriGeneral'), 'deploy-windows-dev-vm.json')]",
+        "dnsResolver": "[concat('dnsresolv', variables('locationLetter'), parameters('uniqueData'))]",
+        "dnsResolverInbound": "[concat('dnsresolvin', variables('locationLetter'), parameters('uniqueData'))]",
+        "dnsResolverOutbound": "[concat('dnsresolvout', variables('locationLetter'), parameters('uniqueData'))]",
+        "keyVaultNamePrefix": "[concat('kvcnt', variables('locationLetter'))]",
+        "keyVaultSecretNameUsername": "adminusername",
+        "keyVaultSecretNameUserPassword": "adminpassword",
+        "locationLetter": "[substring(parameters('location'),0,1)]",
+        "nsgNameDev": "[concat('nsg-dev', variables('locationLetter'), parameters('uniqueData'))]",
+        "nsgNameDnsInResolver": "[concat('nsg-dnsin', variables('locationLetter'), parameters('uniqueData'))]",
+        "nsgNameDnsOutResolver": "[concat('nsg-dnsout', variables('locationLetter'), parameters('uniqueData'))]",
+        "nsgNameSupportSvcs": "[concat('nsg-svcs', variables('locationLetter'), parameters('uniqueData'))]",
+        "privateDnsZoneLinkAcr": "[concat(variables('locationLetter'), parameters('uniqueData'),'acrlink')]",
+        "privateDnsZoneLinkAksR1": "[concat(variables('locationLetter'), parameters('uniqueData'),'aksr1link')]",
+        "privateDnsZoneLinkAppService": "[concat(variables('locationLetter'), parameters('uniqueData'),'appsvclink')]",
+        "privateDnsZoneLinkAzureSql": "[concat(variables('locationLetter'), parameters('uniqueData'),'azsqllink')]",
+        "privateDnsZoneLinkKeyVault": "[concat(variables('locationLetter'), parameters('uniqueData'),'keyvaultlink')]",
+        "privateDnsZoneLinkStorageBlob": "[concat(variables('locationLetter'), parameters('uniqueData'),'stbloblink')]",
+        "privateDnsZoneLinkStorageDfs": "[concat(variables('locationLetter'), parameters('uniqueData'),'stdfslink')]",
+        "privateDnsZoneLinkStorageFiles": "[concat(variables('locationLetter'), parameters('uniqueData'),'stfileslink')]",
+        "privateDnsZoneLinkStorageQueue": "[concat(variables('locationLetter'), parameters('uniqueData'),'stqueuelink')]",
+        "privateDnsZoneLinkStorageTable": "[concat(variables('locationLetter'), parameters('uniqueData'),'sttablelink')]",
+        "subscriptionIdSharedSvc": "[subscription().subscriptionId]",
+        "templatesUriGeneral": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
+        "vmNameLinuxDev": "[concat('vmldev01', substring(parameters('location'),0,1))]",
+        "vmNameWindowsDev": "[concat('vmwdev01', substring(parameters('location'),0,1))]",
+        "vmSku": "Standard_D4s_v5",
+        "vnetNameSharedSvc": "[concat('vnet-shared', parameters('location'))]",
+        "vnetStandardDdosProtection": false,
+        "vnetSubnetNameSharedSvcDev": "snet-dev",
+        "vnetSubnetNameSharedSvcDnsIn": "snet-dnsin",
+        "vnetSubnetNameSharedSvcDnsOut": "snet-dnsout",
+        "vnetSubnetNameSharedSvcSvc": "snet-svc"
+    },
+    "resources": [
+        {
+            "name": "[variables('deploymentNameKeyVaultCentral')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "defaultAction": {
+                        "value": "Allow"
+                    },
+                    "keyVaultAdminObjectId": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "keyVaultNamePrefix": {
+                        "value": "[variables('keyVaultNamePrefix')]"
+                    },
+                    "laWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVault')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKvSecretUsername')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.keyVaultName.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('keyVaultSecretNameUsername')]"
+                    },
+                    "secretValue": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVaultSecret')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameKvSecretUserPassword')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.keyVaultName.value]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "secretName": {
+                        "value": "[variables('keyVaultSecretNameUserPassword')]"
+                    },
+                    "secretValue": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriKeyVaultSecret')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgNameDev')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowRdp",
+                        "properties": {
+                            "description": "Allow RDP",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefixes": [
+                                "[parameters('addressSpaceAzure')]",
+                                "[parameters('addressSpaceOnPremises')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowSsh",
+                        "properties": {
+                            "description": "Allow Ssh",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefixes": [
+                                "[parameters('addressSpaceAzure')]",
+                                "[parameters('addressSpaceOnPremises')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgNameDnsInResolver')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowTcpDns",
+                        "properties": {
+                            "description": "Allow TCP DNS queries to resolver",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "53",
+                            "sourceAddressPrefixes": [
+                                "[parameters('addressSpaceOnPremises')]",
+                                "[parameters('addressSpaceAzureRegion')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowUdpDns",
+                        "properties": {
+                            "description": "Allow Udp DNS queries to resolver",
+                            "protocol": "Udp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "53",
+                            "sourceAddressPrefixes": [
+                                "[parameters('addressSpaceOnPremises')]",
+                                "[parameters('addressSpaceAzureRegion')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1001,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgNameDnsOutResolver')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgNameSupportSvcs')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowHttp",
+                        "properties": {
+                            "description": "Allow Http",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefixes": [
+                                "[parameters('addressSpaceAzure')]",
+                                "[parameters('addressSpaceOnPremises')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHttps",
+                        "properties": {
+                            "description": "Allow Https",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefixes": [
+                                "[parameters('addressSpaceAzure')]",
+                                "[parameters('addressSpaceOnPremises')]"
+                            ],
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('deploymentNameNsgFlowLogDev')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDev'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('nsgNameDev')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameDev'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[parameters('nsgStorageAccountResourceId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNsgFlowLog')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameNsgFlowLogDnsIn')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNsgFlowLogDev'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDnsInResolver'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('nsgNameDnsInResolver')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameDnsInResolver'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[parameters('nsgStorageAccountResourceId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNsgFlowLog')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameNsgFlowLogDnsOut')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNsgFlowLogDnsIn'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDnsOutResolver'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('nsgNameDnsOutResolver')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameDnsOutResolver'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[parameters('nsgStorageAccountResourceId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNsgFlowLog')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameNsgFlowLogSvc')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "resourceGroup": "[parameters('networkWatcherRg')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameNsgFlowLogDnsOut'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSupportSvcs'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "targetLaWorkspaceResourceId": {
+                        "value": "[parameters('lawResourceId')]"
+                    },
+                    "targetNsgName": {
+                        "value": "[variables('nsgNameSupportSvcs')]"
+                    },
+                    "targetNsgResourceId": {
+                        "value": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('nsgNameSupportSvcs'))]"
+                    },
+                    "targetStorageResourceId": {
+                        "value": "[parameters('nsgStorageAccountResourceId')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriNsgFlowLog')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('vnetNameSharedSvc')]",
+            "apiVersion": "[variables('_apiVersionNetworks')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDev'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDnsInResolver'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDnsOutResolver'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSupportSvcs'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vnetCidr')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('vnetSubnetNameSharedSvcDev')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('vnetSubnetCidrDev')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDev'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[variables('vnetSubnetNameSharedSvcDnsIn')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('vnetSubnetCidrDnsIn')]",
+                            "delegations": [
+                                {
+                                    "name": "delegationToDnsResolver",
+                                    "properties": {
+                                        "serviceName": "Microsoft.Network/dnsResolvers"
+                                    }
+                                }
+                            ],
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDnsInResolver'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[variables('vnetSubnetNameSharedSvcDnsOut')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('vnetSubnetCidrDnsOut')]",
+                            "delegations": [
+                                {
+                                    "name": "delegationToDnsResolver",
+                                    "properties": {
+                                        "serviceName": "Microsoft.Network/dnsResolvers"
+                                    }
+                                }
+                            ],
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameDnsOutResolver'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "[variables('vnetSubnetNameSharedSvcSvc')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('vnetSubnetCidrSvc')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgNameSupportSvcs'))]"
+                            },
+                            "privateEndpointNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "enableDdosProtection": "[variables('vnetStandardDdosProtection')]",
+                "dhcpOptions": {
+                    "dnsServers": [
+                        "[parameters('firewallIp')]"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNamevHubConnection')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "subscriptionId": "[parameters('subIdTransit')]",
+            "resourceGroup": "[parameters('rgNameTransit')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "name": "[concat(parameters('vwanHubName'),'/',variables('vnetNameSharedSvc'),'-conn')]",
+                            "type": "Microsoft.Network/virtualHubs/hubVirtualNetworkConnections",
+                            "apiVersion": "[variables('_apiVersionNetworks')]",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "allowHubToRemoteVnetTransit": true,
+                                "allowRemoteVnetToUseHubVnetGateways": true,
+                                "enableInternetSecurity": true,
+                                "remoteVirtualNetwork": {
+                                    "id": "[resourceid('Microsoft.Network/virtualNetworks',variables('vnetNameSharedSvc'))]"
+                                },
+                                "routingConfiguration": {
+                                    "associatedRouteTable": {
+                                        "id": "[parameters('vwanHubDefaultRouteTableResourceId')]"
+                                    },
+                                    "propagatedRouteTables": {
+                                        "labels": [
+                                            "[parameters('vwanHubDefaultRouteTableLabelName')]"
+                                        ]
+                                    },
+                                    "vnetRoutes": {
+                                        "staticRoutes": [
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNamePrivateDnsLinks')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "subscriptionId": "[variables('subscriptionIdSharedSvc')]",
+            "resourceGroup": "[parameters('rgNameSharedSvcR1')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNamevHubConnection'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "name": "[concat(parameters('privateDnsZoneNameAppService'), '/', variables('privateDnsZoneLinkAppService'))]",
+                            "location": "global",
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "name": "[concat(parameters('privateDnsZoneNameAcr'), '/', variables('privateDnsZoneLinkAcr'))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameAppService'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkAppService'))]"
+                            ],
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "name": "[concat(parameters('privateDnsZoneNameAksR1'), '/', variables('privateDnsZoneLinkAksR1'))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameAcr'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkAcr'))]"
+                            ],
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                                }
+                            }
+                        },
+
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "name": "[concat(parameters('privateDnsZoneNameAzureSql'), '/', variables('privateDnsZoneLinkAzureSql'))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameAksR1'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkAksR1'))]"
+                            ],
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "name": "[concat(parameters('privateDnsZoneNameStorageFile'), '/', variables('privateDnsZoneLinkStorageFiles'))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameAzureSql'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkAzureSql'))]"
+                            ],
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "name": "[concat(parameters('privateDnsZoneNameStorageBlob'), '/', variables('privateDnsZoneLinkStorageBlob'))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameStorageFile'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkStorageFiles'))]"
+                            ],
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "name": "[concat(parameters('privateDnsZoneNameStorageTable'), '/', variables('privateDnsZoneLinkStorageTable'))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameStorageBlob'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkStorageBlob'))]"
+                            ],
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "name": "[concat(parameters('privateDnsZoneNameStorageDfs'), '/', variables('privateDnsZoneLinkStorageDfs'))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameStorageTable'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkStorageTable'))]"
+                            ],
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "name": "[concat(parameters('privateDnsZoneNameStorageQueue'), '/', variables('privateDnsZoneLinkStorageQueue'))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameStorageDfs'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkStorageDfs'))]"
+                            ],
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "[variables('_apiVersionDns')]",
+                            "name": "[concat(parameters('privateDnsZoneNameKeyVault'), '/', variables('privateDnsZoneLinkKeyVault'))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "[concat('Microsoft.Network/privateDnsZones/',parameters('privateDnsZoneNameStorageQueue'), '/virtualNetworkLinks/', variables('privateDnsZoneLinkStorageQueue'))]"
+                            ],
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('dnsResolver')]",
+            "type": "Microsoft.Network/dnsResolvers",
+            "apiVersion": "[variables('_apiVersionDnsResolver')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNamePrivateDnsLinks'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetNameSharedSvc'))]"
+                }
+            }
+        },
+        {
+            "name": "[concat(variables('dnsResolver'),'/',variables('dnsResolverInbound'))]",
+            "type": "Microsoft.Network/dnsResolvers/inboundEndpoints",
+            "apiVersion": "[variables('_apiVersionDnsResolver')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/dnsResolvers', variables('dnsResolver'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "privateIpAllocationMethod": "Dynamic",
+                        "subnet": {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets',variables('vnetNameSharedSvc'),variables('vnetSubnetNameSharedSvcDnsIn'))]"
+                        }
+                    }
+
+                ]
+            }
+        },
+        {
+            "name": "[concat(variables('dnsResolver'),'/',variables('dnsResolverOutbound'))]",
+            "type": "Microsoft.Network/dnsResolvers/outboundEndpoints",
+            "apiVersion": "[variables('_apiVersionDnsResolver')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/dnsResolvers/inboundEndpoints', variables('dnsResolver'), variables('dnsResolverInbound'))]"
+            ],
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "subnet": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets',variables('vnetNameSharedSvc'),variables('vnetSubnetNameSharedSvcDnsOut'))]"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameFirewallDnsSettings')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "subscriptionId": "[parameters('subIdTransit')]",
+            "resourceGroup": "[parameters('rgNameTransit')]",
+            "dependsOn": [
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "cloudAddressSpace": {
+                        "value": "[parameters('addressSpaceAzure')]"
+                    },
+                    "devSubnetCidr": {
+                        "value": "[parameters('vnetSubnetCidrDev')]"
+                    },
+                    "dnsServerIp": {
+                        "value": "[reference(variables('dnsResolverInbound')).ipConfigurations[0].privateIpAddress]"
+                    },
+                    "dnsSubnetCidr": {
+                        "value": "[parameters('vnetSubnetCidrDnsIn')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "onPremisesAddressSpace": {
+                        "value": "[parameters('addressSpaceOnPremises')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "workloadVnetCidr": {
+                        "value": "[parameters('vnetCidrWorkload')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriAzureFirewall')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNamePeKeyVault')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', variables('deploymentNameFirewallDnsSettings'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateDnsZoneName": {
+                        "value": "[parameters('privateDnsZoneNameKeyVault')]"
+                    },
+                    "privateEndpointLocation": {
+                        "value": "[parameters('location')]"
+                    },
+                    "privateDnsZoneResourceGroup": {
+                        "value": "[parameters('rgNameSharedSvcR1')]"
+                    },
+                    "privateDnsZoneSubscription": {
+                        "value": "[variables('subscriptionIdSharedSvc')]"
+                    },
+                    "privateEndpointSubnetName": {
+                        "value": "[variables('vnetSubnetNameSharedSvcDev')]"
+                    },
+                    "privateEndpointSubResource": {
+                        "value": "vault"
+                    },
+                    "privateEndpointVnetName": {
+                        "value": "[variables('vnetNameSharedSvc')]"
+                    },
+                    "resourceName": {
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.keyVaultName.value]"
+                    },
+                    "resourceIdentifier": {
+                        "value": "[reference(variables('deploymentNameKeyVaultCentral')).outputs.KeyVaultResourceId.value]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriPe')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameVmLinuxDev')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNamePeKeyVault'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
+                    },
+                    "serverIpAddress": {
+                        "value": "[parameters('vmServerIpLinuxDev')]"
+                    },
+                    "subnetName": {
+                        "value": "[variables('vnetSubnetNameSharedSvcDev')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('vmNameLinuxDev')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('vnetNameSharedSvc')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriLinuxDevVm')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "name": "[variables('deploymentNameVmWindowsDev')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('_apiVersionResources')]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/',variables('deploymentNameVmLinuxDev'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "adminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "adminUserName": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "serverIpAddress": {
+                        "value": "[parameters('vmServerIpWindowsDev')]"
+                    },
+                    "myWorkspaceId": {
+                        "value": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]"
+                    },
+                    "myWorkspaceKey": {
+                        "value": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
+                    },
+                    "subnetName": {
+                        "value": "[variables('vnetSubnetNameSharedSvcDev')]"
+                    },
+                    "tags": {
+                        "value": "[parameters('tags')]"
+                    },
+                    "uniqueData": {
+                        "value": "[parameters('uniqueData')]"
+                    },
+                    "virtualMachineSize": {
+                        "value": "[variables('vmSku')]"
+                    },
+                    "vmName": {
+                        "value": "[variables('vmNameWindowsDev')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('vnetNameSharedSvc')]"
+                    }
+                },
+                "templateLink": {
+                    "uri": "[variables('deploymentUriWindowsDevVm')]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}

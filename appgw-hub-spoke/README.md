@@ -1,6 +1,7 @@
 # Application Gateway and Hub and Spoke Lab
 
 ## Updates
+* 7/2023 - Added support for new Azure Firewall logs
 * 12/2022
   * Updated base environment
   * Added more complex web app
