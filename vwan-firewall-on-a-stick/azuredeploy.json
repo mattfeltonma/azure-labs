@@ -56,8 +56,7 @@
             "type": "string",
             "metadata": {
                 "description": "The IP address to trust for incoming SSH sessions to VMs"
-            },
-            "defaultValue": "[subscription().subscriptionId]"
+            }
         },
         "uniqueData": {
             "type": "string",
