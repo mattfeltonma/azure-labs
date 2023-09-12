@@ -28,7 +28,7 @@ apt-get -o DPkg::Lock::Timeout=30 install iptables-persistent -y
 
 #   Add kernal modules to support vrfs
 echo "Installing linux-modules-extra-azure" >> /var/log/provisioning.log
-apt-get -o DPkg::Lock::Timeout=30 install linux-modules-extra-azure -y
+apt-get -o DPkg::Lock::Timeout=30 install linux-modules-extra--$(uname -r) -y
 
 #   Enable IPv4 forwarding
 echo "Setting up ip forwarding" >> /var/log/provisioning.log
