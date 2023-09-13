@@ -714,7 +714,7 @@
                         "value": "[variables('nva2IpOuterSubnetR2')]"
                     },
                     "regionNumber": {
-                        "value": "1"
+                        "value": "2"
                     },
                     "rgNameNetworkWatcher": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
