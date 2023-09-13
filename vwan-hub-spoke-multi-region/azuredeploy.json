@@ -353,6 +353,9 @@
                     "nva2IpOuterSubnet": {
                         "value": "[variables('nva2IpOuterSubnetR1')]"
                     },
+                    "regionNumber": {
+                        "value": "1"
+                    },
                     "rgNameNetworkWatcher": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
                     },
@@ -709,6 +712,9 @@
                     },
                     "nva2IpOuterSubnet": {
                         "value": "[variables('nva2IpOuterSubnetR2')]"
+                    },
+                    "regionNumber": {
+                        "value": "1"
                     },
                     "rgNameNetworkWatcher": {
                         "value": "[parameters('networkWatcherResourceGroup')]"
