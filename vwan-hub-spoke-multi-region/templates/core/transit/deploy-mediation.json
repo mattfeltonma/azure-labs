@@ -62,6 +62,12 @@
                 "description": "The IP address assigned to the NVA VM 1 outer network interface"
             }
         },
+        "regionNumber": {
+            "type": "string",
+            "metadata": {
+                "description": "The number of the region. Example includes 1 or 2"
+            }
+        },
         "rgNameNetworkWatcher": {
             "type": "string",
             "metadata": {
@@ -175,7 +181,7 @@
         "_apiVersionResource": "2020-06-01",
         "_apiVersionStorage": "2019-06-01",
         "_generalTemplatesUri": "[uri(deployment().properties.templateLink.uri, '../../general/')]",
-        "bastionName": "[concat('bst', variables('locationLetter'), parameters('uniqueData'))]",
+        "bastionName": "[concat('bst', variables('locationLetter'),parameters('regionNumber'),parameters('uniqueData'))]",
         "deploymentNameAssignRouteTables": "deploy-assign-route-tables",
         "deploymentNameNsgFlowLogBastion": "deploy-nsg-flow-log-bastion",
         "deploymentNameNsgFlowLogOuter": "deploy-nsg-flow-log-outer",
@@ -204,8 +210,8 @@
         "loadBalProbeNameInt": "probe-ixt-nva",
         "loadBalRuleNameInt": "lbrule-ilb-nva",
         "locationLetter": "[substring(parameters('location'),0,1)]",
-        "nsgNameBastion": "[concat('nsg-bastion', variables('locationLetter'), parameters('uniqueData'))]",
-        "nsgNameOuter": "[concat('nsg-outer', variables('locationLetter'), parameters('uniqueData'))]",
+        "nsgNameBastion": "[concat('nsg-bastion', variables('locationLetter'), parameters('regionNumber'), parameters('uniqueData'))]",
+        "nsgNameOuter": "[concat('nsg-outer', variables('locationLetter'), parameters('regionNumber'), parameters('uniqueData'))]",
         "publicIpElb": "[concat('pip-elb', parameters('uniqueData'))]",
         "publicIpBastion": "[concat('pip-bst',parameters('location'))]",
         "publicIpVm1": "[concat('pip-nva-vm1',parameters('location'))]",
@@ -213,12 +219,12 @@
         "rgNameMediation": "[resourceGroup().name]",
         "routeTableInnerName": "[concat('rt-inner',parameters('location'))]",
         "routeTableOuterName": "[concat('rt-outer',parameters('location'))]",
-        "storageAccountNsg": "[concat('st', variables('locationLetter'), parameters('uniqueData'))]",
+        "storageAccountNsg": "[concat('st', variables('locationLetter'), parameters('regionNumber'),parameters('uniqueData'))]",
         "subscriptionIdMediation": "[subscription().subscriptionId]",
-        "vmNameVm1": "[substring(concat('vmnva1',variables('locationLetter'),parameters('uniqueData')),0,15)]",
-        "vmNameVm2": "[substring(concat('vmnva2',variables('locationLetter'),parameters('uniqueData')),0,15)]",
+        "vmNameVm1": "[substring(concat('vmnva1',variables('locationLetter'),parameters('regionNumber'),parameters('uniqueData')),0,15)]",
+        "vmNameVm2": "[substring(concat('vmnva2',variables('locationLetter'),parameters('regionNumber'),parameters('uniqueData')),0,15)]",
         "vmSku": "Standard_D4s_v5",
-        "vnetName": "[concat('vnet-transit',variables('locationLetter'),parameters('uniqueData'))]",
+        "vnetName": "[concat('vnet-transit',variables('locationLetter'),parameters('regionNumber'),parameters('uniqueData'))]",
         "vnetSubnetNameTransitBastion": "AzureBastionSubnet",
         "vnetSubnetNameTransitNvaInner": "snet-nvainner",
         "vnetSubnetNameTransitNvaOuter": "snet-nvaouter",
