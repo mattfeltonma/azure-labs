@@ -15,7 +15,14 @@
             },
             "defaultValue": "192.168.0.0/16"
         },
-        "location": {
+        "networkWatcherResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource group where Network Watcher resources exist"
+            },
+            "defaultValue": "NetworkWatcherRG"
+        },
+        "primaryLocation": {
             "type": "string",
             "metadata": {
                 "description": "The primary Azure region to deploy resources to."
@@ -52,17 +59,17 @@
             },
             "defaultValue": "[substring(newGuid(),0,8)]"
         },
-        "sharedSvcSubscriptionId": {
+        "workload1SubscriptionId": {
             "type": "string",
             "metadata": {
-                "description": "The id of the subscription where the Shared Services resource group and resources will be deployed"
+                "description": "The id of the subscription where the first workload will be deployed"
             },
             "defaultValue": "[subscription().subscriptionId]"
         },
-        "workloadSubscriptionId": {
+        "workload2SubscriptionId": {
             "type": "string",
             "metadata": {
-                "description": "The id of the subscription where the Workload resource group and resources will be deployed"
+                "description": "The id of the subscription where the second workload will be deployed"
             },
             "defaultValue": "[subscription().subscriptionId]"
         },
@@ -83,43 +90,41 @@
         "_apiVersionResources": "2020-06-01",
         "addressSpaceAzure": "10.0.0.0/8",
         "addressSpaceAzureR1": "10.0.0.0/13",
-        "rgDeploymentNameDns": "[concat('deploy-dns',parameters('uniqueData'))]",
-        "rgDeploymentNameMediationR1": "[concat('deploy-medr1',parameters('location'),parameters('uniqueData'))]",
-        "rgDeploymentNameRoutesR1": "[concat('deploy-routes',parameters('location'),parameters('uniqueData'))]",
-        "rgDeploymentNameSharedSvcR1": "[concat('deploy-ssr1',parameters('location'),parameters('uniqueData'))]",
+        "loadBalancerInnerIpR1": "10.1.0.100",
+        "nvaAsnR1": "65001",
+        "nva1IpInnerSubnetR1": "10.1.0.10",
+        "nva2IpInnerSubnetR1": "10.1.0.20",
+        "nva1IpOuterSubnetR1": "10.1.129.10",
+        "nva2IpOuterSubnetR1": "10.1.129.20",
+        "rgDeploymentNameMediationR1": "[concat('deploy-medr1',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgDeploymentNameRoutes": "[concat('deploy-routes',parameters('primaryLocation'),parameters('uniqueData'))]",
         "rgDeploymentNameVwan": "[concat('deploy-vwan',parameters('uniqueData'))]",
-        "rgDeploymentNameVwanHubR1": "[concat('deploy-vwanhr1',parameters('location'),parameters('uniqueData'))]",
-        "rgDeploymentNameWorkloadR1": "[concat('deploy-wlr1',parameters('location'),parameters('uniqueData'))]",
-        "rgNameTransitR1": "[concat('rg-tr-',parameters('location'),parameters('uniqueData'))]",
-        "rgNameSharedSvcR1": "[concat('rg-ss-',parameters('location'),parameters('uniqueData'))]",
-        "rgNameWorkloadR1": "[concat('rg-wl-',parameters('location'),parameters('uniqueData'))]",
+        "rgDeploymentNameVwanHubR1": "[concat('deploy-vwanhr1',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgDeploymentNameWorkload1R1": "[concat('deploy-wl1r1',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgDeploymentNameWorkload2R1": "[concat('deploy-wl2r1',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgNameTransitR1": "[concat('rg-tr-',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgNameWorkload1R1": "[concat('rg-wl1r1-',parameters('primaryLocation'),parameters('uniqueData'))]",
+        "rgNameWorkload2R1": "[concat('rg-wl2r1-',parameters('primaryLocation'),parameters('uniqueData'))]",
         "subDeploymentNameTransitR1": "[concat('deploy-trr1-sub',parameters('uniqueData'))]",
-        "subDeploymentNameSharedSvcR1": "[concat('deploy-ssr1-sub',parameters('uniqueData'))]",
-        "subDeploymentNameWorkloadR1": "[concat('deploy-wlr1-sub',parameters('uniqueData'))]",
-        "templateFileDns": "[concat(variables('templateUriSharedSvc'), 'deploy-dns.json')]",
+        "subDeploymentNameWorkload1R1": "[concat('deploy-wl1r1-sub',parameters('uniqueData'))]",
+        "subDeploymentNameWorkload2R1": "[concat('deploy-wl2r1-sub',parameters('uniqueData'))]",
         "templateFileRoutes": "[concat(variables('templateUriTransit'), 'deploy-routes.json')]",
         "templateFileMediation": "[concat(variables('templateUriTransit'), 'deploy-mediation.json')]",
-        "templateFileSharedSvc": "[concat(variables('templateUriSharedSvc'), 'deploy-shared.json')]",
         "templateFileVwan": "[concat(variables('templateUriTransit'), 'deploy-vwan.json')]",
         "templateFileVwanHub": "[concat(variables('templateUriTransit'), 'deploy-vwan-hub.json')]",
         "templateFileWorkload": "[concat(variables('templateUriWorkload'), 'deploy-workload.json')]",
-        "templateUriSharedSvc": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/shared/'))]",
         "templateUriTransit": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/transit/'))]",
         "templateUriWorkload": "[concat(uri(deployment().properties.templateLink.uri,'templates/core/workload/'))]",
-        "vmServerIpLinuxDevR1": "10.2.0.10",
-        "vmServerIpWindowsDevR1": "10.2.0.20",
         "vnetCidrTransitR1": "10.1.0.0/16",
-        "vnetCidrSharedSvcR1": "10.2.0.0/16",
-        "vnetCidrWorkloadR1": "10.3.0.0/16",
-        "vnetSubnetCidrSharedSvcDevR1": "10.2.0.0/24",
-        "vnetSubnetCidrSharedSvcDnsInR1": "10.2.1.0/28",
-        "vnetSubnetCidrSharedSvcDnsOutR1": "10.2.2.0/28",
-        "vnetSubnetCidrSharedSvcSvcR1": "10.2.3.0/24",
-        "vnetSubnetCidrTransitAzFwR1": "10.1.0.0/24",
+        "vnetCidrWorkload1R1": "10.2.0.0/16",
+        "vnetCidrWorkload2R1": "10.3.0.0/16",
         "vnetSubnetCidrTransitBastionR1": "10.1.1.0/27",
-        "vnetSubnetCidrWorkloadAppR1": "10.3.0.0/24",
-        "vnetSubnetCidrWorkloadDataR1": "10.3.1.0/24",
-        "vnetSubnetCidrWorkloadSvcR1": "10.3.2.0/24",
+        "vnetSubnetCidrTransitNvaInnerR1": "10.1.0.0/24",
+        "vnetSubnetCidrTransitNvaOuterR1": "10.1.129.0/24",
+        "vnetSubnetCidrTransitNvaInnerGatewayR1": "10.1.0.1",
+        "vnetSubnetCidrTransitNvaOuterGatewayR1": "10.1.129.1",
+        "vnetSubnetCidrWorkload1AppR1": "10.2.0.0/24",
+        "vnetSubnetCidrWorkload2AppR1": "10.3.0.0/24",
         "vwanHubCidrR1": "10.0.0.0/16"
     },
     "resources": [
@@ -127,7 +132,7 @@
             "name": "[variables('subDeploymentNameTransitR1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "location": "[parameters('location')]",
+            "location": "[parameters('primaryLocation')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "properties": {
                 "mode": "Incremental",
@@ -139,7 +144,7 @@
                             "name": "[variables('rgNameTransitR1')]",
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "[variables('_apiVersionResources')]",
-                            "location": "[parameters('location')]",
+                            "location": "[parameters('primaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
                             }
@@ -149,11 +154,11 @@
             }
         },
         {
-            "name": "[variables('subDeploymentNameSharedSvcR1')]",
+            "name": "[variables('subDeploymentNameWorkload1R1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "location": "[parameters('location')]",
-            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
+            "location": "[parameters('primaryLocation')]",
+            "subscriptionId": "[parameters('workload1SubscriptionId')]",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -161,10 +166,10 @@
                     "contentVersion": "1.0.0.0",
                     "resources": [
                         {
-                            "name": "[variables('rgNameSharedSvcR1')]",
+                            "name": "[variables('rgNameWorkload1R1')]",
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "[variables('_apiVersionResources')]",
-                            "location": "[parameters('location')]",
+                            "location": "[parameters('primaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
                             }
@@ -174,11 +179,11 @@
             }
         },
         {
-            "name": "[variables('subDeploymentNameWorkloadR1')]",
+            "name": "[variables('subDeploymentNameWorkload2R1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "location": "[parameters('location')]",
-            "subscriptionId": "[parameters('workloadSubscriptionId')]",
+            "location": "[parameters('primaryLocation')]",
+            "subscriptionId": "[parameters('workload2SubscriptionId')]",
             "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -186,10 +191,10 @@
                     "contentVersion": "1.0.0.0",
                     "resources": [
                         {
-                            "name": "[variables('rgNameWorkloadR1')]",
+                            "name": "[variables('rgNameWorkload2R1')]",
                             "type": "Microsoft.Resources/resourceGroups",
                             "apiVersion": "[variables('_apiVersionResources')]",
-                            "location": "[parameters('location')]",
+                            "location": "[parameters('primaryLocation')]",
                             "tags": "[parameters('tags')]",
                             "properties": {
                             }
@@ -206,14 +211,14 @@
             "resourceGroup": "[variables('rgNameTransitR1')]",
             "dependsOn": [
                 "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameTransitR1'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameSharedSvcR1'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkloadR1'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload1R1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload2R1'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "location": {
-                        "value": "[parameters('location')]"
+                        "value": "[parameters('primaryLocation')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -224,36 +229,6 @@
                 },
                 "templateLink": {
                     "uri": "[variables('templateFileVwan')]",
-                    "contentVersion": "1.0.0.0"
-                }
-            }
-        },
-        {
-            "name": "[variables('rgDeploymentNameDns')]",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "[variables('_apiVersionResources')]",
-            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
-            "resourceGroup": "[variables('rgNameSharedSvcR1')]",
-            "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameTransitR1'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameSharedSvcR1'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkloadR1'))]"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "parameters": {
-                    "primaryLocation": {
-                        "value": "[parameters('location')]"
-                    },
-                    "tags": {
-                        "value": "[parameters('tags')]"
-                    },
-                    "uniqueData": {
-                        "value": "[parameters('uniqueData')]"
-                    }
-                },
-                "templateLink": {
-                    "uri": "[variables('templateFileDns')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
@@ -272,7 +247,7 @@
                 "mode": "Incremental",
                 "parameters": {
                     "location": {
-                        "value": "[parameters('location')]"
+                        "value": "[parameters('primaryLocation')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -309,20 +284,41 @@
                     "addressSpaceAzure": {
                         "value": "[variables('addressSpaceAzure')]"
                     },
-                    "addressSpaceAzureRegion": {
-                        "value": "[variables('addressSpaceAzureR1')]"
-                    },
                     "addressSpaceOnPremises": {
                         "value": "[parameters('onPremisesAddressSpace')]"
                     },
+                    "keyVaultAdmin": {
+                        "value": "[parameters('keyVaultAdmin')]"
+                    },
+                    "loadBalancerInnerIp": {
+                        "value": "[variables('loadBalancerInnerIpR1')]"
+                    },
                     "location": {
-                        "value": "[parameters('location')]"
+                        "value": "[parameters('primaryLocation')]"
                     },
-                    "rgNameSharedSvc": {
-                        "value": "[variables('rgNameSharedSvcR1')]"
+                    "nvaAsn": {
+                        "value": "[variables('nvaAsnR1')]"
                     },
-                    "subscriptionIdSharedSvc": {
-                        "value": "[parameters('sharedSvcSubscriptionId')]"
+                    "nva1IpInnerSubnet": {
+                        "value": "[variables('nva1IpInnerSubnetR1')]"
+                    },
+                    "nva2IpInnerSubnet": {
+                        "value": "[variables('nva2IpInnerSubnetR1')]"
+                    },
+                    "nva1IpOuterSubnet": {
+                        "value": "[variables('nva1IpOuterSubnetR1')]"
+                    },
+                    "nva2IpOuterSubnet": {
+                        "value": "[variables('nva2IpOuterSubnetR1')]"
+                    },
+                    "regionNumber": {
+                        "value": "1"
+                    },
+                    "rgNameNetworkWatcher": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
+                    },
+                    "rgNameVwan": {
+                        "value": "[variables('rgNameTransitR1')]"
                     },
                     "tags": {
                         "value": "[parameters('tags')]"
@@ -330,26 +326,35 @@
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
                     },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
                     "vnetCidr": {
                         "value": "[variables('vnetCidrTransitR1')]"
                     },
-                    "vnetCidrSharedSvc": {
-                        "value": "[variables('vnetCidrSharedSvcR1')]"
+                    "vnetCidrWorkload1": {
+                        "value": "[variables('vnetCidrWorkload1R1')]"
                     },
-                    "vnetCidrWorkload": {
-                        "value": "[variables('vnetCidrWorkloadR1')]"
-                    },
-                    "vnetSubnetCidrAzFw": {
-                        "value": "[variables('vnetSubnetCidrTransitAzFwR1')]"
+                    "vnetCidrWorkload2": {
+                        "value": "[variables('vnetCidrWorkload2R1')]"
                     },
                     "vnetSubnetCidrBastion": {
                         "value": "[variables('vnetSubnetCidrTransitBastionR1')]"
                     },
-                    "vnetSubnetCidrSharedSvcDev": {
-                        "value": "[variables('vnetSubnetCidrSharedSvcDevR1')]"
+                    "vnetSubnetCidrInner": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaInnerR1')]"
                     },
-                    "vnetSubnetCidrSharedSvcDns": {
-                        "value": "[variables('vnetSubnetCidrSharedSvcDnsInR1')]"
+                    "vnetSubnetCidrInnerGatewayIp": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaInnerGatewayR1')]"
+                    },
+                    "vnetSubnetCidrOuter": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaOuterR1')]"
+                    },
+                    "vnetSubnetCidrOuterGatewayIp": {
+                        "value": "[variables('vnetSubnetCidrTransitNvaOuterGatewayR1')]"
                     },
                     "vwanHubName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubName.value]"
@@ -368,77 +373,35 @@
             }
         },
         {
-            "name": "[variables('rgDeploymentNameSharedSvcR1')]",
+            "name": "[variables('rgDeploymentNameWorkload1R1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "subscriptionId": "[parameters('sharedSvcSubscriptionId')]",
-            "resourceGroup": "[variables('rgNameSharedSvcR1')]",
+            "subscriptionId": "[parameters('workload1SubscriptionId')]",
+            "resourceGroup": "[variables('rgNameWorkload1R1')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameSharedSvcR1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload1R1'))]",
                 "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMediationR1'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "addressSpaceAzure": {
-                        "value": "[variables('addressSpaceAzure')]"
-                    },
-                    "addressSpaceAzureRegion": {
-                        "value": "[variables('addressSpaceAzureR1')]"
-                    },
-                    "addressSpaceOnPremises": {
-                        "value": "[parameters('onPremisesAddressSpace')]"
-                    },
-                    "firewallIp": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.firewallIp.value]"
-                    },
-                    "keyVaultAdmin": {
-                        "value": "[parameters('keyVaultAdmin')]"
+                    "ipFirewall": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitLoadBalancerNvaInnerIp.value]"
                     },
                     "lawResourceId": {
                         "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.lawResourceId.value]"
                     },
                     "location": {
-                        "value": "[parameters('location')]"
+                        "value": "[parameters('primaryLocation')]"
                     },
-                    "nsgStorageAccountResourceId": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.nsgStorageAccountResourceId.value]"
-                    },
-                    "privateDnsZoneNameAcr": {
-                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAcr.value]"
-                    },
-                    "privateDnsZoneNameAksR1": {
-                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAksPl.value]"
-                    },
-                    "privateDnsZoneNameAppService": {
-                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAppService.value]"
-                    },
-                    "privateDnsZoneNameAzureSql": {
-                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameAzureSql.value]"
-                    },
-                    "privateDnsZoneNameKeyVault": {
-                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameKeyVault.value]"
-                    },
-                    "privateDnsZoneNameStorageBlob": {
-                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameStorageBlob.value]"
-                    },
-                    "privateDnsZoneNameStorageDfs": {
-                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameStorageDfs.value]"
-                    },
-                    "privateDnsZoneNameStorageFile": {
-                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameStorageFile.value]"
-                    },
-                    "privateDnsZoneNameStorageQueue": {
-                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameStorageQueue.value]"
-                    },
-                    "privateDnsZoneNameStorageTable": {
-                        "value": "[reference(variables('rgDeploymentNameDns')).outputs.privateDnsZoneNameStorageTable.value]"
-                    },
-                    "rgNameSharedSvcR1": {
-                        "value": "[variables('rgNameSharedSvcR1')]"
+                    "rgNameNetworkWatcher": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
                     },
                     "rgNameTransit": {
                         "value": "[variables('rgNameTransitR1')]"
+                    },
+                    "storageAccountResIdNsg": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.storageAccountResourceIdNsg.value]"
                     },
                     "subIdTransit": {
                         "value": "[parameters('transitSubscriptionId')]"
@@ -455,83 +418,58 @@
                     "vmAdminUsername": {
                         "value": "[parameters('vmAdminUsername')]"
                     },
-                    "vmServerIpLinuxDev": {
-                        "value": "[variables('vmServerIpLinuxDevR1')]"
-                    },
-                    "vmServerIpWindowsDev": {
-                        "value": "[variables('vmServerIpWindowsDevR1')]"
-                    },
                     "vnetCidr": {
-                        "value": "[variables('vnetCidrSharedSvcR1')]"
+                        "value": "[variables('vnetCidrWorkload1R1')]"
                     },
-                    "vnetCidrWorkload": {
-                        "value": "[variables('vnetCidrWorkloadR1')]"
+                    "vnetNameMediation": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.vnetNameMediation.value]"
                     },
-                    "vnetNameTransit": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.mediationVnetName.value]"
+                    "vnetResourceIdMediation": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.vnetResourceIdMediation.value]"
                     },
-                    "vnetResourceIdTransit": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitVnetResourceId.value]"
+                    "vnetSubnetCidrApp": {
+                        "value": "[variables('vnetSubnetCidrWorkload1AppR1')]"
                     },
-                    "vnetSubnetCidrDev": {
-                        "value": "[variables('vnetSubnetCidrSharedSvcDevR1')]"
-                    },
-                    "vnetSubnetCidrDnsIn": {
-                        "value": "[variables('vnetSubnetCidrSharedSvcDnsInR1')]"
-                    },
-                    "vnetSubnetCidrDnsOut": {
-                        "value": "[variables('vnetSubnetCidrSharedSvcDnsOutR1')]"
-                    },
-                    "vnetSubnetCidrSvc": {
-                        "value": "[variables('vnetSubnetCidrSharedSvcSvcR1')]"
+                    "workloadNumber": {
+                        "value": "1"
                     }
                 },
                 "templateLink": {
-                    "uri": "[variables('templateFileSharedSvc')]",
+                    "uri": "[variables('templateFileWorkload')]",
                     "contentVersion": "1.0.0.0"
                 }
             }
         },
         {
-            "name": "[variables('rgDeploymentNameWorkloadR1')]",
+            "name": "[variables('rgDeploymentNameWorkload2R1')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
-            "subscriptionId": "[parameters('workloadSubscriptionId')]",
-            "resourceGroup": "[variables('rgNameWorkloadR1')]",
+            "subscriptionId": "[parameters('workload2SubscriptionId')]",
+            "resourceGroup": "[variables('rgNameWorkload2R1')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkloadR1'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameMediationR1'))]",
-                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameSharedSvcR1'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('subDeploymentNameWorkload2R1'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameWorkload1R1'))]"
             ],
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
-                    "keyVaultAdmin": {
-                        "value": "[parameters('keyVaultAdmin')]"
-                    },
-                    "ipDnsServer": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.firewallIp.value]"
-                    },
                     "ipFirewall": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.firewallIp.value]"
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitLoadBalancerNvaInnerIp.value]"
                     },
                     "lawResourceId": {
                         "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.lawResourceId.value]"
                     },
                     "location": {
-                        "value": "[parameters('location')]"
+                        "value": "[parameters('primaryLocation')]"
                     },
-                    "nsgStorageAccountResourceId": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.nsgStorageAccountResourceId.value]"
-                    },
-                    "rgNameSharedSvcR1": {
-                        "value": "[variables('rgNameSharedSvcR1')]"
+                    "rgNameNetworkWatcher": {
+                        "value": "[parameters('networkWatcherResourceGroup')]"
                     },
                     "rgNameTransit": {
                         "value": "[variables('rgNameTransitR1')]"
                     },
-                    "subIdSharedSvc": {
-                        "value": "[parameters('sharedSvcSubscriptionId')]"
+                    "storageAccountResIdNsg": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.storageAccountResourceIdNsg.value]"
                     },
                     "subIdTransit": {
                         "value": "[parameters('transitSubscriptionId')]"
@@ -542,23 +480,26 @@
                     "uniqueData": {
                         "value": "[parameters('uniqueData')]"
                     },
+                    "vmAdminPassword": {
+                        "value": "[parameters('vmAdminPassword')]"
+                    },
+                    "vmAdminUsername": {
+                        "value": "[parameters('vmAdminUsername')]"
+                    },
                     "vnetCidr": {
-                        "value": "[variables('vnetCidrWorkloadR1')]"
+                        "value": "[variables('vnetCidrWorkload2R1')]"
                     },
-                    "vnetNameTransit": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.mediationVnetName.value]"
+                    "vnetNameMediation": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.vnetNameMediation.value]"
                     },
-                    "vnetResourceIdTransit": {
-                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.transitVnetResourceId.value]"
+                    "vnetResourceIdMediation": {
+                        "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.vnetResourceIdMediation.value]"
                     },
                     "vnetSubnetCidrApp": {
-                        "value": "[variables('vnetSubnetCidrWorkloadAppR1')]"
+                        "value": "[variables('vnetSubnetCidrWorkload2AppR1')]"
                     },
-                    "vnetSubnetCidrData": {
-                        "value": "[variables('vnetSubnetCidrWorkloadDataR1')]"
-                    },
-                    "vnetSubnetCidrSvc": {
-                        "value": "[variables('vnetSubnetCidrWorkloadSvcR1')]"
+                    "workloadNumber": {
+                        "value": "2"
                     }
                 },
                 "templateLink": {
@@ -568,13 +509,13 @@
             }
         },
         {
-            "name": "[variables('rgDeploymentNameRoutesR1')]",
+            "name": "[variables('rgDeploymentNameRoutes')]",
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "[variables('_apiVersionResources')]",
             "subscriptionId": "[parameters('transitSubscriptionId')]",
             "resourceGroup": "[variables('rgNameTransitR1')]",
             "dependsOn": [
-                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameWorkloadR1'))]"
+                "[concat('Microsoft.Resources/deployments/', variables('rgDeploymentNameWorkload2R1'))]"
             ],
             "properties": {
                 "mode": "Incremental",
@@ -584,6 +525,9 @@
                     },
                     "mediationVnetNameR1": {
                         "value": "[reference(variables('rgDeploymentNameMediationR1')).outputs.mediationVnetName.value]"
+                    },
+                    "rgNameTransitR1": {
+                        "value": "[variables('rgNameTransitR1')]"
                     },
                     "vhubDefaultRouteTableLabelName": {
                         "value": "[reference(variables('rgDeploymentNameVwanHubR1')).outputs.vwanHubDefaultRouteTableLabelName.value]"

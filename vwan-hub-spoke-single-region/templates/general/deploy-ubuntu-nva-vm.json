@@ -14,10 +14,40 @@
                 "description": "Name of the administrator account created on the VM"
             }
         },
-        "location": {
+        "cloudRegionAddressSpace": {
             "type": "string",
             "metadata": {
-                "description": "The Azure region to deploy the VM"
+                "description": "The IP address used in the Azure region"
+            }
+        },
+        "extLoadBalAddressPool": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the external load balancer address pool"
+            }
+        },
+        "intLoadBalAddressPool": {
+            "type": "string",
+            "metadata": {
+                "description": "The resource id of the internal load balancer address pool"
+            }
+        },
+        "innerNicIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address assigned to the inner nic"
+            }
+        },
+        "innerGatewayIp": {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the gateway for the subnet the outer nic is in"
+            }
+        },
+        "innerSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the subnet in the transit virtual network that the inner nic will be created into"
             }
         },
         "linkedTemplateLocation": {
@@ -27,28 +57,46 @@
             },
             "defaultValue": "[deployment().properties.templateLink.uri]"
         },
-        "myWorkspaceId": {
+        "lawResourceId": {
             "type": "string",
             "metadata": {
-                "description": "The Log and Analytics workspace ID that the Microsoft Monitoring Agent will deliver metrics and logs to"
+                "description": "The resource id of the Log Analytics Workspace to send logs and metrics to"
             }
         },
-        "myWorkspaceKey": {
+        "onPremisesAddressSpace": {
             "type": "string",
             "metadata": {
-                "description": "The Log and Analytics workspace secret"
+                "description": "The IP address space used in on-premises"
             }
         },
-        "serverIpAddress": {
+        "outerGatewayIp": {
             "type": "string",
             "metadata": {
-                "description": "The IP address to assign to the VM"
+                "description": "The IP address of the gateway for the subnet the outer nic is in"
             }
         },
-        "subnetName": {
+        "outerNicPrivateIpAddress": {
             "type": "string",
             "metadata": {
-                "description": "The subnet within the Virtual Network the network interface for the VM is to be placed in"
+                "description": "The private IP address assigned to the outer nic"
+            }
+        },
+        "outerNicPublicIpAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "The public IP address assigned to the outer nic"
+            }
+        },
+        "outerSubnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the subnet in the transit virtual network that the outer nic will be created into"
+            }
+        },
+        "routerAsn": {
+            "type": "string",
+            "metadata": {
+                "description": "The ASN to assign to the router in the Quagga config"
             }
         },
         "tags": {
@@ -56,6 +104,13 @@
             "metadata": {
                 "description": "The tags that will be associated to the VM"
             }
+        },
+        "uniqueData": {
+            "type": "string",
+            "metadata": {
+                "description": "Data used to append to resources to ensure uniqueness"
+            },
+            "defaultValue": "[substring(newGuid(),0,8)]"
         },
         "virtualMachineSize": {
             "type": "string",
@@ -91,37 +146,74 @@
         }
     },
     "variables": {
-        "_apiVersionNetworks": "2021-08-01",
-        "_apiVersionVm": "2021-11-01",
-        "managedDiskTypeOs": "StandardSSD_LRS",
-        "nicAcceleratedNetworking": "true",
-        "nicNamePrimary": "[concat('nic',parameters('vmName'))]",
-        "customScriptExtensionScriptName": "prepare_ubuntu_vm.sh",
-        "customScriptExtensionScriptUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../scripts/', variables('customScriptExtensionScriptName')))]",
+        "networkApiVersion": "2021-08-01",
+        "vmApiVersion": "2021-11-01",
+        "location": "[resourceGroup().location]",
+        "innerNicName": "[concat(parameters('vmName'),'inner',parameters('uniqueData'))]",
+        "innerSubnetRef": "[resourceId(parameters('vnetSubscriptionId'),parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('innerSubnetName'))]",
+        "outerSubnetRef": "[resourceId(parameters('vnetSubscriptionId'),parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('outerSubnetName'))]",
+        "outerNicName": "[concat(parameters('vmName'),'outer',parameters('uniqueData'))]",
+        "osDiskType": "StandardSSD_LRS",
+        "scriptName": "prepare_ubuntu_nva_vm.sh",
+        "scriptUrl": "[uri(parameters('linkedTemplateLocation'), concat('../../scripts/', variables('scriptName')))]",
         "vmOffer": "0001-com-ubuntu-server-focal",
         "vmPublisher": "Canonical",
         "vmSku": "20_04-lts-gen2",
-        "vmVersion": "latest",
-        "vnetSubnetRef": "[resourceId(parameters('vnetSubscriptionId'),parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks/subnets',parameters('vnetName'),parameters('subnetName'))]"
+        "vmVersion": "latest"
     },
     "resources": [
         {
-            "name": "[variables('nicNamePrimary')]",
+            "name": "[variables('outerNicName')]",
             "type": "Microsoft.Network/networkInterfaces",
-            "apiVersion": "[variables('_apiVersionNetworks')]",
-            "location": "[parameters('location')]",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "properties": {
-                "enableAcceleratedNetworking": "[variables('nicAcceleratedNetworking')]",
+                "enableIPForwarding": true,
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
                         "properties": {
                             "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[parameters('serverIpAddress')]",
+                            "privateIPAddress": "[parameters('outerNicPrivateIpAddress')]",
+                            "publicIPAddress": {
+                                "id": "[parameters('outerNicPublicIpAddress')]"
+                            },
                             "subnet": {
-                                "id": "[variables('vnetSubnetRef')]"
-                            }
+                                "id": "[variables('outerSubnetRef')]"
+                            },
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[parameters('extLoadBalAddressPool')]"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('innerNicName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "[variables('networkApiVersion')]",
+            "location": "[variables('location')]",
+            "tags": "[parameters('tags')]",
+            "properties": {
+                "enableIPForwarding": true,
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[parameters('innerNicIpAddress')]",
+                            "subnet": {
+                                "id": "[variables('innerSubnetRef')]"
+                            },
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[parameters('intLoadBalAddressPool')]"
+                                }
+                            ]
                         }
                     }
                 ]
@@ -130,11 +222,12 @@
         {
             "name": "[parameters('vmName')]",
             "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "[variables('_apiVersionVm')]",
-            "location": "[parameters('location')]",
+            "apiVersion": "[variables('vmApiVersion')]",
+            "location": "[variables('location')]",
             "tags": "[parameters('tags')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrimary'))]"
+                "[concat('Microsoft.Network/networkInterfaces/', variables('outerNicName'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('innerNicName'))]"
             ],
             "properties": {
                 "diagnosticsProfile": {
@@ -148,7 +241,16 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicNamePrimary'))]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('outerNicName'))]",
+                            "properties": {
+                                "primary": true
+                            }
+                        },
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('innerNicName'))]",
+                            "properties": {
+                                "primary": false
+                            }
                         }
                     ]
                 },
@@ -165,7 +267,7 @@
                     "osDisk": {
                         "createOption": "fromImage",
                         "managedDisk": {
-                            "storageAccountType": "[variables('managedDiskTypeOs')]"
+                            "storageAccountType": "[variables('osDiskType')]"
                         }
                     },
                     "imageReference": {
@@ -180,8 +282,8 @@
                 {
                     "name": "[concat(parameters('vmName'),'/CustomScriptExtension')]",
                     "type": "Microsoft.Compute/virtualMachines/extensions",
-                    "apiVersion": "[variables('_apiVersionVm')]",
-                    "location": "[parameters('location')]",
+                    "apiVersion": "[variables('vmApiVersion')]",
+                    "location": "[variables('location')]",
                     "tags": "[parameters('tags')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]"
@@ -195,17 +297,17 @@
                         },
                         "protectedSettings": {
                             "fileUris": [
-                                "[variables('customScriptExtensionScriptUrl')]"
+                                "[variables('scriptUrl')]"
                             ],
-                            "commandToExecute": "[concat('sh ', variables('customScriptExtensionScriptName'), ' ', parameters('adminUsername'))]"
+                            "commandToExecute": "[concat('sh ',variables('scriptName'), ' ',parameters('cloudRegionAddressSpace'), ' ',parameters('onPremisesAddressSpace'), ' ',parameters('innerGatewayIp'), ' ',parameters('outerGatewayIp'), ' ',parameters('innerNicIpAddress'),' ',parameters('routerAsn'))]"
                         }
                     }
                 },
                 {
                     "type": "extensions",
                     "name": "Microsoft.Azure.NetworkWatcher",
-                    "apiVersion": "[variables('_apiVersionVm')]",
-                    "location": "[parameters('location')]",
+                    "apiVersion": "[variables('vmApiVersion')]",
+                    "location": "[variables('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/CustomScriptExtension')]"
@@ -220,8 +322,8 @@
                 {
                     "type": "extensions",
                     "name": "OMSExtension",
-                    "apiVersion": "[variables('_apiVersionVm')]",
-                    "location": "[parameters('location')]",
+                    "apiVersion": "[variables('vmApiVersion')]",
+                    "location": "[variables('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/Microsoft.Azure.NetworkWatcher')]"
@@ -232,19 +334,19 @@
                         "typeHandlerVersion": "1.13",
                         "autoUpgradeMinorVersion": true,
                         "settings": {
-                            "workspaceId": "[parameters('myWorkspaceId')]",
+                            "workspaceId": "[reference(parameters('lawResourceId'), '2015-03-20').customerId]",
                             "stopOnMultipleConnections": true
                         },
                         "protectedSettings": {
-                            "workspaceKey": "[parameters('myWorkspaceKey')]"
+                            "workspaceKey": "[listKeys(parameters('lawResourceId'), '2015-03-20').primarySharedKey]"
                         }
                     }
                 },
                 {
                     "type": "extensions",
                     "name": "DependencyAgentLinux",
-                    "apiVersion": "[variables('_apiVersionVm')]",
-                    "location": "[parameters('location')]",
+                    "apiVersion": "[variables('vmApiVersion')]",
+                    "location": "[variables('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/OMSExtension')]"
@@ -259,8 +361,8 @@
                 {
                     "type": "extensions",
                     "name": "AzureMonitorLinuxAgent",
-                    "apiVersion": "[variables('_apiVersionVm')]",
-                    "location": "[parameters('location')]",
+                    "apiVersion": "[variables('vmApiVersion')]",
+                    "location": "[variables('location')]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'))]",
                         "[concat('Microsoft.Compute/virtualMachines/', parameters('vmName'), '/extensions/DependencyAgentLinux')]"
